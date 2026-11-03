@@ -81,3 +81,4 @@ end
 
 require("blackburn_enhance").install_enemy()
 require("godieth_enhance").install_enemy()
+require("navira_duelist").install_enemy()

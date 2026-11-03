@@ -261,7 +261,7 @@ M.options = {
 		cast_sound = "YaoSpellCast",
 		required_textures = {"yao_spell_icon", "yao_spell_fx"},
 		required_sounds = {"power_yao_spell"},
-		description = "Hồi sinh toàn bộ đơn vị phe ta và cấp 200 khiên cho mọi đơn vị không bay. Câm lặng toàn bộ anh hùng phe địch, giảm 50% sức tấn công, giáp và kháng phép của chúng trong 14 giây. Thời gian hồi: 70 giây."
+		description = "Hồi sinh toàn bộ đơn vị phe ta và cấp 200 khiên cho mọi đơn vị không bay. Câm lặng toàn bộ anh hùng phe địch, giảm 50% sức tấn công và xóa toàn bộ giáp vật lý lẫn kháng phép của chúng trong 14 giây. Thời gian hồi: 70 giây."
 	},
 	shaosiyuan_fateful_bond = {
 		label = "Nhân duyên hội ngộ",
@@ -276,7 +276,7 @@ M.options = {
 		cast_sound = "ShaosiyuanSpellCast",
 		required_textures = {"shaosiyuan_spell_icon", "shaosiyuan_spell_fx"},
 		required_sounds = {"power_shaosiyuan_spell"},
-		description = "Hồi sinh toàn bộ đơn vị phe ta. Trong 16 giây, đồng đội trên toàn bản đồ hồi 10% máu tối đa mỗi giây; mọi kẻ địch bị giảm 30% tốc độ di chuyển và chịu 8 sát thương chuẩn mỗi giây. Cứ tác động đến 2 lính đồng minh hoặc 2 kẻ địch sẽ nhận 2 vàng. Thời gian hồi: 80 giây."
+		description = "Hồi sinh toàn bộ đơn vị phe ta. Trong 16 giây, đồng đội trên toàn bản đồ hồi 10% máu tối đa mỗi giây; mọi kẻ địch bị giảm 35% tốc độ di chuyển và chịu 6 sát thương chuẩn mỗi 0,5 giây. Cứ tác động đến 2 lính đồng minh hoặc 2 kẻ địch sẽ nhận 4 vàng. Thời gian hồi: 80 giây."
 	},
 	default_cataclysm = {
 		label = "Phép tấn công mặc định",
@@ -340,18 +340,6 @@ M.options = {
 		"Tiêu diệt kẻ địch thường trên chiến trường và gây 3000 sát thương chuẩn lên trùm.", "area", nil)
 }
 
-local cataclysm_options = {
-	default_cataclysm = true,
-	fireball_g1 = true,
-	fireball_g2 = true,
-	thunder_g3 = true,
-	fireball_g6 = true
-}
-
-function M.is_cataclysm(option_id)
-	return cataclysm_options[option_id] == true
-end
-
 local default_slots = {
 	"default_cataclysm",
 	"default_reinforcement",
@@ -385,19 +373,6 @@ function M.normalize(user_data)
 		end
 	end
 
-	local has_cataclysm = false
-
-	for slot = 1, 3 do
-		if M.is_cataclysm(selection.slots[slot]) then
-			if has_cataclysm then
-				selection.slots[slot] = "empty_spell"
-				changed = true
-			else
-				has_cataclysm = true
-			end
-		end
-	end
-
 	if selection.hero_ultimate ~= nil then
 		selection.hero_ultimate = nil
 		changed = true
@@ -418,14 +393,6 @@ function M.set(user_data, slot, option_id)
 	end
 
 	local selection = M.normalize(user_data)
-
-	if M.is_cataclysm(option_id) then
-		for other_slot = 1, 3 do
-			if other_slot ~= slot and M.is_cataclysm(selection.slots[other_slot]) then
-				return false, "cataclysm_limit"
-			end
-		end
-	end
 
 	selection.slots[slot] = option_id
 

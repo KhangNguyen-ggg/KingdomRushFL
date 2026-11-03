@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_machine_gunner_asst_machinegunner_base_skill_basic_skill_a",22.25,28.39999962}},["attach_points"]={},["animations"]={{["name"]="idle",["frames"]={{{1,1,1,-26.10000038,-39,1,1,0,0,0}}}}}}

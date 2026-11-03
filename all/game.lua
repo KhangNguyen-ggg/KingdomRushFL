@@ -641,6 +641,8 @@ if DEBUG then
 end
 
 function game:restart()
+	-- Entity removal callbacks are skipped when the simulation is reset.
+	signal.emit("game-cleanup", self.store)
 	require("systems").texts:clear_cache()
 	self.game_gui:destroy()
 	signal.end_stage()
@@ -672,6 +674,8 @@ function game:restart()
 end
 
 function game:destroy()
+	signal.emit("game-cleanup", self.store)
+
 	if IS_ANDROID then
 		adaptive_fps:destroy()
 	end
@@ -777,19 +781,24 @@ function game:update(dt)
 	local speed_3x_key = shortcut_settings.key(key_shortcuts, "speed_3x", 1, SELF_DEFINED_KEY_3X)
 	local speed_12x_key = shortcut_settings.key(key_shortcuts, "speed_12x", 1, SELF_DEFINED_KEY_12X)
 
+	local playback_speed = self.playback_speed or 1
 	if love.keyboard.isDown(speed_slow_key) then
+		playback_speed = "slow"
+	elseif love.keyboard.isDown(speed_3x_key) then
+		playback_speed = 4
+	elseif love.keyboard.isDown(speed_12x_key) or IS_ANDROID and self.game_gui and self.game_gui.android_virtual_r_down then
+		playback_speed = 12
+	end
+
+	if playback_speed == "slow" then
 		if self.upd == 12 then
 			self.simulation:update(simulation_dt)
 			self.upd = 0
 		else
 			self.upd = self.upd + 1
 		end
-	elseif love.keyboard.isDown(speed_3x_key) then
-		for i = 1, 4 do
-			self.simulation:update(simulation_dt)
-		end
-	elseif love.keyboard.isDown(speed_12x_key) or IS_ANDROID and self.game_gui and self.game_gui.android_virtual_r_down then
-		for i = 1, 12 do
+	elseif playback_speed > 1 then
+		for i = 1, playback_speed do
 			self.simulation:update(simulation_dt)
 		end
 	elseif self.DBG_TIME_MULT then

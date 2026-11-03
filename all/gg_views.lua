@@ -1605,6 +1605,9 @@ function GGExo:update(dt)
 
 	if not aa then
 		log.error("Exo animation named %s could not be found in GGExo animations list %s", aa_name, getdump(self.animations))
+		self._exo_frame = nil
+
+		return
 	end
 
 	local fn, runs = self:animation_frame(aa, self.ts, self.loop, self.fps)

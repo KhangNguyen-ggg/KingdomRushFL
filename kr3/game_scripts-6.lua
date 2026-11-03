@@ -7028,6 +7028,7 @@ end
 function scripts.hero_gerald.update(this, store)
 	local h = this.health
 	local brk, sta
+	local last_blocker_id
 	local old_tombstone_time = this.hero.tombstone_show_time
 	local old_tombstone_respawn_animation = this.hero.tombstone_respawn_animation
 
@@ -7065,6 +7066,10 @@ function scripts.hero_gerald.update(this, store)
 	end
 
 	while true do
+		if this.soldier.target_id then
+			last_blocker_id = this.soldier.target_id
+		end
+
 		if ult_start_cd and store.wave_group_number > 0 then
 			ult_start_cd = false
 			ua.ts = store.tick_ts
@@ -7089,10 +7094,18 @@ function scripts.hero_gerald.update(this, store)
 
 				queue_insert(store, decal)
 
-				if this.soldier.target_id and store.entities[this.soldier.target_id] and not store.entities[this.soldier.target_id].health.dead then
+				local attacker_id = h.last_damage_source_id
+				local attacker = attacker_id and store.entities[attacker_id]
+
+				if not attacker or not attacker.enemy or not attacker.health or attacker.health.dead then
+					attacker_id = this.soldier.target_id or last_blocker_id
+					attacker = attacker_id and store.entities[attacker_id]
+				end
+
+				if attacker and attacker.enemy and attacker.health and not attacker.health.dead then
 					local mod_teleport = E:create_entity(a.mod)
 
-					mod_teleport.modifier.target_id = this.soldier.target_id
+					mod_teleport.modifier.target_id = attacker.id
 					mod_teleport.modifier.source_id = this.id
 
 					queue_insert(store, mod_teleport)
@@ -12121,7 +12134,7 @@ function scripts.hero_rhodes.update(this, store)
 				U.y_animation_play(this, "level_up", nil, store.tick_ts, 1)
 			end
 
-			if not st1.disabled and talent_1_armor_mod == nil and this.health.hp > this.health.hp_max * (1 - st1.hp_threshold) then
+			if not st1.disabled and talent_1_armor_mod == nil and this.health.hp > this.health.hp_max * st1.hp_threshold then
 				talent_1_armor_mod = E:create_entity(st1.mod)
 				talent_1_armor_mod.modifier.source_id = this.id
 				talent_1_armor_mod.modifier.target_id = this.id
@@ -12129,7 +12142,7 @@ function scripts.hero_rhodes.update(this, store)
 				queue_insert(store, talent_1_armor_mod)
 			end
 
-			if talent_1_armor_mod ~= nil and this.health.hp <= this.health.hp_max * (1 - st1.hp_threshold) then
+			if talent_1_armor_mod ~= nil and this.health.hp <= this.health.hp_max * st1.hp_threshold then
 				queue_remove(store, talent_1_armor_mod)
 
 				talent_1_armor_mod = nil
@@ -25268,7 +25281,6 @@ function scripts.tower_mage.get_info(this)
 end
 
 function scripts.tower_light_priestess.update(this, store)
-	local range = this.attacks.range
 	local a = this.attacks.list[1]
 	local sa = this.timed_attacks and this.timed_attacks.list[1] or nil
 	local sb = this.timed_attacks and this.timed_attacks.list[2] or nil
@@ -25370,7 +25382,7 @@ function scripts.tower_light_priestess.update(this, store)
 
 			if store.tick_ts - a.ts > a.cooldown then
 				local attacks
-				local target, _, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, range, 0, this.vis_flags, this.vis_bans)
+				local target, _, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, this.attacks.range, 0, this.vis_flags, this.vis_bans)
 
 				if not target then
 					SU.delay_attack(store, a, fts(5))
@@ -26188,7 +26200,6 @@ function scripts.tower_alchemist.update(this, store, script)
 	local sid_cauldron = this.render.sid_cauldron
 	local sid_book = this.render.sid_book
 	local sid_bubbles = this.render.sid_bubbles
-	local range = this.attacks.range
 	local last_ts = store.tick_ts
 	local ska_proj_count = 0
 	local as = this.attacks
@@ -26399,7 +26410,7 @@ function scripts.tower_alchemist.update(this, store, script)
 			::label_719_0::
 
 			if store.tick_ts - a.ts > as.cooldown then
-				local target, pred_pos = find_foremost_non_slowed_enemy(store.entities, tpos(this), 0, range, a.node_prediction, a.vis_flags, a.vis_bans)
+				local target, pred_pos = find_foremost_non_slowed_enemy(store.entities, tpos(this), 0, this.attacks.range, a.node_prediction, a.vis_flags, a.vis_bans)
 
 				if not target then
 					SU.delay_attack(store, a, fts(5))
@@ -34069,11 +34080,14 @@ function scripts.mod_power_royal_edict_towerbuff.insert(this, store)
 	end
 
 	if this.respawn_barracks and target.barrack then
-		for _, e in pairs(target.barrack.soldiers) do
-			if e.health and e.health.hp <= 0 then
-				e.health.dead = true
+		for _, soldier_ref in pairs(target.barrack.soldiers or {}) do
+			local soldier = type(soldier_ref) == "table" and soldier_ref or store.entities[soldier_ref]
+			local health = soldier and soldier.health
 
-				queue_remove(store, e)
+			if health and health.hp ~= nil and health.hp <= 0 then
+				health.dead = true
+
+				queue_remove(store, soldier)
 			end
 		end
 	end

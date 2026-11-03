@@ -19110,9 +19110,7 @@ return {
                 ["y_position"] = 0
             },
             {
-                ["text"] = "Alvaro Azofra
-Pablo Realini
-Gonzalo Sande",
+                ["text"] = "Alvaro Azofra\nPablo Realini\nGonzalo Sande",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19178,8 +19176,7 @@ Gonzalo Sande",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Alvaro Azofra
-Leandro Mesquita",
+                ["text"] = "Alvaro Azofra\nLeandro Mesquita",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19201,9 +19198,7 @@ Leandro Mesquita",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Leandro Mesquita
-Pablo Falero
-Enzo Gaiero",
+                ["text"] = "Leandro Mesquita\nPablo Falero\nEnzo Gaiero",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19247,8 +19242,7 @@ Enzo Gaiero",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Guillermo Amorin
-Juan Andres Nin",
+                ["text"] = "Guillermo Amorin\nJuan Andres Nin",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19270,8 +19264,7 @@ Juan Andres Nin",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Gonzalo Sande
-Juan Pais",
+                ["text"] = "Gonzalo Sande\nJuan Pais",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19293,11 +19286,7 @@ Juan Pais",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Mariana Castro
-Martin Chaparro
-Nicolás de León
-Diego Lopez
-Agostina Ravera",
+                ["text"] = "Mariana Castro\nMartin Chaparro\nNicolás de León\nDiego Lopez\nAgostina Ravera",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19330,9 +19319,7 @@ Agostina Ravera",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "
--/-
-",
+                ["text"] = "\n-/-\n",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 20,
                 ["color"] = {
@@ -19409,8 +19396,7 @@ Agostina Ravera",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Eduardo García
-Emiliano Luna",
+                ["text"] = "Eduardo García\nEmiliano Luna",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19454,8 +19440,7 @@ Emiliano Luna",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Lucía García
-Lucía Rodríguez",
+                ["text"] = "Lucía García\nLucía Rodríguez",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19488,9 +19473,7 @@ Lucía Rodríguez",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "
--/-
-",
+                ["text"] = "\n-/-\n",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 20,
                 ["color"] = {
@@ -19523,8 +19506,7 @@ Lucía Rodríguez",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Camile Cazot
-Guillermo \"Trasgo\" Sotuyo",
+                ["text"] = "Camile Cazot\nGuillermo \"Trasgo\" Sotuyo",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19612,9 +19594,7 @@ Guillermo \"Trasgo\" Sotuyo",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Emanuel Perez
-Lucía Mostarda
-Lucía Rodriguez",
+                ["text"] = "Emanuel Perez\nLucía Mostarda\nLucía Rodriguez",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19647,9 +19627,7 @@ Lucía Rodriguez",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "
--/-
-",
+                ["text"] = "\n-/-\n",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 20,
                 ["color"] = {
@@ -19671,9 +19649,7 @@ Lucía Rodriguez",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Ignacio González
-José Carlos Campos
-Bruno Boselli",
+                ["text"] = "Ignacio González\nJosé Carlos Campos\nBruno Boselli",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19761,14 +19737,7 @@ Bruno Boselli",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Paula Bentancur
-Bart Calixto
-Ariel Coppes
-Gerson Da Silva
-Rubén Garat
-Ciro Mondueri
-Sebastián Guadalupe
-Luciana Reyes",
+                ["text"] = "Paula Bentancur\nBart Calixto\nAriel Coppes\nGerson Da Silva\nRubén Garat\nCiro Mondueri\nSebastián Guadalupe\nLuciana Reyes",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19790,8 +19759,7 @@ Luciana Reyes",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Lucia Gomez
-Victoria De Lima",
+                ["text"] = "Lucia Gomez\nVictoria De Lima",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19824,16 +19792,7 @@ Victoria De Lima",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Guillermo Amorín, Gabriel Artus, Alvaro Azofra, 
-Paula Bentancur, Bart Calixto, Mariana Castro,
-Leonardo Clavijo, Ariel Coppes, Gerson Da Silva,
-Esteban Dal Monte, Bruno de Leone, Ruben Garat,
-Anthony García, Lucía Gomez, Manuel Gonzalez,
-Sebastián  Guadalupe, Pepe Infantozzi, Diego Lopez,
-Luján Mackinnon, Maximiliano Mañay, Agustin Mastalli,
-Leandro Mesquita, Juan Andrés Nin, Juan Pais,
-Agostina Ravera, Pablo Realini, Gonzalo Sande,
-Matías Sniadower, Guillermo Sotuyo, Franco Zucchi",
+                ["text"] = "Guillermo Amorín, Gabriel Artus, Alvaro Azofra, \nPaula Bentancur, Bart Calixto, Mariana Castro,\nLeonardo Clavijo, Ariel Coppes, Gerson Da Silva,\nEsteban Dal Monte, Bruno de Leone, Ruben Garat,\nAnthony García, Lucía Gomez, Manuel Gonzalez,\nSebastián  Guadalupe, Pepe Infantozzi, Diego Lopez,\nLuján Mackinnon, Maximiliano Mañay, Agustin Mastalli,\nLeandro Mesquita, Juan Andrés Nin, Juan Pais,\nAgostina Ravera, Pablo Realini, Gonzalo Sande,\nMatías Sniadower, Guillermo Sotuyo, Franco Zucchi",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19855,23 +19814,7 @@ Matías Sniadower, Guillermo Sotuyo, Franco Zucchi",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Christian Cortez (Voduke), Ronald, FastAndBlast, Filip Dráber,
-Grzegorz (canlupus) Głaczynski, Harkmen, Tran Hoàng Lân,
-Gerjan Schepers, Manijure, Mervyn, Ninja, Christopher Wiley,
-Raj McKenney, The Kingmaker, DarkSide, Abraar Nisar, Logan Apple,
-Young Koh, Skully, Bretislav Horak, Brickmotion, Guilherme Leocadio,
-Jorge, Carrrl, Drachenkrebs, Eri Gaito, Guillermo Ham, ExulantAmruth_2,
-Fingolfin9412, Franisz, Fraz, GeminiSparkSP, GoodPizza, Henry Hamilton,
-hoswedoto, ivancebreros, Hugo Javier Jimenez, Konrad Binczycki,
-Liao WH, M.ArdA, Minuet, Pitar, Prometheus, Pierre Schrodinger,
-Rajat, Razack, Reaper Z, Rohit Bhatia, Rooney72, Rushix, Santiago Hitta,
-Seal Darklight, Stephen Y, Szymon \"Szynka013\" Rzepnikowski, Xodious,
-NEXCORE898, Sammy Chan, LeonSA, DancheZi, Shamil Barkzai, Omar Alawadhi,
-Bracnolion, Celicni, Frostyyy, Fyar, Mango, NewFishy14, Oofffff, Razack,
-Sentinel, SmokingFlash, Soundso, TGM, TheGreenDigi, Thokrumgrozo, Wintry,
-Zezitra, loquat_ceres, lost panda, necor.V, Jeon Seonghwan, Mmlh,
-AerisDraco, Audrey Lynn, FUNCTION, Muffet, Abs, Prahant, Anteater,
-Frostyyy, SuperFishy, BHYT, KM5",
+                ["text"] = "Christian Cortez (Voduke), Ronald, FastAndBlast, Filip Dráber,\nGrzegorz (canlupus) Głaczynski, Harkmen, Tran Hoàng Lân,\nGerjan Schepers, Manijure, Mervyn, Ninja, Christopher Wiley,\nRaj McKenney, The Kingmaker, DarkSide, Abraar Nisar, Logan Apple,\nYoung Koh, Skully, Bretislav Horak, Brickmotion, Guilherme Leocadio,\nJorge, Carrrl, Drachenkrebs, Eri Gaito, Guillermo Ham, ExulantAmruth_2,\nFingolfin9412, Franisz, Fraz, GeminiSparkSP, GoodPizza, Henry Hamilton,\nhoswedoto, ivancebreros, Hugo Javier Jimenez, Konrad Binczycki,\nLiao WH, M.ArdA, Minuet, Pitar, Prometheus, Pierre Schrodinger,\nRajat, Razack, Reaper Z, Rohit Bhatia, Rooney72, Rushix, Santiago Hitta,\nSeal Darklight, Stephen Y, Szymon \"Szynka013\" Rzepnikowski, Xodious,\nNEXCORE898, Sammy Chan, LeonSA, DancheZi, Shamil Barkzai, Omar Alawadhi,\nBracnolion, Celicni, Frostyyy, Fyar, Mango, NewFishy14, Oofffff, Razack,\nSentinel, SmokingFlash, Soundso, TGM, TheGreenDigi, Thokrumgrozo, Wintry,\nZezitra, loquat_ceres, lost panda, necor.V, Jeon Seonghwan, Mmlh,\nAerisDraco, Audrey Lynn, FUNCTION, Muffet, Abs, Prahant, Anteater,\nFrostyyy, SuperFishy, BHYT, KM5",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19893,11 +19836,7 @@ Frostyyy, SuperFishy, BHYT, KM5",
                 ["y_position"] = 30
             },
             {
-                ["text"] = "Transfluent
-
-Kati Peltomaki, Sheila Gomesm, Sandrine Guyennet, 
-Claudia Hahn, Cheolbeom Jeon, Dmitry Kornyukhov,
-Lishan Liu, Mo Na, Kenji Shimizu, Alba Valle",
+                ["text"] = "Transfluent\n\nKati Peltomaki, Sheila Gomesm, Sandrine Guyennet, \nClaudia Hahn, Cheolbeom Jeon, Dmitry Kornyukhov,\nLishan Liu, Mo Na, Kenji Shimizu, Alba Valle",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19908,10 +19847,7 @@ Lishan Liu, Mo Na, Kenji Shimizu, Alba Valle",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "-/-
-
-Eric X, A Passing Medieval Knight, Goonie, SiTUyINmEnG,
-Luner, The Last Rain of Summer, Chilly Rain",
+                ["text"] = "-/-\n\nEric X, A Passing Medieval Knight, Goonie, SiTUyINmEnG,\nLuner, The Last Rain of Summer, Chilly Rain",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19922,9 +19858,7 @@ Luner, The Last Rain of Summer, Chilly Rain",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "-/-
-
-Andrew Yang, KR-Allplay, HenryChess",
+                ["text"] = "-/-\n\nAndrew Yang, KR-Allplay, HenryChess",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19935,10 +19869,7 @@ Andrew Yang, KR-Allplay, HenryChess",
                 ["y_position"] = 10
             },
             {
-                ["text"] = "-/-
-
-Maxim Novikov (Lord Noximus), White,
-Egor Gordeev (Random Key Combinator)",
+                ["text"] = "-/-\n\nMaxim Novikov (Lord Noximus), White,\nEgor Gordeev (Random Key Combinator)",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -19974,9 +19905,7 @@ Egor Gordeev (Random Key Combinator)",
                 ["show_on_pc"] = true,
                 ["show_on_nx"] = true,
                 ["show_on_xbox"] = true,
-                ["text"] = "
--/-
-",
+                ["text"] = "\n-/-\n",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 20,
                 ["color"] = {
@@ -20110,9 +20039,7 @@ Egor Gordeev (Random Key Combinator)",
             {
                 ["show_on_nx"] = true,
                 ["show_on_xbox"] = true,
-                ["text"] = "QA by LollipopRobot
-QA Manager: Iván de Rosa
-QA Tester: Manuhero",
+                ["text"] = "QA by LollipopRobot\nQA Manager: Iván de Rosa\nQA Tester: Manuhero",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {
@@ -20140,16 +20067,7 @@ QA Tester: Manuhero",
                 ["show_on_pc"] = true,
                 ["show_on_nx"] = false,
                 ["show_on_xbox"] = false,
-                ["text"] = "AdventureGamer, AerisDraco, Beta-Knight, Birky, Bracnolion, Cameron McKay,
-Celicni, Christian Cortez (Voduke), DancheZi, Ech0, Franisz, Frostyyy,
-Fyar, GeminiSparkSP, GoldenMan, Grunty, Jeon Seonghwan (Sunnydaler),
-Jonathan Cleve, Lara Mondueri, LeTempleduMiroir, LeonSA, Mango, Mmlh,
-Muffet, NEXCORE898, NewFishy14, Omar Alawadhi, Oofffff, 
-Pham Duong Gia Bao (TGM_2674), Prometheus, Raj McKenney, Razack,
-Sammy Chan, SealDarklight, Sentinel, Shamil 'PitNata' Barkzai,
-SmokingFlash, Soundso, TheGamingTitanZ, TheGreenDigi, Thokrumgrozo,
-Tomik, Unbalanced, Vera Mondueri, Wintry, Zezitra, loquat_ceres, 
-lost panda, necor.V, Данче",
+                ["text"] = "AdventureGamer, AerisDraco, Beta-Knight, Birky, Bracnolion, Cameron McKay,\nCelicni, Christian Cortez (Voduke), DancheZi, Ech0, Franisz, Frostyyy,\nFyar, GeminiSparkSP, GoldenMan, Grunty, Jeon Seonghwan (Sunnydaler),\nJonathan Cleve, Lara Mondueri, LeTempleduMiroir, LeonSA, Mango, Mmlh,\nMuffet, NEXCORE898, NewFishy14, Omar Alawadhi, Oofffff, \nPham Duong Gia Bao (TGM_2674), Prometheus, Raj McKenney, Razack,\nSammy Chan, SealDarklight, Sentinel, Shamil 'PitNata' Barkzai,\nSmokingFlash, Soundso, TheGamingTitanZ, TheGreenDigi, Thokrumgrozo,\nTomik, Unbalanced, Vera Mondueri, Wintry, Zezitra, loquat_ceres, \nlost panda, necor.V, Данче",
                 ["font"] = "Comic_Book.ttf",
                 ["font_size"] = 17,
                 ["color"] = {

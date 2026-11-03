@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_blastin_bullriders_asst_aerial_dron_shadow_skillA",5.349999905,3}},["attach_points"]={},["animations"]={{["name"]="run",["frames"]={{{1,1,1,-5.349999905,-3,1,1,0,0,0}}}}}}

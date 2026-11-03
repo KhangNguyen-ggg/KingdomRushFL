@@ -1,9 +1,8 @@
 .vscode/
 .idea/
 /custom/
-
-# Keep local editor settings and scratch files out of the backup.
-/BACKUP/
+/Z_Mod
+# Logs and system scratch files
+*.log
 Thumbs.db
 desktop.ini
-/Z_Mod

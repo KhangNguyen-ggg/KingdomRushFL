@@ -979,7 +979,7 @@ b.heroes.hero_rhodes.stats.armor = 5
 b.heroes.hero_rhodes.stats.damage = 3
 b.heroes.hero_rhodes.stats.cooldown = 5.5
 b.heroes.hero_rhodes.dead_lifetime = 30
-b.heroes.hero_rhodes.speed = 32
+b.heroes.hero_rhodes.speed = 40
 b.heroes.hero_rhodes.regen_cooldown = 1
 b.heroes.hero_rhodes.armor = {
 	0.23,
@@ -994,16 +994,16 @@ b.heroes.hero_rhodes.armor = {
 	0.5
 }
 b.heroes.hero_rhodes.hp_max = {
-	180,
-	205,
-	230,
-	255,
-	280,
-	305,
-	330,
-	355,
-	380,
-	405
+	200,
+	225,
+	250,
+	275,
+	300,
+	325,
+	350,
+	375,
+	400,
+	425
 }
 b.heroes.hero_rhodes.regen_health = {
 	14,
@@ -1046,11 +1046,11 @@ b.heroes.hero_rhodes.basic_melee.damage_max = {
 }
 b.heroes.hero_rhodes.basic_melee.damage_type = DAMAGE_PHYSICAL
 b.heroes.hero_rhodes.skill_a = {}
-b.heroes.hero_rhodes.skill_a.cooldown = 10
+b.heroes.hero_rhodes.skill_a.cooldown = 8
 b.heroes.hero_rhodes.skill_a.xp_gain = {
-	10,
-	20,
-	30
+	8,
+	15,
+	21
 }
 b.heroes.hero_rhodes.skill_a.damage_min = 16
 b.heroes.hero_rhodes.skill_a.damage_max = 24
@@ -1081,8 +1081,8 @@ b.heroes.hero_rhodes.skill_c.range = 150
 b.heroes.hero_rhodes.skill_c.range_pre_block = 175
 b.heroes.hero_rhodes.skill_c.min_targets = 3
 b.heroes.hero_rhodes.skill_c.aura = {}
-b.heroes.hero_rhodes.skill_c.aura.damage_min = 10
-b.heroes.hero_rhodes.skill_c.aura.damage_max = 15
+b.heroes.hero_rhodes.skill_c.aura.damage_min = 12
+b.heroes.hero_rhodes.skill_c.aura.damage_max = 18
 b.heroes.hero_rhodes.skill_c.aura.s_damage_min = 32
 b.heroes.hero_rhodes.skill_c.aura.s_damage_max = 48
 b.heroes.hero_rhodes.skill_c.aura.damage_type = DAMAGE_PHYSICAL
@@ -1120,13 +1120,13 @@ b.heroes.hero_rhodes.talent_1.hp_threshold = 0.75
 b.heroes.hero_rhodes.talent_1.armor_inc = 0.2
 b.heroes.hero_rhodes.upgrades = {}
 b.heroes.hero_rhodes.upgrades.upg_sa1 = {}
-b.heroes.hero_rhodes.upgrades.upg_sa1.cooldown = 9
-b.heroes.hero_rhodes.upgrades.upg_sa1.damage_min = 28
-b.heroes.hero_rhodes.upgrades.upg_sa1.damage_max = 42
+b.heroes.hero_rhodes.upgrades.upg_sa1.cooldown = 7
+b.heroes.hero_rhodes.upgrades.upg_sa1.damage_min = 32
+b.heroes.hero_rhodes.upgrades.upg_sa1.damage_max = 48
 b.heroes.hero_rhodes.upgrades.upg_sa2 = {}
-b.heroes.hero_rhodes.upgrades.upg_sa2.cooldown = 8
-b.heroes.hero_rhodes.upgrades.upg_sa2.damage_min = 40
-b.heroes.hero_rhodes.upgrades.upg_sa2.damage_max = 60
+b.heroes.hero_rhodes.upgrades.upg_sa2.cooldown = 6
+b.heroes.hero_rhodes.upgrades.upg_sa2.damage_min = 56
+b.heroes.hero_rhodes.upgrades.upg_sa2.damage_max = 84
 b.heroes.hero_rhodes.upgrades.upg_sb1 = {}
 b.heroes.hero_rhodes.upgrades.upg_sb1.hp_heal_ptg = 0.4
 b.heroes.hero_rhodes.upgrades.upg_sb1.armor_inc = 0.4
@@ -1139,8 +1139,8 @@ b.heroes.hero_rhodes.upgrades.upg_sc1 = {}
 b.heroes.hero_rhodes.upgrades.upg_sc1.slow_factor = 0.7
 b.heroes.hero_rhodes.upgrades.upg_sc1.s_slow_factor = 1 - b.heroes.hero_rhodes.upgrades.upg_sc1.slow_factor
 b.heroes.hero_rhodes.upgrades.upg_sc2 = {}
-b.heroes.hero_rhodes.upgrades.upg_sc2.damage_min = 12
-b.heroes.hero_rhodes.upgrades.upg_sc2.damage_max = 18
+b.heroes.hero_rhodes.upgrades.upg_sc2.damage_min = 16
+b.heroes.hero_rhodes.upgrades.upg_sc2.damage_max = 24
 b.heroes.hero_rhodes.upgrades.upg_sc2.s_damage_min = 48
 b.heroes.hero_rhodes.upgrades.upg_sc2.s_damage_max = 72
 b.heroes.hero_rhodes.upgrades.upg_a = {}
@@ -4209,9 +4209,9 @@ b.towers.catapult = {}
 b.towers.catapult.shared_min_cooldown = 3
 b.towers.catapult.price = {
 	110,
-	170,
-	240,
-	310
+	160,
+	220,
+	290
 }
 b.towers.catapult.stats = {}
 b.towers.catapult.stats.damage = 9
@@ -4219,14 +4219,14 @@ b.towers.catapult.stats.cooldown = 1.5
 b.towers.catapult.stats.range = 9
 b.towers.catapult.basic_attack = {}
 b.towers.catapult.basic_attack.damage_min = {
-	12,
-	30,
+	14,
+	32,
 	52,
 	80
 }
 b.towers.catapult.basic_attack.damage_max = {
-	18,
-	44,
+	20,
+	45,
 	78,
 	120
 }
@@ -4301,7 +4301,7 @@ b.towers.catapult.skill_b.damage_type = DAMAGE_EXPLOSION
 b.towers.catapult.skill_b.explosion_delay = 0.1
 b.towers.catapult.skill_c = {}
 b.towers.catapult.skill_c.price = {
-	150,
+	120,
 	100,
 	100
 }
@@ -4338,7 +4338,7 @@ b.towers.catapult.skill_c.max_traps = {
 b.towers.catapult.skill_c.min_dist_between_traps = 50
 b.towers.catapult.ultimate = {}
 b.towers.catapult.ultimate.xp_gain = 35
-b.towers.catapult.ultimate.cooldown = 30
+b.towers.catapult.ultimate.cooldown = 35
 b.towers.catapult.ultimate.min_range = 0
 b.towers.catapult.ultimate.max_range = 300
 b.towers.catapult.ultimate.min_targets = 3
@@ -4538,9 +4538,9 @@ b.towers.culverine = {}
 b.towers.culverine.shared_min_cooldown = 3
 b.towers.culverine.price = {
 	130,
-	170,
-	260,
-	340
+	180,
+	240,
+	310
 }
 b.towers.culverine.stats = {}
 b.towers.culverine.stats.damage = 7
@@ -4548,16 +4548,16 @@ b.towers.culverine.stats.cooldown = 5
 b.towers.culverine.stats.range = 3.5
 b.towers.culverine.basic_attack = {}
 b.towers.culverine.basic_attack.damage_min = {
-	9,
-	21,
-	41,
-	66
+	10,
+	25,
+	45,
+	70
 }
 b.towers.culverine.basic_attack.damage_max = {
-	13,
-	30,
-	55,
-	86
+	14,
+	33,
+	59,
+	90
 }
 b.towers.culverine.basic_attack.damage_radius = 55
 b.towers.culverine.basic_attack.damage_type = DAMAGE_EXPLOSION
@@ -4581,14 +4581,14 @@ b.towers.culverine.skill_a.cooldown = {
 	16
 }
 b.towers.culverine.skill_a.damage_min = {
-	66,
-	108,
-	156
+	70,
+	115,
+	165
 }
 b.towers.culverine.skill_a.damage_max = {
-	86,
-	148,
-	218
+	90,
+	155,
+	225
 }
 b.towers.culverine.skill_a.damage_radius = 90
 b.towers.culverine.skill_a.damage_type = DAMAGE_EXPLOSION
@@ -4619,9 +4619,9 @@ b.towers.culverine.skill_b.price = {
 }
 b.towers.culverine.skill_b.xp_gain = 10
 b.towers.culverine.skill_b.armor_red = {
-	0.03,
-	0.05,
-	0.07
+	0.04,
+	0.06,
+	0.08
 }
 b.towers.culverine.skill_c = {}
 b.towers.culverine.skill_c.price = {
@@ -4650,7 +4650,7 @@ b.towers.culverine.skill_c.min_health = 600
 b.towers.culverine.ultimate = {}
 b.towers.culverine.ultimate.xp_gain = 35
 b.towers.culverine.ultimate.cooldown = 35
-b.towers.culverine.ultimate.attacks_to_trigger = 6
+b.towers.culverine.ultimate.attacks_to_trigger = 7
 b.towers.culverine.ultimate.speed = 100
 b.towers.culverine.ultimate.damage_min = 60
 b.towers.culverine.ultimate.damage_max = 110
@@ -5211,8 +5211,8 @@ b.towers.tree = {}
 b.towers.tree.price = {
 	140,
 	180,
-	240,
-	320
+	230,
+	300
 }
 b.towers.tree.stats = {}
 b.towers.tree.stats.damage = 4.5
@@ -5259,16 +5259,16 @@ b.towers.tree.soldier.basic_attack.cooldown = 3
 b.towers.tree.soldier.basic_attack.range = 70
 b.towers.tree.basic_attack = {}
 b.towers.tree.basic_attack.damage_min = {
-	6,
-	14,
-	26,
-	40
+	8,
+	19,
+	33,
+	50
 }
 b.towers.tree.basic_attack.damage_max = {
-	9,
-	21,
-	39,
-	60
+	12,
+	29,
+	50,
+	75
 }
 b.towers.tree.basic_attack.damage_radius = {
 	160,
@@ -5287,8 +5287,8 @@ b.towers.tree.basic_attack.range = {
 b.towers.tree.skill_a = {}
 b.towers.tree.skill_a.price = {
 	150,
-	150,
-	150
+	100,
+	100
 }
 b.towers.tree.skill_a.cooldown = {
 	20,
@@ -5330,7 +5330,7 @@ b.towers.tree.skill_a.blind.duration = {
 }
 b.towers.tree.skill_b = {}
 b.towers.tree.skill_b.price = {
-	300,
+	200,
 	100,
 	100
 }
@@ -5352,7 +5352,7 @@ b.towers.tree.skill_b.max_hp_max = {
 }
 b.towers.tree.skill_c = {}
 b.towers.tree.skill_c.price = {
-	180,
+	150,
 	100,
 	100
 }
@@ -7321,10 +7321,10 @@ b.powers.rain_of_fire.stats.type = "damage"
 b.powers.rain_of_fire.stats.cooldown = 4.5
 b.powers.rain_of_fire.stats.damage = 6.5
 b.powers.rain_of_fire.bullet = {}
-b.powers.rain_of_fire.bullet.radius = 60
+b.powers.rain_of_fire.bullet.radius = 70
 b.powers.rain_of_fire.bullet.damage_type = DAMAGE_TRUE
-b.powers.rain_of_fire.bullet.damage_min = 30
-b.powers.rain_of_fire.bullet.damage_max = 45
+b.powers.rain_of_fire.bullet.damage_min = 36
+b.powers.rain_of_fire.bullet.damage_max = 54
 b.powers.royal_edict = {}
 b.powers.royal_edict.cooldown = 50
 b.powers.royal_edict.duration = 0.5
@@ -7555,13 +7555,13 @@ b.upgrades.power_rain_of_fire.l4b.meteor_inc = 2
 b.upgrades.power_rain_of_fire.l5a = {}
 b.upgrades.power_rain_of_fire.l5a.duration = 7
 b.upgrades.power_rain_of_fire.l5a.slow_duration = 0.5
-b.upgrades.power_rain_of_fire.l5a.slow_factor = 0.5
-b.upgrades.power_rain_of_fire.l5a.s_slow_factor = 0.5
+b.upgrades.power_rain_of_fire.l5a.slow_factor = 0.6
+b.upgrades.power_rain_of_fire.l5a.s_slow_factor = 0.4
 b.upgrades.power_rain_of_fire.l5a.radius = 50
 b.upgrades.power_rain_of_fire.l5a.cycle_time = 0.3
 b.upgrades.power_rain_of_fire.l5b = {}
-b.upgrades.power_rain_of_fire.l5b.damage_min = 20
-b.upgrades.power_rain_of_fire.l5b.damage_max = 25
+b.upgrades.power_rain_of_fire.l5b.damage_min = 24
+b.upgrades.power_rain_of_fire.l5b.damage_max = 36
 b.upgrades.power_rain_of_fire.l5b.damage_radius = 60
 b.upgrades.power_rain_of_fire.l5b.damage_type = DAMAGE_TRUE
 b.upgrades.power_rain_of_fire.l6 = {}
@@ -7780,8 +7780,8 @@ b.kr1_mode.towers.ranger.basic_attack.range = 200
 b.kr1_mode.towers.ranger.poison = {}
 b.kr1_mode.towers.ranger.poison.price = {
 	250,
-	250,
-	250
+	200,
+	200
 }
 b.kr1_mode.towers.ranger.poison.mod = {}
 b.kr1_mode.towers.ranger.poison.mod.duration = 3
@@ -7793,7 +7793,7 @@ b.kr1_mode.towers.ranger.poison.mod.s1_damage_base = b.kr1_mode.towers.ranger.po
 b.kr1_mode.towers.ranger.poison.mod.s2_damage_base = b.kr1_mode.towers.ranger.poison.mod.s1_damage_base + b.kr1_mode.towers.ranger.poison.mod.damage_inc
 b.kr1_mode.towers.ranger.thorn = {}
 b.kr1_mode.towers.ranger.thorn.price = {
-	300,
+	250,
 	150,
 	150
 }
@@ -7834,9 +7834,9 @@ b.kr1_mode.towers.musketeers.sniper.s1_instakill_chance = b.kr1_mode.towers.musk
 b.kr1_mode.towers.musketeers.sniper.s2_instakill_chance = b.kr1_mode.towers.musketeers.sniper.s1_instakill_chance + b.kr1_mode.towers.musketeers.sniper.instakill_chance_inc
 b.kr1_mode.towers.musketeers.shrapnel = {}
 b.kr1_mode.towers.musketeers.shrapnel.price = {
-	300,
-	300,
-	300
+	250,
+	250,
+	250
 }
 b.kr1_mode.towers.musketeers.shrapnel.cooldown = 9
 b.kr1_mode.towers.musketeers.shrapnel.range_factor = 0.5
@@ -7922,14 +7922,14 @@ b.kr1_mode.towers.paladins.healing.mod.s2_heal_min_base = b.kr1_mode.towers.pala
 b.kr1_mode.towers.paladins.healing.mod.s2_heal_max_base = b.kr1_mode.towers.paladins.healing.mod.s1_heal_max_base + b.kr1_mode.towers.paladins.healing.mod.heal_max_inc
 b.kr1_mode.towers.paladins.shield = {}
 b.kr1_mode.towers.paladins.shield.price = {
-	250
+	200
 }
 b.kr1_mode.towers.paladins.shield.armor_inc = 0.15
 b.kr1_mode.towers.paladins.holystrike = {}
 b.kr1_mode.towers.paladins.holystrike.price = {
-	220,
-	150,
-	150
+	200,
+	125,
+	125
 }
 b.kr1_mode.towers.paladins.holystrike.damage_radius = 50
 b.kr1_mode.towers.paladins.holystrike.damage_min_base = 0
@@ -8044,9 +8044,9 @@ b.kr1_mode.towers.arcane.basic_attack.cooldown = 2
 b.kr1_mode.towers.arcane.basic_attack.range = 200
 b.kr1_mode.towers.arcane.disintegrate = {}
 b.kr1_mode.towers.arcane.disintegrate.price = {
-	350,
-	200,
-	200
+	300,
+	150,
+	150
 }
 b.kr1_mode.towers.arcane.disintegrate.cooldown_base = 22
 b.kr1_mode.towers.arcane.disintegrate.cooldown_inc = -2
@@ -8083,9 +8083,9 @@ b.kr1_mode.towers.sorcerer.basic_attack.mod_dps.damage_max = 10
 b.kr1_mode.towers.sorcerer.basic_attack.mod_dps.damage_every = 1.25
 b.kr1_mode.towers.sorcerer.polymorph = {}
 b.kr1_mode.towers.sorcerer.polymorph.price = {
-	300,
-	150,
-	150
+	250,
+	100,
+	100
 }
 b.kr1_mode.towers.sorcerer.polymorph.cooldown_base = 22
 b.kr1_mode.towers.sorcerer.polymorph.cooldown_inc = -2
@@ -8154,7 +8154,7 @@ b.kr1_mode.towers.bfg.basic_attack.cooldown = 3
 b.kr1_mode.towers.bfg.basic_attack.range = 180
 b.kr1_mode.towers.bfg.missile = {}
 b.kr1_mode.towers.bfg.missile.price = {
-	250,
+	200,
 	100,
 	100
 }
@@ -8176,7 +8176,7 @@ b.kr1_mode.towers.bfg.missile.bullet.damage_radius = 41.25
 b.kr1_mode.towers.bfg.cluster = {}
 b.kr1_mode.towers.bfg.cluster.cooldown = 17
 b.kr1_mode.towers.bfg.cluster.price = {
-	250,
+	200,
 	150,
 	150
 }
@@ -8202,8 +8202,8 @@ b.kr1_mode.towers.tesla.basic_attack.bounce_damage_factor_inc = 0
 b.kr1_mode.towers.tesla.basic_attack.range = 165
 b.kr1_mode.towers.tesla.bolt = {}
 b.kr1_mode.towers.tesla.bolt.price = {
-	250,
-	250
+	200,
+	200
 }
 b.kr1_mode.towers.tesla.bolt.jump_base = 3
 b.kr1_mode.towers.tesla.bolt.jump_inc = 1

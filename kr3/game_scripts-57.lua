@@ -104576,7 +104576,7 @@ function scripts.tower_stage_38_dragon_wardens_goal_d.update(this, store)
 
 	while true do	
 
-		if this.user_selection.arg and not e.attack_requested then
+		if this.user_selection.arg then
 			this.user_selection.arg = nil
 
 			U.y_wait(store, attack.spawn_delay)

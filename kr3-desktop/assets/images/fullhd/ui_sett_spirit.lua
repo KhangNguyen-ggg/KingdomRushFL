@@ -9,7 +9,4 @@ return {
  sett_skill_w={a_name="ui_sett_spirit.png",size={56,56},trim={0,0,0,0},a_size={384,384},f_quad={212,312,56,56},alias={}},
  sett_skill_e={a_name="ui_sett_spirit.png",size={56,56},trim={0,0,0,0},a_size={384,384},f_quad={268,312,56,56},alias={}},
  sett_skill_r={a_name="ui_sett_spirit.png",size={56,56},trim={0,0,0,0},a_size={384,384},f_quad={324,312,56,56},alias={}},
- -- Volibear PNG is loaded as an additional image within the existing ui_sett_spirit group.
- volibear_prestige_icon={a_name="ui_volibear_prestige.png",size={256,256},trim={0,0,0,0},a_size={512,256},f_quad={0,0,256,256},alias={}},
- info_portrait_volibear_prestige={a_name="ui_volibear_prestige.png",size={256,256},trim={0,0,0,0},a_size={512,256},f_quad={256,0,256,256},alias={}},
 }

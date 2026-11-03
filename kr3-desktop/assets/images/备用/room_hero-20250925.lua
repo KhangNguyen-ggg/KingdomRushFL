@@ -6048,6 +6048,6 @@ a["hero_room_portraits_small_button_hero_wukong_0001"] = {
 		},
 		alias = {"hero_room_portraits_small_button_hero_douzhanshengfo_0001"},
 		textureRotated = false
-	},
+	}
 
 return a

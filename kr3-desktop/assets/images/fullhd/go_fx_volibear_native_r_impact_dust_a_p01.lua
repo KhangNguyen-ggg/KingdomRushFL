@@ -1,0 +1,23 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ fx_volibear_native_r_impact_dust_a_0001={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={115,74,120,153},a_size={248,104},f_quad={1,1,21,29},alias={}},
+ fx_volibear_native_r_impact_dust_a_0002={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={114,28,119,154},a_size={248,104},f_quad={24,1,23,74},alias={}},
+ fx_volibear_native_r_impact_dust_a_0003={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={113,9,118,153},a_size={248,104},f_quad={49,1,25,94},alias={}},
+ fx_volibear_native_r_impact_dust_a_0004={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={113,9,118,152},a_size={248,104},f_quad={76,1,25,95},alias={}},
+ fx_volibear_native_r_impact_dust_a_0005={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={113,8,118,150},a_size={248,104},f_quad={103,1,25,98},alias={}},
+ fx_volibear_native_r_impact_dust_a_0006={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={113,8,118,149},a_size={248,104},f_quad={130,1,25,99},alias={}},
+ fx_volibear_native_r_impact_dust_a_0007={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={113,31,118,148},a_size={248,104},f_quad={157,1,25,77},alias={}},
+ fx_volibear_native_r_impact_dust_a_0008={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={114,54,119,151},a_size={248,104},f_quad={184,1,23,51},alias={}},
+ fx_volibear_native_r_impact_dust_a_0009={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={209,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0010={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={212,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0011={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={215,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0012={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={218,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0013={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={221,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0014={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={224,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0015={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={227,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0016={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={230,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0017={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={233,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0018={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={236,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0019={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={239,1,1,1},alias={}},
+ fx_volibear_native_r_impact_dust_a_0020={a_name="go_fx_volibear_native_r_impact_dust_a_p01.png",size={256,256},trim={0,0,255,255},a_size={248,104},f_quad={242,1,1,1},alias={}},
+}

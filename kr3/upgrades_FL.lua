@@ -1174,6 +1174,7 @@ function upgrades_FL:enhance5()
 	T("tower_dark_elf_lvl4").powers.skill_buff.damage_max = {4}
 	T("tower_dark_elf_lvl4").powers.skill_buff.price_base = 350
 	T("soldier_tower_dark_elf").dodge.chance = 0.68
+	T("soldier_tower_dark_elf").health.armor = 0.4
 	T("bullet_tower_dark_elf_lvl1").bullet.reduce_armor = 0.05
 	T("bullet_tower_dark_elf_lvl2").bullet.reduce_armor = 0.1
 	T("bullet_tower_dark_elf_lvl3").bullet.reduce_armor = 0.15
@@ -1260,12 +1261,12 @@ function upgrades_FL:enhance6()
 
 	local miners = T("tower_miners_lvl4")
 	T("controller_miners_global_gold_cap").gold_cap_per_wave = 750
-	miners.powers.skill_a.price = {425, 425, 425}
-	miners.powers.skill_a.price_base = 425
-	miners.powers.skill_a.price_inc = 425
-	miners.powers.skill_b.price = {290, 290, 290}
-	miners.powers.skill_b.price_base = 290
-	miners.powers.skill_b.price_inc = 290
+	miners.powers.skill_a.price = {350, 350, 350}
+	miners.powers.skill_a.price_base = 350
+	miners.powers.skill_a.price_inc = 350
+	miners.powers.skill_b.price = {450, 450, 450}
+	miners.powers.skill_b.price_base = 450
+	miners.powers.skill_b.price_inc = 450
 	for level = 1, 4 do
 		local soldier = T("soldier_miners_lvl" .. level)
 		soldier.health.hp_max = ({60, 120, 200, 300})[level]
@@ -1273,7 +1274,7 @@ function upgrades_FL:enhance6()
 	end
 	T("decal_miners_cart_skill_a").main_script.update = scripts.decal_miners_cart_skill_a_FL.update
 	T("mod_miners_skill_b_stun").main_script.insert = scripts.mod_miners_skill_b_stun_FL.insert
-	for level, reward in ipairs({1, 2, 4}) do
+	for level, reward in ipairs({1, 2, 3}) do
 		local aura = T("aura_miners_skill_b_lvl" .. level)
 		aura.aura.level = level
 		aura.fl_gold_per_stun = reward
@@ -1336,10 +1337,20 @@ function upgrades_FL:enhance6()
 	end
 
 	local ranger = T("tower_ranger_lvl4")
-	ranger.powers.skill_a.cooldown = {12, 12, 12}
+	ranger.powers.skill_a.cooldown = {15, 15, 15}
 	ranger.powers.skill_c.price = {225, 180, 180}
 	ranger.powers.skill_c.price_base = 225
 	ranger.powers.skill_c.price_inc = 180
+	for level = 1, 3 do
+		T("bullet_ranger_skill_a_lvl" .. level).main_script.update = scripts.arrow_ranger_poison_FL.update
+		local bounce = ensure_template("bullet_ranger_poison_bounce_FL_lvl" .. level, "bullet_ranger_skill_c_bounce_clone_lvl" .. level)
+		bounce.main_script.update = scripts.bullet_ranger_poison_bounce_FL.update
+		bounce.bullet.particles_name = "ps_bullet_ranger_skill_a"
+		bounce.bullet.hit_fx = "fx_bullet_ranger_skill_a_hit"
+		bounce.render.sprites[1].prefix = "elven_elite_ranger_arrow_poison_tip"
+	end
+
+	T("tower_crossbows_lvl4").powers.skill_a.cooldown = {18, 18, 18}
 
 	-- The existing fear mark already triggers on death from any source.
 	for level = 1, 3 do

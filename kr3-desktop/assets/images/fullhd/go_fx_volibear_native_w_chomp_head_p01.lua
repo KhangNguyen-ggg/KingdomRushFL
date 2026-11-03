@@ -1,0 +1,23 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ fx_volibear_native_w_chomp_head_0001={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={63,56,111,99},a_size={904,120},f_quad={1,1,82,101},alias={}},
+ fx_volibear_native_w_chomp_head_0002={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={40,50,114,99},a_size={904,120},f_quad={85,1,102,107},alias={}},
+ fx_volibear_native_w_chomp_head_0003={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={34,51,117,96},a_size={904,120},f_quad={189,1,105,109},alias={}},
+ fx_volibear_native_w_chomp_head_0004={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={48,39,112,105},a_size={904,120},f_quad={296,1,96,112},alias={}},
+ fx_volibear_native_w_chomp_head_0005={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={85,41,62,130},a_size={904,120},f_quad={394,1,109,85},alias={}},
+ fx_volibear_native_w_chomp_head_0006={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={98,44,66,141},a_size={904,120},f_quad={505,1,92,71},alias={}},
+ fx_volibear_native_w_chomp_head_0007={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={98,46,69,147},a_size={904,120},f_quad={599,1,89,63},alias={}},
+ fx_volibear_native_w_chomp_head_0008={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={99,48,73,147},a_size={904,120},f_quad={690,1,84,61},alias={}},
+ fx_volibear_native_w_chomp_head_0009={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={119,50,75,144},a_size={904,120},f_quad={776,1,62,62},alias={}},
+ fx_volibear_native_w_chomp_head_0010={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={134,70,96,160},a_size={904,120},f_quad={840,1,26,26},alias={}},
+ fx_volibear_native_w_chomp_head_0011={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={868,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0012={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={871,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0013={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={874,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0014={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={877,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0015={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={880,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0016={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={883,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0017={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={886,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0018={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={889,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0019={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={892,1,1,1},alias={}},
+ fx_volibear_native_w_chomp_head_0020={a_name="go_fx_volibear_native_w_chomp_head_p01.png",size={256,256},trim={0,0,255,255},a_size={904,120},f_quad={895,1,1,1},alias={}},
+}

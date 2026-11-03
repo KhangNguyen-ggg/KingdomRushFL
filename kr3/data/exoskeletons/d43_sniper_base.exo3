@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_sniper_tower_asst_sniper_base",0,0}},["attach_points"]={},["animations"]={{["name"]="idle",["frames"]={{{1,1,1,-0.1000000015,-18.29999924,1,1,0,0,0}}}}}}

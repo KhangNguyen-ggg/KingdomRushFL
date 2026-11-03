@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_ice_cooler_asst_icecooler_freezedecal",30,18.5}},["attach_points"]={},["animations"]={{["name"]="run",["frames"]={{{1,1,1,-30,-18.5,1,1,0,0,0}}}}}}

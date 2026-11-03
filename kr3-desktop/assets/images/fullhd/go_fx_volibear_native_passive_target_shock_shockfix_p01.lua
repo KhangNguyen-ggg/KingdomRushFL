@@ -1,0 +1,21 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ fx_volibear_native_passive_target_shock_0001={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={0,0,0,0},a_size={1000,456},f_quad={1,1,192,192},alias={}},
+ fx_volibear_native_passive_target_shock_0002={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={0,0,0,0},a_size={1000,456},f_quad={195,1,192,192},alias={}},
+ fx_volibear_native_passive_target_shock_0003={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={0,0,0,0},a_size={1000,456},f_quad={389,1,192,192},alias={}},
+ fx_volibear_native_passive_target_shock_0004={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={12,11,12,12},a_size={1000,456},f_quad={583,1,168,169},alias={}},
+ fx_volibear_native_passive_target_shock_0005={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={24,24,25,25},a_size={1000,456},f_quad={753,1,143,143},alias={}},
+ fx_volibear_native_passive_target_shock_0006={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={15,31,19,34},a_size={1000,456},f_quad={1,195,158,127},alias={}},
+ fx_volibear_native_passive_target_shock_0007={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={10,36,11,33},a_size={1000,456},f_quad={161,195,171,123},alias={}},
+ fx_volibear_native_passive_target_shock_0008={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={16,35,6,37},a_size={1000,456},f_quad={334,195,170,120},alias={}},
+ fx_volibear_native_passive_target_shock_0009={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={33,34,36,35},a_size={1000,456},f_quad={506,195,123,123},alias={}},
+ fx_volibear_native_passive_target_shock_0010={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={32,32,36,35},a_size={1000,456},f_quad={631,195,124,125},alias={}},
+ fx_volibear_native_passive_target_shock_0011={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={34,34,38,36},a_size={1000,456},f_quad={757,195,120,122},alias={}},
+ fx_volibear_native_passive_target_shock_0012={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={37,34,40,39},a_size={1000,456},f_quad={879,195,115,119},alias={}},
+ fx_volibear_native_passive_target_shock_0013={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={40,31,43,42},a_size={1000,456},f_quad={1,324,109,119},alias={}},
+ fx_volibear_native_passive_target_shock_0014={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={40,31,43,42},a_size={1000,456},f_quad={112,324,109,119},alias={}},
+ fx_volibear_native_passive_target_shock_0015={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={41,28,45,44},a_size={1000,456},f_quad={223,324,106,120},alias={}},
+ fx_volibear_native_passive_target_shock_0016={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={44,25,46,47},a_size={1000,456},f_quad={331,324,102,120},alias={}},
+ fx_volibear_native_passive_target_shock_0017={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={48,20,42,52},a_size={1000,456},f_quad={435,324,102,120},alias={}},
+ fx_volibear_native_passive_target_shock_0018={a_name="go_fx_volibear_native_passive_target_shock_shockfix_p01.png",size={192,192},trim={46,17,41,51},a_size={1000,456},f_quad={539,324,105,124},alias={}},
+}

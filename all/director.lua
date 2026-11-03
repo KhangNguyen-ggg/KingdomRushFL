@@ -1,4 +1,4 @@
-﻿-- chunkname: @./all/director.lua
+-- chunkname: @./all/director.lua
 
 local log = require("klua.log"):new("director")
 local km = require("klua.macros")
@@ -991,6 +991,14 @@ function director:queue_load_item_named(name, force_reload)
 
 			-- SC Reset 3.6 branches share the selected official KR4 parent tower.
 			local sc_branch_textures = {
+				shadow_archer = {"go_towers_dove43_sniper_tower"},
+				grim_cemetery = {"go_towers_dove43_plague_hospital"},
+				ogre_shipwreck = {"go_towers_dove43_blastin_bullriders"},
+				spirit_mausoleum = {"go_towers_dove43_wifi_babies"},
+				wicked_sisters = {"go_towers_dove43_wicked_sisters_stregi", "go_hero_witch", "go_towers_shadow_archer"},
+				melting_furnace = {"go_towers_dove43_command_center"},
+				orc_shaman = {"go_towers_dove43_ice_cooler"},
+				goblirang = {"go_towers_dove43_machine_gunner"},
 				bone_flingers = {"go_towers_sc_rat_tower"},
 				twilight_elves_barrack = {"go_towers_sc_twilight_avenger"},
 				rotten_forest = {"go_towers_sc_nuclear_tower"},
@@ -1001,6 +1009,7 @@ function director:queue_load_item_named(name, force_reload)
 				blazing_watcher = {"go_towers_sc_frost_gem"}
 			}
 			game.sc_branch_skill_textures = {}
+			game.store.dove43_required_exoskeletons = {}
 			local function load_sc_branch(name)
 				local textures = sc_branch_textures[name]
 
@@ -1008,11 +1017,16 @@ function director:queue_load_item_named(name, force_reload)
 					for _, texture in ipairs(textures) do
 						table.insert(game.scale_required_textures, texture)
 					end
+					for _, exo in ipairs(GS.towers_dove43_exoskeletons[name] or {}) do
+						append_unique(game.store.dove43_required_exoskeletons, exo)
+					end
 					if name == "blazing_watcher" and not sc_frost_gem_skill_icons_loaded then
 						table.insert(game.sc_branch_skill_textures, "go_towers_sc_frost_gem_skill_icons")
 						sc_frost_gem_skill_icons_loaded = true
 					end
-					sc_branch_loaded = true
+					if not string.find(textures[1], "go_towers_dove43_", 1, true) then
+						sc_branch_loaded = true
+					end
 				end
 			end
 
@@ -1227,6 +1241,15 @@ function director:queue_load_item_named(name, force_reload)
 		if sc_branch_loaded then
 			table.insert(game.required_sounds, "sc_branch_towers")
 		end
+		local dove43_sounds = {["go_towers_dove43_sniper_tower"]="d43_sniper_tower",["go_towers_dove43_plague_hospital"]="d43_plague_hospital",["go_towers_dove43_command_center"]="d43_command_center",["go_towers_dove43_ice_cooler"]="d43_ice_cooler",["go_towers_dove43_machine_gunner"]="d43_machine_gunner",["go_towers_dove43_blastin_bullriders"]="d43_blastin_bullriders",["go_towers_dove43_wifi_babies"]="d43_wifi_babies",["go_towers_dove43_wicked_sisters_stregi"]="d43_wicked_sisters_stregi"}
+		for _, texture in ipairs(game.scale_required_textures) do
+			if dove43_sounds[texture] then append_unique(game.required_sounds, dove43_sounds[texture]) end
+		end
+		if table.contains(game.scale_required_textures, "go_towers_dove43_wicked_sisters_stregi") then
+			append_unique(game.required_sounds, "hero_witch")
+			append_unique(game.required_sounds, "tower_shadow_archer")
+		end
+
 		for _, hero_name in ipairs(active_hero_names) do
 			local boss = infinite_heroes.get_boss(hero_name)
 			if boss then
@@ -1274,6 +1297,15 @@ function director:queue_load_item_named(name, force_reload)
             table.contains(game.wave_editor_required_textures,"go_stage70") then
             append_unique(game.required_textures,"go_enemies_blackburn")
         end
+
+		if require("navira_duelist").level(user_data)==1 then
+			for _,groups in ipairs({game.required_textures,game.scale_required_textures,game.scale_required_textures_enemy,game.wave_editor_required_textures,game.wave_editor_scale_required_textures,game.store.level.required_textures}) do
+				if table.contains(groups,"go_stage119") then
+					for _,texture in ipairs(require("navira_duelist").shield_textures) do append_unique(game.required_textures,texture) end
+					break
+				end
+			end
+		end
 
         -- collectgarbage()
 		self:load_texture_groups(replace_locale(game.scale_required_textures), self.params.texture_size, game.ref_res * TEXTURE_SIZE_FACTOR.kr_45, true, "game")

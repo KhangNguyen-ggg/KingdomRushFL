@@ -60,8 +60,6 @@ local function make_button(text, size, pos, callback, selected)
 	button.pos = pos or v(0, 0)
 	button.font_name = "body"
 	button.font_size = 18
-	button.font_name = "body_bold"
-	button.fit_lines = 1
 	button.text_offset.y = math.max(0, math.floor((size.y - button.font_size) / 2) - 2)
 	button.text_align = "center"
 	button.vertical_align = "middle"
@@ -402,12 +400,12 @@ function EnemyPickerView:_region_title(row)
 	local region = row.data
 
 	if region.kind == "main" then
-		return string.format("Chính %d", row.ordinal or 1)
+		return string.format("Tuyến chính %d", row.ordinal or 1)
 	elseif region.kind == "other" then
 		return "Khác"
 	end
 
-	return string.format("Phụ %d", row.ordinal or 1)
+	return string.format("Tuyến phụ %d", row.ordinal or 1)
 end
 
 function EnemyPickerView:_ensure_region()
@@ -790,7 +788,7 @@ function WaveEditorView:_load_context(force)
 		self.group_idx = 1
 		self.path_idx = 1
 		self.path_count = 1
-		self.left_status.text = "Màn này không có file đợt quái gốc cho chế độ đã chọn."
+		self.left_status.text = "Màn này không có dữ liệu đợt quái gốc cho chế độ đã chọn."
 		self:_refresh_right()
 		return
 	end
@@ -925,7 +923,7 @@ end
 
 function WaveEditorView:_can_edit()
 	if not self.current_list_id then
-		self:_set_status("Danh sách quái gốc chỉ cho phép đọc. Hãy nhấn Tạo từ mẫu gốc trước.")
+		self:_set_status("Không thể sửa trực tiếp đợt quái gốc. Hãy chọn Tạo từ mẫu gốc trước.")
 		return false
 	end
 	return true
@@ -1107,7 +1105,7 @@ end
 
 function WaveEditorView:_create_from_source()
 	if not self.level_idx or not Store.source_exists(self.level_idx, self.mode) then
-		self:_set_status("Màn/chế độ hiện tại không có mẫu gốc.")
+		self:_set_status("Màn hoặc chế độ hiện tại không có mẫu gốc.")
 		return
 	end
 
@@ -1123,7 +1121,7 @@ function WaveEditorView:_create_from_source()
 	self.path_idx = 1
 	self.path_count = Store.path_count(self.level_idx, self.wave)
 	self:_refresh_right()
-	self:_set_status(string.format("Đã tạo và bật danh sách quái tùy chỉnh %d", id), true)
+	self:_set_status(string.format("Đã tạo và bật danh sách đợt quái tùy chỉnh %d.", id), true)
 end
 
 function WaveEditorView:_save_current()
@@ -1138,7 +1136,7 @@ function WaveEditorView:_save_current()
 		self:_refresh_right()
 		self:_set_status(string.format("Đã lưu danh sách quái tùy chỉnh %d", self.current_list_id), true)
 	else
-		self:_set_status("Lưu thất bại")
+		self:_set_status("Không thể lưu.")
 	end
 end
 
@@ -1146,7 +1144,7 @@ function WaveEditorView:_delete_current_list()
 	local id = self.current_list_id
 
 	if not id then
-		self:_set_status("Chưa có mẫu quái tùy chỉnh để xóa.")
+		self:_set_status("Không có mẫu đợt quái tùy chỉnh nào để xóa.")
 		return
 	end
 
@@ -1161,7 +1159,7 @@ function WaveEditorView:_delete_current_list()
 	self.group_idx = 1
 	self.path_idx = 1
 	self:_load_context(true)
-	self:_set_status(string.format("Đã xóa danh sách quái tùy chỉnh %d", id), true)
+	self:_set_status(string.format("Đã xóa danh sách đợt quái tùy chỉnh %d.", id), true)
 end
 
 function WaveEditorView:show()

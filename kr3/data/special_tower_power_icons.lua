@@ -1,4 +1,4 @@
-return {
+local dove43_data = {
 	["bloodlust_icons_0002"] = "special_tower_power_icon_0001",
 	["bloodlust_icons_0003"] = "special_tower_power_icon_0002",
 	["bloodlust_icons_0005"] = "special_tower_power_icon_0003",
@@ -86,3 +86,18 @@ return {
 	["sc_skill_frost_gem_deep_freeze"] = "special_tower_power_icon_0085",
 	["sc_skill_frost_gem_frost_refraction"] = "special_tower_power_icon_0086",
 }
+
+-- BEGIN DOVE43 BUILTIN TOWERS
+table.merge(dove43_data, {["d43_sniper_tower_sniper_icon_kill"]="d43_sniper_tower_sniper_icon_kill",["d43_sniper_tower_sniper_icon_practice"]="d43_sniper_tower_sniper_icon_practice",["d43_sniper_tower_sniper_icon_weak"]="d43_sniper_tower_sniper_icon_weak",["d43_plague_hospital_plague_icon_house"]="d43_plague_hospital_plague_icon_house",["d43_plague_hospital_plague_icon_mike"]="d43_plague_hospital_plague_icon_mike",["d43_plague_hospital_plague_icon_biohazard"]="d43_plague_hospital_plague_icon_biohazard",["d43_command_center_cc_icon_intranet"]="d43_command_center_cc_icon_intranet",["d43_command_center_cc_icon_airstrike"]="d43_command_center_cc_icon_airstrike",["d43_command_center_cc_icon_radar"]="d43_command_center_cc_icon_radar",["d43_ice_cooler_ice_cooler_icon_fans"]="d43_ice_cooler_ice_cooler_icon_fans",["d43_ice_cooler_ice_cooler_icon_party"]="d43_ice_cooler_ice_cooler_icon_party",["d43_ice_cooler_ice_cooler_icon_flavors"]="d43_ice_cooler_ice_cooler_icon_flavors",["d43_machine_gunner_machine_gunner_icon_medal"]="d43_machine_gunner_machine_gunner_icon_medal",["d43_machine_gunner_machine_gunner_icon_arrow"]="d43_machine_gunner_machine_gunner_icon_arrow",["d43_machine_gunner_machine_gunner_icon_storm"]="d43_machine_gunner_machine_gunner_icon_storm"})
+-- END DOVE43 BUILTIN TOWERS
+dove43_data.d43_command_center_cc_icon_reaper = "d43_command_center_cc_icon_reaper"
+dove43_data.d43_blastin_bullriders_blastin_bullriders_icon_precision = "d43_blastin_bullriders_blastin_bullriders_icon_precision"
+dove43_data.d43_blastin_bullriders_blastin_bullriders_icon_trouble = "d43_blastin_bullriders_blastin_bullriders_icon_trouble"
+dove43_data.d43_blastin_bullriders_blastin_bullriders_icon_time = "d43_blastin_bullriders_blastin_bullriders_icon_time"
+dove43_data.d43_wifi_babies_wifi_babies_icon_tantrum = "d43_wifi_babies_wifi_babies_icon_tantrum"
+dove43_data.d43_wifi_babies_wifi_babies_icon_bigbrain = "d43_wifi_babies_wifi_babies_icon_bigbrain"
+dove43_data.d43_wifi_babies_wifi_babies_icon_projection = "d43_wifi_babies_wifi_babies_icon_projection"
+dove43_data.wss_icon_veggie = "wss_icon_veggie"
+dove43_data.wss_icon_doll = "wss_icon_doll"
+dove43_data.wss_icon_parade = "wss_icon_parade"
+return dove43_data

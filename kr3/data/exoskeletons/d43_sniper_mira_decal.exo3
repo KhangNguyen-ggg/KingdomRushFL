@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_sniper_tower_asst_basic_skill_blood_bright",9.75,9.75}},["attach_points"]={},["animations"]={{["name"]="decal",["frames"]={{{1,1,0.46875,-16.20000076,-5.75,1.665283203,0.5885009766,0,0,0}}}}}}

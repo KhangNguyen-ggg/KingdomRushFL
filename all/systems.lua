@@ -1,4 +1,4 @@
-﻿-- chunkname: @./all/systems.lua
+-- chunkname: @./all/systems.lua
 
 local log = require("klua.log"):new("systems")
 local log_xp = log.xp or log:new("xp")
@@ -56,6 +56,8 @@ end
 local function fts(v)
 	return v / FPS
 end
+
+local EARLY_WAVE_REWARD_MAX_SECONDS = 100
 
 local function combat_stats_ensure(store)
 	if not store.combat_stats then
@@ -614,6 +616,9 @@ function sys.level:init(store)
 			EXO:load_groups(GS.heroes_required_exoskeleton_groups[hero.name])
 		end
 	end
+
+	-- Match the selected KR4 branches, including random loadouts.
+	EXO:load(store.dove43_required_exoskeletons)
 
 	store.selected_hero = slot.heroes.selected
 	store.selected_hero_status = slot.heroes.status[slot.heroes.selected]
@@ -1256,10 +1261,11 @@ function sys.wave_spawn_tsv.cmd_fns.wave(store, cmd)
 
 	if store.send_next_wave == true and store.wave_group_number > 1 then
 		local score_reward
-		local remaining_secs = km.round(wait_time - actual_wait_time)
+		local remaining_secs = math.max(0, km.round(wait_time - actual_wait_time))
+		local reward_secs = math.min(remaining_secs, EARLY_WAVE_REWARD_MAX_SECONDS)
 
 		if store.level_mode == GAME_MODE_ENDLESS then
-			store.early_wave_reward = math.ceil(remaining_secs * GS.early_wave_reward_per_second * W:get_endless_early_wave_reward_factor())
+			store.early_wave_reward = math.ceil(reward_secs * GS.early_wave_reward_per_second * W:get_endless_early_wave_reward_factor())
 
 			local conf = W:get_endless_score_config()
 			local time_factor = km.clamp(0, 1, remaining_secs / fts(group.interval))
@@ -1272,7 +1278,7 @@ function sys.wave_spawn_tsv.cmd_fns.wave(store, cmd)
 			local user_data = storage:load_slot()
 			local reward_factor = generation_upgrades.early_wave_reward_factor(user_data, store.level_idx)
 
-			store.early_wave_reward = math.ceil(remaining_secs * GS.early_wave_reward_per_second * reward_factor)
+			store.early_wave_reward = math.ceil(reward_secs * GS.early_wave_reward_per_second * reward_factor)
 		end
 
 		store.player_gold = store.player_gold + store.early_wave_reward
@@ -1838,10 +1844,11 @@ function sys.wave_spawn:init(store)
 
 			if store.send_next_wave == true and i > 1 then
 				local score_reward
-				local remaining_secs = km.round(fts(group.interval) - (store.tick_ts - store.last_wave_ts))
+				local remaining_secs = group.no_early_wave_bonus and 0 or math.max(0, km.round(fts(group.interval) - (store.tick_ts - store.last_wave_ts)))
+				local reward_secs = math.min(remaining_secs, EARLY_WAVE_REWARD_MAX_SECONDS)
 
 				if store.level_mode == GAME_MODE_ENDLESS then
-					store.early_wave_reward = math.ceil(remaining_secs * GS.early_wave_reward_per_second * W:get_endless_early_wave_reward_factor())
+					store.early_wave_reward = math.ceil(reward_secs * GS.early_wave_reward_per_second * W:get_endless_early_wave_reward_factor())
 
 					local conf = W:get_endless_score_config()
 					local time_factor = km.clamp(0, 1, remaining_secs / fts(group.interval))
@@ -1854,7 +1861,7 @@ function sys.wave_spawn:init(store)
 					local user_data = storage:load_slot()
 					local reward_factor = generation_upgrades.early_wave_reward_factor(user_data, store.level_idx)
 
-					store.early_wave_reward = math.ceil(remaining_secs * GS.early_wave_reward_per_second * reward_factor)
+					store.early_wave_reward = math.ceil(reward_secs * GS.early_wave_reward_per_second * reward_factor)
 				end
 
 				store.player_gold = store.player_gold + store.early_wave_reward
@@ -2832,7 +2839,7 @@ function sys.health:on_update(dt, ts, store)
 			else
 				local h = e.health
 
-				if not h.dead then
+				if not h.dead and band(d.damage_type, DAMAGE_SPIKED_ARMOR) == 0 then
 					local source = store.entities[d.source_id]
 					if source then
 						if e and h.dark_spiked_armor and e.soldier and e.soldier.target_id and not source.bullet and not source.dps then
@@ -2840,7 +2847,7 @@ function sys.health:on_update(dt, ts, store)
 							if t and t.health and not t.health.dead then
 								local sad = E:create_damage()
 
-								sad.damage_type = bor(h.dark_damage_type, DAMAGE_NO_DODGE)
+								sad.damage_type = bor(h.dark_damage_type, DAMAGE_NO_DODGE, DAMAGE_SPIKED_ARMOR)
 								sad.value = h.dark_spiked_armor
 								sad.source_id = e.id
 								sad.target_id = t.id
@@ -2853,7 +2860,7 @@ function sys.health:on_update(dt, ts, store)
 						if t and t.health and not t.health.dead then
 							local sad = E:create_damage()
 
-							sad.damage_type = bor(h.dark_damage_type, DAMAGE_NO_DODGE)
+							sad.damage_type = bor(h.dark_damage_type, DAMAGE_NO_DODGE, DAMAGE_SPIKED_ARMOR)
 							sad.value = h.dark_spiked_armor
 							sad.source_id = e.id
 							sad.target_id = t.id
@@ -2912,6 +2919,7 @@ function sys.health:on_update(dt, ts, store)
 
 						if actual_damage > 0 then
 							d.damage_result = bor(d.damage_result, DR_DAMAGE)
+							h.last_damage_source_id = d.source_id
 							local source=store.entities[d.source_id]
 							local dealer=source and source.modifier and store.entities[source.modifier.source_id] or source
 							if starting_hp>0 and dealer and dealer.unit and dealer.unit.on_damage_dealt then
@@ -2936,16 +2944,26 @@ function sys.health:on_update(dt, ts, store)
 							end
 						end
 
-						if e and h.spiked_armor and h.spiked_armor > 0 and e.soldier and e.soldier.target_id then
-							local t = store.entities[e.soldier.target_id]
+						if e and h.spiked_armor and h.spiked_armor > 0 and band(d.damage_type, DAMAGE_SPIKED_ARMOR) == 0 then
+							local reflected_target
 
-							if t and t.health and not t.health.dead then
+							if e.soldier and e.soldier.target_id then
+								reflected_target = store.entities[e.soldier.target_id]
+							elseif e.enemy and e.enemy.blockers and d.source_id and table.contains(e.enemy.blockers, d.source_id) then
+								local source = store.entities[d.source_id]
+
+								if source and source.soldier then
+									reflected_target = source
+								end
+							end
+
+							if reflected_target and reflected_target.health and not reflected_target.health.dead then
 								local sad = E:create_damage()
 
-								sad.damage_type = DAMAGE_TRUE
+								sad.damage_type = bor(DAMAGE_TRUE, DAMAGE_SPIKED_ARMOR)
 								sad.value = math.ceil(h.spiked_armor * d.value)
 								sad.source_id = e.id
-								sad.target_id = t.id
+								sad.target_id = reflected_target.id
 
 								next_damage_queue[#next_damage_queue + 1] = sad
 							end
@@ -4239,7 +4257,7 @@ function sys.render:on_remove(entity, store)
 	return true
 end
 
-function sys.render:on_render_update(dt, ts, store)
+function sys.render:on_update(dt, ts, store)
 	for _, e in E:filter_iter(store.entities, "render") do
 		local render = e.render
 

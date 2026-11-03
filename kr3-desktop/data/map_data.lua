@@ -6705,6 +6705,14 @@ local map_data = {
 			name = "frost_gem_level4",
 			display_name = "Ngọc băng IV"
 		},
+		{icon = 672, name = "tower_sniper", display_name = "Sniper Tower"},
+		{icon = 673, name = "tower_plague_hospital", display_name = "Plague Hospital"},
+		{icon = 674, name = "tower_command_center", display_name = "Command Center"},
+		{icon = 675, name = "tower_ice_cooler", display_name = "Ice Cooler"},
+		{icon = 676, name = "tower_machine_gunner", display_name = "Machine Gunner"},
+		{icon = 677, name = "tower_blastin_bullriders", display_name = "Blastin' Bullriders"},
+		{icon = 678, name = "tower_wifi_babies", display_name = "Wifi Babies"},
+		{icon = 679, name = "tower_wicked_sisters_stregi", display_name = "Wicked Sisters - Stregi"},
 	},
 	tower_3_data = {
 		{
@@ -14865,5 +14873,10 @@ end
 
 map_data.tower_6_count = #kr6_tower_integration.towers
 map_data.tower_6_legacy_names = table.deepclone(kr6_tower_integration.legacy_towers)
+
+-- Boss team slots use stable names; keep numeric hero indices and roster iteration unchanged.
+setmetatable(map_data.hero_data, {
+	__index = function(_, name) return require("allied_bosses").get(name) end
+})
 
 return map_data

@@ -1691,6 +1691,16 @@ local function y_soldier_timed_attacks(store, this)
 	return false, A_IN_COOLDOWN
 end
 
+-- Large enemies keep blockers at their body edge, outside center-based AOE tests.
+local function soldier_area_hits_enemy(this, target, enemy, hit_pos, radius)
+ if U.is_inside_ellipse(enemy.pos, hit_pos, radius) then return true end
+ if not this.boss_kind or enemy ~= target or not table.contains(enemy.enemy.blockers, this.id) then return false end
+ local slot = enemy.enemy.melee_slot
+ local side = this.pos.x < enemy.pos.x and -1 or 1
+ local contact = V.v(enemy.pos.x + side * slot.x, enemy.pos.y + slot.y)
+ return U.is_inside_ellipse(contact, hit_pos, radius)
+end
+
 local function y_soldier_do_single_area_attack(store, this, target, attack)
 	local attack_done = false
 	local start_ts = store.tick_ts
@@ -1744,7 +1754,7 @@ local function y_soldier_do_single_area_attack(store, this, target, attack)
 	end
 
 	targets = table.filter(store.entities, function(k, v)
-		return v.enemy and v.vis and v.health and not v.health.dead and band(v.vis.flags, attack.damage_bans) == 0 and band(v.vis.bans, attack.damage_flags) == 0 and (this.allied_boss_parasite_guard and v.parasite_host_id == this.id or U.is_inside_ellipse(v.pos, hit_pos, attack.damage_radius))
+		return v.enemy and v.vis and v.health and not v.health.dead and band(v.vis.flags, attack.damage_bans) == 0 and band(v.vis.bans, attack.damage_flags) == 0 and (this.allied_boss_parasite_guard and v.parasite_host_id == this.id or soldier_area_hits_enemy(this, target, v, hit_pos, attack.damage_radius))
 	end)
 
 	if attack.count then
@@ -1920,7 +1930,7 @@ local function y_soldier_do_loopable_melee_attack(store, this, target, attack)
 				end
 
 				local targets = table.filter(store.entities, function(k, v)
-					return v.enemy and v.vis and v.health and not v.health.dead and band(v.vis.flags, attack.damage_bans) == 0 and band(v.vis.bans, attack.damage_flags) == 0 and (this.allied_boss_parasite_guard and v.parasite_host_id == this.id or U.is_inside_ellipse(v.pos, hit_pos, attack.damage_radius))
+					return v.enemy and v.vis and v.health and not v.health.dead and band(v.vis.flags, attack.damage_bans) == 0 and band(v.vis.bans, attack.damage_flags) == 0 and (this.allied_boss_parasite_guard and v.parasite_host_id == this.id or soldier_area_hits_enemy(this, target, v, hit_pos, attack.damage_radius))
 				end)
 
 				for _, e in pairs(targets) do

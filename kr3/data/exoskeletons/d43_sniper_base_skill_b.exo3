@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_sniper_tower_asst_sniper_base_skill_advanced_skill_b",16.75,20}},["attach_points"]={},["animations"]={{["name"]="idle",["frames"]={{{1,1,1,-14.39999962,-28.95000076,1,1,0,0,0}}}}}}

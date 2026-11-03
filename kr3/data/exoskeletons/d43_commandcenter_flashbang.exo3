@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_command_center_asst_CC_unit1_lens_02_skill_b",1.899999976,2.049999952}},["attach_points"]={},["animations"]={{["name"]="run",["frames"]={{{1,1,1,2,0.8000000119,1.247065425,0.9496387243,-3.082287788,-0.002741194796,0}}}}}}

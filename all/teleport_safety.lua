@@ -7,20 +7,24 @@ local bor = bit.bor
 local M = {}
 
 local function blockable_node(pi, spi, ni)
+	if not P:is_node_valid(pi, ni, NF_ALL) then
+		return false
+	end
+
 	local pos = P:node_pos(pi, spi, ni)
 	local terrain = GR:cell_type(pos.x, pos.y)
 
-	return P:is_node_valid(pi, ni, NF_ALL) and band(terrain, bor(TERRAIN_WATER, TERRAIN_CLIFF, TERRAIN_NOWALK)) == 0
+	return band(terrain, bor(TERRAIN_WATER, TERRAIN_CLIFF, TERRAIN_NOWALK)) == 0
 end
 
-function M.place_enemy(target, previous_path)
+function M.place_enemy(target, previous_path, force_blockable)
 	local nav = target.nav_path
 
 	if not nav then
 		return
 	end
 
-	if target.enemy and not target.water and not target.cliff and band(target.vis.flags, F_FLYING) == 0 then
+	if force_blockable or target.enemy and not target.water and not target.cliff and band(target.vis.flags, F_FLYING) == 0 then
 		local pi, spi, ni = nav.pi, nav.spi, nav.ni
 		local last = #P:path(pi, spi)
 		local found = blockable_node(pi, spi, ni) and ni or nil

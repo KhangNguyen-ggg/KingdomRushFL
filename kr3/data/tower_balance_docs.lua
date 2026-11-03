@@ -2835,13 +2835,13 @@ local M = {
 				standard = "Cứ 1.5 (1.35) giây bắn 1 mũi tên gây sát thương vật lý.",
 				enhanced = "Cứ 1.5 (1.35) giây bắn 1 mũi tên gây sát thương vật lý."
 			},
-			change_note = "Tháp vốn đa dụng và gây sát thương nhóm tốt. Chỉ tăng tính hữu dụng kỹ năng 1 và sự linh hoạt kỹ năng 3.", port_note = "", notes = "", skills = {
+			change_note = "Khi nâng Tên nảy Rừng xanh, tên độc cũng nảy và áp dụng đầy đủ hiệu ứng độc ở cấp hiện tại cho mỗi mục tiêu. Hồi chiêu tên độc: 15 giây.", port_note = "", notes = "", skills = {
 				{
 					name = "Tên tẩm độc",
 					standard = "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 15 giây.",
-					enhanced = "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 12 giây.",
+					enhanced = "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 15 giây. Khi nâng Tên nảy Rừng xanh, tên độc cũng nảy và áp dụng đầy đủ hiệu ứng độc cho mỗi mục tiêu.",
 					levels_standard = { "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 15 giây.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 80 sát thương độc chuẩn trong 5 giây. CD: 15 giây.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 192 sát thương độc chuẩn trong 8 giây. CD: 15 giây." },
-					levels_enhanced = { "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 12 giây.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 80 sát thương độc chuẩn trong 5 giây. CD: 12 giây.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 192 sát thương độc chuẩn trong 8 giây. CD: 12 giây." },
+					levels_enhanced = { "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 24 sát thương độc chuẩn trong 3 giây. CD: 15 giây. Tên nảy áp dụng đầy đủ hiệu ứng độc.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 80 sát thương độc chuẩn trong 5 giây. CD: 15 giây. Tên nảy áp dụng đầy đủ hiệu ứng độc.", "Bắn 3 tên độc, mỗi tên gây sát thương vật lý và 192 sát thương độc chuẩn trong 8 giây. CD: 15 giây. Tên nảy áp dụng đầy đủ hiệu ứng độc." },
 					prices_standard = { "200", "200", "200" }, prices_enhanced = { "200", "200", "200" }
 				},
 				{
@@ -2855,9 +2855,9 @@ local M = {
 				{
 					name = "Tên nảy Rừng xanh",
 					standard = "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu.",
-					enhanced = "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu.",
+					enhanced = "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu. Tên độc cũng nảy; sát thương và thời gian độc không giảm qua mỗi lần nảy.",
 					levels_standard = { "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 50% sát thương ban đầu.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 75% sát thương ban đầu." },
-					levels_enhanced = { "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 50% sát thương ban đầu.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 75% sát thương ban đầu." },
+					levels_enhanced = { "Tên nảy tối đa 3 lần, sát thương nảy bằng 25% sát thương ban đầu. Tên độc nảy giữ nguyên hiệu ứng độc.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 50% sát thương ban đầu. Tên độc nảy giữ nguyên hiệu ứng độc.", "Tên nảy tối đa 3 lần, sát thương nảy bằng 75% sát thương ban đầu. Tên độc nảy giữ nguyên hiệu ứng độc." },
 					prices_standard = { "250", "200", "200" }, prices_enhanced = { "230", "185", "185" }
 				},
 				{
@@ -3151,7 +3151,7 @@ local M = {
 				{
 					name = "Cuồng bạo Tha hóa", standard = "Nỏ thủ bắn liên thanh nhanh trong 4 giây. CD: 25 giây.", enhanced = "Nỏ thủ bắn liên thanh nhanh, mỗi tên gây 18-28 sát thương vật lý, kéo dài 4 giây. CD: 25 giây.",
 					levels_standard = { "Nỏ thủ bắn liên thanh nhanh trong 4 giây. CD: 25 giây.", "Nỏ thủ bắn liên thanh nhanh trong 6 giây. CD: 25 giây.", "Nỏ thủ bắn liên thanh nhanh, mỗi tên gây 18-28 sát thương vật lý, kéo dài 9 giây. CD: 25 giây." },
-					levels_enhanced = { "Nỏ thủ bắn liên thanh nhanh trong 4 giây. CD: 25 giây.", "Nỏ thủ bắn liên thanh nhanh trong 6 giây. CD: 25 giây.", "Nỏ thủ bắn liên thanh nhanh trong 9 giây. CD: 25 giây." },
+					levels_enhanced = { "Nỏ thủ bắn liên thanh nhanh trong 4 giây. CD: 18 giây.", "Nỏ thủ bắn liên thanh nhanh trong 6 giây. CD: 18 giây.", "Nỏ thủ bắn liên thanh nhanh trong 9 giây. CD: 18 giây." },
 					prices_standard = { "200", "200", "200" }, prices_enhanced = { "200", "200", "200" }
 				},
 				{
@@ -3186,13 +3186,13 @@ local M = {
 					name = "Đoàn thám hiểm Điên cuồng", standard = "Phóng xe mỏ gây 18-28 sát thương pháo khi va chạm, triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.", enhanced = "Phóng xe mỏ gây 18-28 sát thương pháo. Mỗi 1 địch bị va chạm cho thêm 10% tiền thưởng của địch đó, làm tròn lên. Triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.",
 					levels_standard = { "Phóng xe mỏ gây 18-28 sát thương pháo khi va chạm, triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.", "Phóng xe mỏ gây 40-60 sát thương pháo khi va chạm, triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.", "Phóng xe mỏ gây 52-78 sát thương pháo khi va chạm, triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây." },
 					levels_enhanced = { "Phóng xe mỏ gây 18-28 sát thương pháo. Mỗi 1 địch bị va chạm cho thêm 10% tiền thưởng của địch đó, làm tròn lên. Triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.", "Phóng xe mỏ gây 40-60 sát thương pháo. Mỗi 1 địch bị va chạm cho thêm 20% tiền thưởng của địch đó, làm tròn lên. Triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây.", "Phóng xe mỏ gây 52-78 sát thương pháo. Mỗi 1 địch bị va chạm cho thêm 30% tiền thưởng của địch đó, làm tròn lên. Triệu hồi 2 thợ mỏ chiến đấu 15 giây. CD: 20 giây." },
-					prices_standard = { "150", "150", "150" }, prices_enhanced = { "450", "450", "450" }
+					prices_standard = { "150", "150", "150" }, prices_enhanced = { "350", "350", "350" }
 				},
 				{
 					name = "Phá đất trồi lên", standard = "Thợ mỏ trồi lên gây 8-12 sát thương vật lý cho địch quanh đó và làm choáng 1 giây.", enhanced = "Thợ mỏ trồi lên gây 8-12 sát thương vật lý cho địch quanh đó và làm choáng 1 giây. Mỗi 1 địch bị choáng cho thêm 1 vàng.",
 					levels_standard = { "Thợ mỏ trồi lên gây 8-12 sát thương vật lý cho địch quanh đó và làm choáng 1 giây.", "Thợ mỏ trồi lên gây 20-30 sát thương vật lý cho địch quanh đó và làm choáng 1.5 giây.", "Thợ mỏ trồi lên gây 32-48 sát thương vật lý cho địch quanh đó và làm choáng 2 giây." },
-					levels_enhanced = { "Thợ mỏ trồi lên gây 8-12 sát thương vật lý cho địch quanh đó và làm choáng 1 giây. Mỗi 1 địch bị choáng cho thêm 1 vàng.", "Thợ mỏ trồi lên gây 20-30 sát thương vật lý cho địch quanh đó và làm choáng 1.5 giây. Mỗi 1 địch bị choáng cho thêm 2 vàng.", "Thợ mỏ trồi lên gây 32-48 sát thương vật lý cho địch quanh đó và làm choáng 2 giây. Mỗi 1 địch bị choáng cho thêm 4 vàng." },
-					prices_standard = { "200", "200", "200" }, prices_enhanced = { "290", "290", "290" }
+					levels_enhanced = { "Thợ mỏ trồi lên gây 8-12 sát thương vật lý cho địch quanh đó và làm choáng 1 giây. Mỗi 1 địch bị choáng cho thêm 1 vàng.", "Thợ mỏ trồi lên gây 20-30 sát thương vật lý cho địch quanh đó và làm choáng 1.5 giây. Mỗi 1 địch bị choáng cho thêm 2 vàng.", "Thợ mỏ trồi lên gây 32-48 sát thương vật lý cho địch quanh đó và làm choáng 2 giây. Mỗi 1 địch bị choáng cho thêm 3 vàng." },
+					prices_standard = { "200", "200", "200" }, prices_enhanced = { "450", "450", "450" }
 				},
 				{
 					name = "Luân phiên vào việc", standard = "Thợ mỏ vẫn tạo vàng khi vào giao tranh, mỗi lần bằng 1 lần lượng cơ bản.", enhanced = "Thợ mỏ vẫn tạo vàng khi vào giao tranh, mỗi lần bằng 1 lần lượng cơ bản.",

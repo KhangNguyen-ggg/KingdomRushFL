@@ -1,4 +1,4 @@
--- chunkname: @./all-desktop/gg_views_custom.lua
+﻿-- chunkname: @./all-desktop/gg_views_custom.lua
 
 local log = require("klua.log"):new("gg_views_custom")
 
@@ -241,16 +241,6 @@ local function fc(a)
 	}
 end
 
-
-local function vietnamese_button_caption(label)
-	if i18n.current_locale ~= "zh-Hans" then return end
-	label.font_name = "body_bold"
-	label.vertical_align = "middle"
-	label.fit_lines = 1
-	label.canvases_drawn = nil
-	label:do_fit_lines(1)
-end
-
 GGDoneButton = class("GGDoneButton", GGButton)
 GGDoneButton.static.init_arg_names = {
 	"label_text"
@@ -272,7 +262,6 @@ function GGDoneButton:initialize(label_text)
 	end
 
 	self.label.fit_lines = 1
-	vietnamese_button_caption(self.label)
 end
 
 GGKR1SelectButton = class("GGKR1SelectButton", GGButton)
@@ -297,7 +286,6 @@ function GGKR1SelectButton:initialize(label_text)
 
 	self.label.fit_lines = 1
 	self.anchor = V.v(75, 36)
-	vietnamese_button_caption(self.label)
 end
 
 GGOptionsButton = class("GGOptionsButton", GGButton)
@@ -321,7 +309,6 @@ function GGOptionsButton:initialize(label_text)
 	end
 
 	self.label.fit_lines = 1
-	vietnamese_button_caption(self.label)
 end
 
 GGUpgradesButton = class("GGUpgradesButton", GGButton)
@@ -353,7 +340,6 @@ function GGUpgradesButton:initialize(label_text)
 	end
 
 	self.label.fit_lines = 1
-	vietnamese_button_caption(self.label)
 end
 
 GGBorderButton = class("GGBorderButton", GGButton)
@@ -385,7 +371,6 @@ function GGBorderButton:initialize(text, large)
 
 		self.label:do_fit_lines(1)
 	end
-	vietnamese_button_caption(self.label)
 end
 
 GGOptionsLabel = class("GGOptionsLabel", GGShaderLabel)

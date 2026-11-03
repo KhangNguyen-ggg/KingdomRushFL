@@ -1,4 +1,4 @@
-﻿-- chunkname: @./kr3/game_settings.lua
+-- chunkname: @./kr3/game_settings.lua
 
 local GS = {}
 
@@ -2454,4 +2454,34 @@ for i = #GS.encyclopedia_enemies, 1, -1 do
 	end
 end
 
+-- BEGIN DOVE43 BUILTIN TOWERS
+GS.towers_dove43_exoskeletons = {["shadow_archer"]={"d43_sniper","d43_sniper_base","d43_sniper_base_skill_a","d43_sniper_base_skill_b","d43_sniper_mira","d43_sniper_mira_decal","d43_sniper_skill_attack","d43_sniper_skill_blood","d43_sniper_skill_bullet","d43_sniper_skill_mira","d43_sniper_skill_smoketrail","d43_sniper_skill_spotter"},["rocket_riders"]={"d43_plaguetower","d43_plaguetower_buff2","d43_plaguetower_decal","d43_plaguetower_doctor","d43_plaguetower_doctor_skilla","d43_plaguetower_electricity","d43_plaguetower_giant","d43_plaguetower_skilla","d43_plaguetower_skillab","d43_plaguetower_skillb","d43_plaguetower_smoke","d43_plaguetower_status","d43_plaguetower_towersmoke","d43_plaguetower_zombie"},["melting_furnace"]={"d43_commandcenter_activate","d43_commandcenter_flashbang","d43_commandcenter_flashbangFX","d43_commandcenter_parabolic","d43_commandcenter_power_explosion","d43_commandcenter_power_missile","d43_commandcenter_power_plane","d43_commandcenter_power_smoke","d43_commandcenter_power_target","d43_commandcenter_power_tower_decal","d43_commandcenter_skilladvanced","d43_commandcenter_skillbwaves","d43_commandcenter_tower","d43_commandcenter_tower_a","d43_commandcenter_tower_ab","d43_commandcenter_tower_b"},["orc_shaman"]={"d43_icecooler_breath","d43_icecooler_explosion_cian","d43_icecooler_explosion_green","d43_icecooler_explosion_pink","d43_icecooler_fan_cyan","d43_icecooler_fan_green","d43_icecooler_fan_pink","d43_icecooler_freeze_mark","d43_icecooler_freeze_mod","d43_icecooler_icecloud","d43_icecooler_shooter","d43_icecooler_snowman","d43_icecooler_tower","d43_icecooler_tower_skilla","d43_icecooler_tower_skillab","d43_icecooler_tower_skillb"},["goblirang"]={"d43_machinegunner_base","d43_machinegunner_base_skill_a","d43_machinegunner_base_skill_b","d43_machinegunner_ripple_fx","d43_shooter_machinegunner","d43_shooter_machinegunner_basic","d43_shooter_machinegunner_hit","d43_shooter_machinegunner_skill_explosion"}}
+GS.towers_dove43_exoskeletons.rocket_riders = nil
+GS.towers_dove43_exoskeletons.grim_cemetery = {
+	"d43_plaguetower", "d43_plaguetower_buff2", "d43_plaguetower_decal",
+	"d43_plaguetower_doctor", "d43_plaguetower_doctor_skilla", "d43_plaguetower_electricity",
+	"d43_plaguetower_giant", "d43_plaguetower_skilla", "d43_plaguetower_skillab",
+	"d43_plaguetower_skillb", "d43_plaguetower_smoke", "d43_plaguetower_status",
+	"d43_plaguetower_towersmoke", "d43_plaguetower_zombie",
+}
+GS.towers_dove43_exoskeletons.ogre_shipwreck = {
+	"d43_aerial_bull_decal", "d43_aerial_bull_explosion", "d43_aerial_bull_rocket_skillB",
+	"d43_aerial_bull_rocket", "d43_aerial_bull_trail", "d43_aerial_cactus_explosion",
+	"d43_aerial_cactus_missil_skillA", "d43_aerial_cactus_missil", "d43_aerial_cactus_trail",
+	"d43_aerial_drone_explosion_skillA", "d43_aerial_drone_shadow_skillA", "d43_aerial_drone_skillA",
+	"d43_aerial_modify_skillB", "d43_aerial_rally_decal_skillB", "d43_aerial_rally_decal",
+	"d43_aerial_rally_skillB", "d43_aerial_rally", "d43_aerial_skillA_mira",
+	"d43_aerial_strike_cactus_skill_a", "d43_aerial_strike_cactus_skill_ab",
+	"d43_aerial_strike_cactus_skill_b", "d43_aerial_strike_cactus",
+	"d43_aerial_strike_skill_a", "d43_aerial_strike_skill_ab",
+	"d43_aerial_strike_skill_b", "d43_aerial_strike",
+}
+GS.towers_dove43_exoskeletons.spirit_mausoleum = {
+	"d43_wifi_babies_explosion", "d43_wifi_babies_floatingbabies_decal",
+	"d43_wifi_babies_floatingbabies", "d43_wifi_babies_mind_control",
+	"d43_wifi_babies_nuclear_stun", "d43_wifi_babies_part", "d43_wifi_babies_pulse",
+	"d43_wifi_babies_skilla", "d43_wifi_babies_skillab", "d43_wifi_babies_skillb",
+	"d43_wifi_babies", "d43_wifi_ray",
+}
+-- END DOVE43 BUILTIN TOWERS
 return GS

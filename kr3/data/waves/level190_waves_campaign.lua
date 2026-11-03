@@ -3199,6 +3199,7 @@ return {
 		},
 		{
 			interval = 100000,
+			no_early_wave_bonus = true,
 			waves = {
 				{
 					delay = 400,

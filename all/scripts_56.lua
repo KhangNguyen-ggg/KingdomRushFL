@@ -6901,7 +6901,7 @@ function scripts.mod_teleport.update(this, store)
 		end
 	end
 
-	TS.place_enemy(target, previous_path)
+	TS.place_enemy(target, previous_path, this.dest_blockable_node)
 
 	local fx = E:create_entity(this.fx_end)
 

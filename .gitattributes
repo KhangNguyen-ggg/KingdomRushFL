@@ -8,3 +8,5 @@ kr3-desktop/assets/**/*.ico filter=lfs diff=lfs merge=lfs -text
 Z_Mod/**/*.png filter=lfs diff=lfs merge=lfs -text
 Z_Mod/**/*.zip filter=lfs diff=lfs merge=lfs -text
 KRFL*.zip filter=lfs diff=lfs merge=lfs -text
+FL805*.zip filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text

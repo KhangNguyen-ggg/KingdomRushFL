@@ -3253,7 +3253,7 @@ local function apply_shaosiyuan_effects(this, store, affected_allies, affected_e
 	end
 end
 
-local function tick_shaosiyuan_effects(this, store)
+local function tick_shaosiyuan_healing(this, store)
 	for _, entity in pairs(store.entities) do
 		if power_spell_is_friendly_unit(entity) then
 			local old_hp = entity.health.hp
@@ -3264,7 +3264,13 @@ local function tick_shaosiyuan_effects(this, store)
 			if entity.health.hp > old_hp then
 				signal.emit("health-regen", entity, entity.health.hp - old_hp)
 			end
-		elseif entity.enemy and entity.health and not entity.health.dead then
+		end
+	end
+end
+
+local function tick_shaosiyuan_damage(this, store)
+	for _, entity in pairs(store.entities) do
+		if entity.enemy and entity.health and not entity.health.dead then
 			local damage = E:create_damage()
 
 			damage.damage_type = DAMAGE_TRUE
@@ -3279,7 +3285,8 @@ end
 function scripts.controller_power_shaosiyuan_fateful_bond.update(this, store)
 	local start_ts = store.tick_ts
 	local end_ts = start_ts + this.duration
-	local next_tick = start_ts + this.tick_time
+	local next_heal_tick = start_ts + this.heal_tick_time
+	local next_damage_tick = start_ts + this.damage_tick_time
 	local affected_allies = {}
 	local affected_enemies = {}
 	local allied_hits = 0
@@ -3303,9 +3310,14 @@ function scripts.controller_power_shaosiyuan_fateful_bond.update(this, store)
 	while true do
 		apply_shaosiyuan_effects(this, store, affected_allies, affected_enemies, end_ts)
 
-		while store.tick_ts >= next_tick and next_tick <= end_ts do
-			tick_shaosiyuan_effects(this, store)
-			next_tick = next_tick + this.tick_time
+		while store.tick_ts >= next_heal_tick and next_heal_tick <= end_ts do
+			tick_shaosiyuan_healing(this, store)
+			next_heal_tick = next_heal_tick + this.heal_tick_time
+		end
+
+		while store.tick_ts >= next_damage_tick and next_damage_tick <= end_ts do
+			tick_shaosiyuan_damage(this, store)
+			next_damage_tick = next_damage_tick + this.damage_tick_time
 		end
 
 		if store.tick_ts >= end_ts then

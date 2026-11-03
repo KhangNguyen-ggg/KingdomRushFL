@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_ice_cooler_asst_icecooler_freeze_modifier",24.04999924,10.44999981}},["attach_points"]={},["animations"]={{["name"]="idle",["frames"]={{{1,1,1,-23.75,-21.04999924,1,1,0,0,0}}}}}}

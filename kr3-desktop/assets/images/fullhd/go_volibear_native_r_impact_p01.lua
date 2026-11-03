@@ -1,0 +1,20 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ volibear_native_r_impact_0001={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={107,139,101,64},a_size={1016,320},f_quad={1,1,48,53},alias={}},
+ volibear_native_r_impact_0002={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={57,91,72,25},a_size={1016,320},f_quad={51,1,127,140},alias={}},
+ volibear_native_r_impact_0003={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={88,96,85,49},a_size={1016,320},f_quad={180,1,83,111},alias={}},
+ volibear_native_r_impact_0004={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={108,75,83,69},a_size={1016,320},f_quad={265,1,65,112},alias={}},
+ volibear_native_r_impact_0005={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={116,72,76,104},a_size={1016,320},f_quad={332,1,64,80},alias={}},
+ volibear_native_r_impact_0006={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={109,57,67,69},a_size={1016,320},f_quad={398,1,80,130},alias={}},
+ volibear_native_r_impact_0007={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={108,47,62,108},a_size={1016,320},f_quad={480,1,86,101},alias={}},
+ volibear_native_r_impact_0008={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={110,41,60,115},a_size={1016,320},f_quad={568,1,86,100},alias={}},
+ volibear_native_r_impact_0009={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={110,38,58,115},a_size={1016,320},f_quad={656,1,88,103},alias={}},
+ volibear_native_r_impact_0010={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={111,35,57,113},a_size={1016,320},f_quad={746,1,88,108},alias={}},
+ volibear_native_r_impact_0011={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={110,33,60,111},a_size={1016,320},f_quad={836,1,86,112},alias={}},
+ volibear_native_r_impact_0012={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={104,33,67,105},a_size={1016,320},f_quad={924,1,85,118},alias={}},
+ volibear_native_r_impact_0013={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={95,40,77,82},a_size={1016,320},f_quad={1,143,84,134},alias={}},
+ volibear_native_r_impact_0014={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={85,49,77,76},a_size={1016,320},f_quad={87,143,94,131},alias={}},
+ volibear_native_r_impact_0015={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={81,48,76,42},a_size={1016,320},f_quad={183,143,99,166},alias={}},
+ volibear_native_r_impact_0016={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={87,48,76,39},a_size={1016,320},f_quad={284,143,93,169},alias={}},
+ volibear_native_r_impact_0017={a_name="go_volibear_native_r_impact_p01.png",size={256,256},trim={90,48,75,40},a_size={1016,320},f_quad={379,143,91,168},alias={}},
+}

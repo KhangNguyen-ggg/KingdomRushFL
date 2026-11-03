@@ -1,0 +1,23 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ fx_volibear_native_e_shield_bubble_0022={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={1,1,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0023={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={257,1,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0024={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={513,1,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0025={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={769,1,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0026={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={1,195,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0027={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={257,195,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0028={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,43,2,21},a_size={1024,968},f_quad={513,195,254,192},alias={}},
+ fx_volibear_native_e_shield_bubble_0029={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={769,195,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0030={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={1,389,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0031={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={257,389,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0032={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={513,389,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0033={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={769,389,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0034={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={1,582,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0035={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={257,582,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0036={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,44,2,21},a_size={1024,968},f_quad={513,582,254,191},alias={}},
+ fx_volibear_native_e_shield_bubble_0037={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,45,2,21},a_size={1024,968},f_quad={769,582,254,190},alias={}},
+ fx_volibear_native_e_shield_bubble_0038={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,45,2,21},a_size={1024,968},f_quad={1,775,254,190},alias={}},
+ fx_volibear_native_e_shield_bubble_0039={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,45,2,21},a_size={1024,968},f_quad={257,775,254,190},alias={}},
+ fx_volibear_native_e_shield_bubble_0040={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,45,2,21},a_size={1024,968},f_quad={513,775,254,190},alias={}},
+ fx_volibear_native_e_shield_bubble_0041={a_name="go_fx_volibear_native_e_shield_bubble_p02.png",size={256,256},trim={0,45,2,21},a_size={1024,968},f_quad={769,775,254,190},alias={}},
+}

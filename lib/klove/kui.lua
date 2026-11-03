@@ -1,4 +1,4 @@
-﻿-- chunkname: @./lib/klove/kui.lua
+-- chunkname: @./lib/klove/kui.lua
 
 local log = require("klua.log"):new("kui")
 
@@ -827,13 +827,27 @@ function KView:_draw_self()
 		})
 	end
 
-	if self.animation then
-		local fn, runs = self:animation_frame(self.animation, self.ts, self.loop, self.fps)
+	local animation = self.animation
 
-		self.image_ss = I:s(fn)
-		self.image = I:i(self.image_ss.atlas)
+	if animation then
+		local fn, runs = self:animation_frame(animation, self.ts, self.loop, self.fps)
 
-		if self.animation.hide_at_end and runs >= 1 then
+		if fn then
+			local image_ss = I:s(fn)
+
+			if image_ss then
+				self.image_ss = image_ss
+				self.image = I:i(image_ss.atlas)
+			else
+				log.error("Animation frame %s was not found for view %s (%s); disabling the animation", fn, tostring(self.id), tostring(self.class and self.class.name))
+				self.animation = nil
+			end
+		else
+			log.error("Invalid animation on view %s (%s); disabling the animation", tostring(self.id), tostring(self.class and self.class.name))
+			self.animation = nil
+		end
+
+		if type(animation) == "table" and animation.hide_at_end and runs >= 1 then
 			self.hidden = true
 		end
 	end
@@ -913,7 +927,11 @@ end
 function KView:animation_frame(animation, time_offset, loop, fps)
 	local a = animation
 
-	fps = fps or animation.fps or KUI_FPS
+	if type(a) ~= "table" then
+		return nil, 0
+	end
+
+	fps = fps or a.fps or KUI_FPS
 
 	local frames = a.frames
 
@@ -944,6 +962,11 @@ function KView:animation_frame(animation, time_offset, loop, fps)
 	end
 
 	local len = #frames
+
+	if len == 0 or not a.prefix then
+		return nil, 0
+	end
+
 	local elapsed = math.ceil(time_offset * fps)
 	local runs = math.floor(elapsed / len)
 	local idx

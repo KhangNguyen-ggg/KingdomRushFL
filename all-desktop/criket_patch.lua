@@ -35,6 +35,11 @@ local UPGR = require("upgrades")
 local tower_menus = require("data.tower_menus_data")
 local shortcut_settings = require("shortcut_settings")
 local high_level_towers = {}
+local skipped_auto_powers = {
+    tricannon = {overheat = true},
+    infernal_mage = {curse = true},
+    dark_knights = {shield = true}
+}
 
 CriketMenuButton = class("CriketMenuButton", KView)
 function CriketMenuButton:initialize(item)
@@ -200,28 +205,6 @@ function CriketMenu:hide()
     self.hidden = true
 end
 
-function CriketMenu:update(dt)
-    CriketMenu.super.update(self, dt)
-
-    if self.hidden then
-        return
-    end
-
-    local store = self.game_gui.game.store
-
-    for _, c in pairs(self.children) do
-        if c:isInstanceOf(CriketMenuButton) and c.item_props then
-            if c.item_props.action == "tw_upgrade" then
-                local nt = E:get_template(c.item_props.action_arg)
-
-                if nt.build_name then
-                    nt = E:get_template(nt.build_name)
-                end
-            end
-        end
-    end
-end
-
 function CriketMenu:button_enter(button)
     if button.halo then
         button.halo.hidden = false
@@ -237,48 +220,72 @@ end
 function CriketMenu:button_callback(button, item, entity, mouse_button, x, y)
 
     if item.action == "tw_upgrade" then
+        local template = E.entities[item.action_arg]
+
+        if not template or not template.tower or template.tower.type == "build_animation" then
+            log.error("One-click tower template is not a finished tower: %s", tostring(item.action_arg))
+            self:hide()
+            return
+        end
+
+        local menu = tower_menus[item.menu_key or template.tower.type]
+        local purchasable_powers = {}
+
+        for _, page in ipairs(menu or {}) do
+            for _, menu_item in ipairs(page) do
+                if menu_item.action == "upgrade_power" then
+                    purchasable_powers[menu_item.action_arg] = true
+                end
+            end
+        end
+
+        local skipped_powers = skipped_auto_powers[item.tower_type or template.tower.type] or {}
         local towers = table.filter(self.game_gui.game.store.entities, function(k, v)
             return v.tower
         end)
         for k, v in pairs(towers) do
-            local new_tower = E:create_entity(item.action_arg)
-            new_tower.pos = V.vclone(v.pos)
-            new_tower.tower.holder_id = v.tower.holder_id
-            new_tower.tower.flip_x = v.tower.flip_x
-            if v.tower.default_rally_pos then
-                new_tower.tower.default_rally_pos = V.vclone(v.tower.default_rally_pos)
-            end
-            if v.tower.terrain_style then
-                new_tower.tower.terrain_style = v.tower.terrain_style
-                new_tower.render.sprites[1].name =
-                    string.format(new_tower.render.sprites[1].name, v.tower.terrain_style)
-            end
-
-            if new_tower.ui and v.ui then
-                new_tower.ui.nav_mesh_id = v.ui.nav_mesh_id
-            end
             if self.replace or v.tower.type == "holder" or (v.tower_holder and v.tower_holder.blocked == true) then
-                self.game_gui.game.simulation:queue_remove_entity(v)
-                self.game_gui.game.simulation:queue_insert_entity(new_tower)
+                local new_tower = E:create_entity(item.action_arg)
 
-                self.game_gui.game.store.entities[v.id] = new_tower
+                new_tower.pos = V.vclone(v.pos)
+                new_tower.tower.holder_id = v.tower.holder_id
+                new_tower.tower.flip_x = v.tower.flip_x
+                if v.tower.default_rally_pos then
+                    new_tower.tower.default_rally_pos = V.vclone(v.tower.default_rally_pos)
+                end
+                if v.tower.terrain_style then
+                    new_tower.tower.terrain_style = v.tower.terrain_style
+                    local sprite = new_tower.render and new_tower.render.sprites[1]
+
+                    if sprite and type(sprite.name) == "string" and sprite.name:find("%%") then
+                        sprite.name = string.format(sprite.name, v.tower.terrain_style)
+                    end
+                end
+
+                if new_tower.ui and v.ui then
+                    new_tower.ui.nav_mesh_id = v.ui.nav_mesh_id
+                end
+
                 if new_tower.powers then
-                    for _, p in pairs(new_tower.powers) do
-                        p.level = p.max_level
-                        p.changed = true
+                    for name, power in pairs(new_tower.powers) do
+                        if name ~= "ultimate" and not skipped_powers[name]
+                            and (purchasable_powers[name] or next(purchasable_powers) == nil)
+                            and power.max_level and power.max_level > 0 then
+                            power.level = power.max_level
+                            power.changed = true
+                            if power.show_rally then
+                                new_tower.tower.show_rally = true
+                            end
+                        end
                     end
                 end
 
                 if new_tower.barrack then
-                    new_tower.barrack.rally_pos = V.vclone(new_tower.tower.default_rally_pos)
+                    new_tower.barrack.rally_pos = V.vclone(new_tower.tower.default_rally_pos or new_tower.pos)
                 end
-                -- if new_tower.mercenary then
-                --     for i = 1, new_tower.barrack.max_soldiers do
-                --         new_tower.barrack.soldiers[i] = E:create_entity(new_tower.barrack.soldier_type)
-                --         new_tower.barrack.soldiers[i].health.dead = true
-                --         new_tower.barrack.soldiers[i].id = -1
-                --     end
-                -- end
+
+                self.game_gui.game.simulation:queue_remove_entity(v)
+                self.game_gui.game.simulation:queue_insert_entity(new_tower)
             end
         end
     end
@@ -324,13 +331,13 @@ local g1_to_g3_towers = {
         tt_desc = _("SPECIAL_ELF_KR1_REPAIR_DESCRIPTION")
     }, {
         check = "main_icons_0019",
-        action_arg = "tower_holder_baby_ashbite_d",
+        action_arg = "tower_baby_ashbite_d",
         action = "tw_upgrade",
         halo = "glow_ico_main",
         image = "main_icons_0113",
         place = 2,
-        tt_title = _("ELVES_BABY_ASHBITE_TOWER_BROKEN_NAME"),
-        tt_desc = _("ELVES_BABY_ASHBITE_TOWER_BROKEN_DESCRIPTION")
+        tt_title = _("ELVES_BABY_ASHBITE_TOWER_NAME"),
+        tt_desc = _("ELVES_BABY_ASHBITE_FIREBREATH_SMALL_DESCRIPTION_3") .. "\n" .. _("ELVES_BABY_ASHBITE_SMOKEBREATH_SMALL_DESCRIPTION_1")
     }, {
         check = "main_icons_0019",
         action_arg = "tower_ewok_archer_re",--"tower_ewok_rework",
@@ -513,6 +520,15 @@ local g1_to_g3_towers = {
         tt_desc = _("TOWER_DWAARP_DESCRIPTION")
     }, {
         action = "tw_upgrade",
+        action_arg = "tower_frankenstein_d",
+        check = "main_icons_0019",
+        halo = "glow_ico_main",
+        image = "main_tower_icons_0006",
+        place = 1,
+        tt_title = _("TOWER_FRANKENSTEIN_NAME"),
+        tt_desc = _("TOWER_FRANKENSTEIN_DESCRIPTION")
+    }, {
+        action = "tw_upgrade",
         action_arg = "tower_mech",
         check = "main_icons_0019",
         halo = "glow_ico_main",
@@ -646,38 +662,38 @@ local function rebuild_high_level_towers()
 
     local holder = tower_menus.holder and tower_menus.holder[1]
     local pages = holder and holder.pages or {}
-    local current_towers = pages[#pages] or {}
+    local seen = {}
 
-    for _, tower_menu in ipairs(current_towers) do
-        if tower_menu.action == "tw_upgrade" then
-            local tower_menu_transformed = {}
+    for _, page in ipairs(pages) do
+        for _, tower_menu in ipairs(page) do
+            local tower_type = type(tower_menu.action_arg) == "string"
+                and tower_menu.action_arg:match("^tower_build_(.+)$")
 
-            for k, value in pairs(tower_menu) do
-                tower_menu_transformed[k] = value
+            if tower_menu.action == "tw_upgrade" and tower_type and not seen[tower_type] then
+                local target = "tower_" .. tower_type .. "_lvl4"
+                local template = E.entities[target]
+                local menu_key = template and template.tower and template.tower.type or tower_type
+                local regular_upgrade = false
 
-                if k == "action_arg" then
-                    if value == "tower_build_arcane_wizard" then
-                        tower_menu_transformed[k] = "tower_arcane_wizard_lvl4"
-                    elseif value == "tower_build_necromancer" then
-                        tower_menu_transformed[k] = "tower_necromancer_lvl4"
-                    elseif type(value) == "string" and string.sub(value, 1, 12) == "tower_build_" then
-                        local tower_type = string.sub(value, 13)
-                        local tower_menu_levels = tower_menus[tower_type]
-                        local tower_menu_lvl3 = tower_menu_levels and tower_menu_levels[3]
-
-                        if tower_menu_lvl3 then
-                            for _, level_item in ipairs(tower_menu_lvl3) do
-                                if level_item.action == "tw_upgrade" then
-                                    tower_menu_transformed[k] = level_item.action_arg
-                                    break
-                                end
-                            end
-                        end
+                for _, upgrade in ipairs(tower_menus[menu_key] and tower_menus[menu_key][3] or {}) do
+                    if upgrade.action == "tw_upgrade" and upgrade.action_arg == target then
+                        regular_upgrade = true
+                        break
                     end
                 end
-            end
 
-            table.insert(high_level_towers, tower_menu_transformed)
+                if template and template.tower and template.tower.level == 4 and regular_upgrade then
+                    local entry = table.deepclone(tower_menu)
+
+                    entry.action_arg = target
+                    entry.tower_type = tower_type
+                    entry.menu_key = menu_key
+                    table.insert(high_level_towers, entry)
+                    seen[tower_type] = true
+                else
+                    log.debug("No level 4 one-click tower for %s", tower_menu.action_arg)
+                end
+            end
         end
     end
 

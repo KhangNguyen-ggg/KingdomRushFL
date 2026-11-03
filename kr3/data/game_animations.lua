@@ -1,4 +1,4 @@
-﻿-- chunkname: @./kr3/data/game_animations.lua
+-- chunkname: @./kr3/data/game_animations.lua
 
 local d1 = require("data.game_animations-rebbborn")
 local d4 = require("data.game_animations-1")
@@ -137,4 +137,8 @@ local kr4_tower_ogre_shipwreck = require("data.animations.kr4_tower_ogre_shipwre
 d1 = table.deepmerge(d1, kr4_tower_ogre_shipwreck)
 ]]--
 d1 = table.deepmerge(d1, require("data.animations.hero_silent"))
+
+-- BEGIN DOVE43 BUILTIN TOWERS
+d1 = table.deepmerge(d1, require("data.animations.dove43_towers"))
+-- END DOVE43 BUILTIN TOWERS
 return d1

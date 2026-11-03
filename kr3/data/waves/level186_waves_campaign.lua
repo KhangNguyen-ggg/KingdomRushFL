@@ -2860,6 +2860,7 @@ return {
 		},
 		{
 			interval = 20000,
+			no_early_wave_bonus = true,
 			waves = {
 				{
 					delay = 700,

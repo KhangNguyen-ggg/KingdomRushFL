@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_blastin_bullriders_asst_ray_grow_mark_aerial",40.04999924,21.79999924}},["attach_points"]={},["animations"]={{["name"]="run",["frames"]={{{1,1,0.328125,42.79999924,25.04999924,1.067749023,1.148010254,3.141592741,-0,0}}}}}}

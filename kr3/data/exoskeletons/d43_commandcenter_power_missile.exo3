@@ -1,0 +1,1 @@
+return {["version"]=3,["partScaleCompensation"]=1,["fps"]=30,["parts"]={{"d43_command_center_asst_command_center_missile",10.5,7}},["attach_points"]={},["animations"]={{["name"]="flying",["frames"]={{{1,1,1,-16.45000076,-10.05000019,1.409912109,1.399963379,0,0,0}}}}}}

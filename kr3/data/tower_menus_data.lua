@@ -1462,6 +1462,16 @@ local tower_menus = {
 				tt_desc = _("TOWER_WICKED_SISTERS_LEVEL4_DESCRIPTION")
 			},
 			{
+				action = "tw_upgrade",
+				action_arg = "tower_wicked_sisters_stregi",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "wss_icon_veggie",
+				place = 12,
+				tt_title = _("TOWER_WICKED_SISTERS_STREGI_NAME"),
+				tt_desc = _("TOWER_WICKED_SISTERS_STREGI_DESCRIPTION"),
+			},
+			{
 				halo = "glow_ico_sub",
 				image = "sub_icons_0001",
 				action = "tw_rally",
@@ -1628,6 +1638,16 @@ local tower_menus = {
 				place = 5,
 				tt_title = _("TOWER_FALLEN_ONES_CEMETERY_LEVEL4_NAME"),
 				tt_desc = _("TOWER_FALLEN_ONES_CEMETERY_LEVEL4_DESCRIPTION")
+			},
+			{
+				action = "tw_upgrade",
+				action_arg = "tower_plague_hospital",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_plague_hospital_plague_build_icon",
+				place = 12,
+				tt_title = _("TOWER_PLAGUE_HOSPITAL_NAME"),
+				tt_desc = _("TOWER_PLAGUE_HOSPITAL_DESCRIPTION"),
 			},
 			{
 				check = "ico_sell_0002",
@@ -2664,6 +2684,16 @@ local tower_menus = {
 		},
 		{
 			{
+				action = "tw_upgrade",
+				action_arg = "tower_ice_cooler",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_ice_cooler_ice_cooler_build_icon",
+				place = 12,
+				tt_title = _("TOWER_ICE_COOLER_NAME"),
+				tt_desc = _("TOWER_ICE_COOLER_DESCRIPTION"),
+			},
+			{
 				check = "main_icons_0019",
 				action_arg = "tower_orc_shaman_lvl4",
 				action = "tw_upgrade",
@@ -3104,6 +3134,16 @@ local tower_menus = {
 		},
 		{
 			{
+				action = "tw_upgrade",
+				action_arg = "tower_sniper",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_sniper_tower_sniper_build_icon",
+				place = 12,
+				tt_title = _("TOWER_SNIPER_NAME"),
+				tt_desc = _("TOWER_SNIPER_DESCRIPTION"),
+			},
+			{
 				check = "main_icons_0019",
 				action_arg = "tower_shadow_archer_lvl4",
 				action = "tw_upgrade",
@@ -3414,6 +3454,16 @@ local tower_menus = {
 				tt_desc = _("TOWER_OGRES_BARRACK_LEVEL4_DESCRIPTION")
 			},
 			{
+				action = "tw_upgrade",
+				action_arg = "tower_blastin_bullriders",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_blastin_bullriders_blastin_bullriders_build_icon",
+				place = 12,
+				tt_title = _("TOWER_BLASTIN_BULLRIDERS_NAME"),
+				tt_desc = _("TOWER_BLASTIN_BULLRIDERS_DESCRIPTION"),
+			},
+			{
 				halo = "glow_ico_sub",
 				image = "sub_icons_0001",
 				action = "tw_rally",
@@ -3558,6 +3608,16 @@ local tower_menus = {
 				tt_desc = _("TOWER_FALLEN_ONES_SPIRITS_LEVEL4_DESCRIPTION")
 			},
 			{
+				action = "tw_upgrade",
+				action_arg = "tower_wifi_babies",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_wifi_babies_wifi_babies_build_icon",
+				place = 12,
+				tt_title = _("TOWER_WIFI_BABIES_NAME"),
+				tt_desc = _("TOWER_WIFI_BABIES_DESCRIPTION"),
+			},
+			{
 				check = "ico_sell_0002",
 				action = "tw_sell",
 				halo = "glow_ico_sell",
@@ -3691,6 +3751,16 @@ local tower_menus = {
 			}
 		},
 		{
+			{
+				action = "tw_upgrade",
+				action_arg = "tower_machine_gunner",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_machine_gunner_machine_gunner_build_icon",
+				place = 12,
+				tt_title = _("TOWER_MACHINE_GUNNER_NAME"),
+				tt_desc = _("TOWER_MACHINE_GUNNER_DESCRIPTION"),
+			},
 			{
 				check = "main_icons_0019",
 				action_arg = "tower_goblirang_lvl4",
@@ -3838,6 +3908,16 @@ local tower_menus = {
 			}
 		},
 		{
+			{
+				action = "tw_upgrade",
+				action_arg = "tower_command_center",
+				check = "main_icons_0019",
+				halo = "glow_ico_main",
+				image = "d43_command_center_cc_build_icon",
+				place = 12,
+				tt_title = _("TOWER_COMMAND_CENTER_NAME"),
+				tt_desc = _("TOWER_COMMAND_CENTER_DESCRIPTION"),
+			},
 			{
 				check = "main_icons_0019",
 				action_arg = "tower_melting_furnace_lvl4",
@@ -22167,6 +22247,402 @@ local tower_menus = {
 		},
 	},
 
+	-- BEGIN DOVE43 BUILTIN TOWERS
+	sniper_tower = {
+		[4] = {
+			{
+				action = "upgrade_power",
+				action_arg = "kill",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_sniper_tower_sniper_icon_kill",
+				place = 5,
+				sounds = {"d43_sniper_taunt_4"},
+				tt_phrase = _("TOWER_SNIPER_KILL_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_SNIPER_KILL_NAME_1"),
+						tt_desc = _("TOWER_SNIPER_KILL_DESCRIPTION_1"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "practice",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_sniper_tower_sniper_icon_practice",
+				place = 6,
+				sounds = {"d43_sniper_taunt_2"},
+				tt_phrase = _("TOWER_SNIPER_PRACTICE_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_SNIPER_PRACTICE_NAME_1"),
+						tt_desc = _("TOWER_SNIPER_PRACTICE_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_SNIPER_PRACTICE_NAME_2"),
+						tt_desc = _("TOWER_SNIPER_PRACTICE_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_SNIPER_PRACTICE_NAME_3"),
+						tt_desc = _("TOWER_SNIPER_PRACTICE_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "weak",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_sniper_tower_sniper_icon_weak",
+				place = 7,
+				sounds = {"d43_sniper_taunt_3"},
+				tt_phrase = _("TOWER_SNIPER_WEAK_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_SNIPER_WEAK_NAME_1"),
+						tt_desc = _("TOWER_SNIPER_WEAK_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_SNIPER_WEAK_NAME_2"),
+						tt_desc = _("TOWER_SNIPER_WEAK_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_SNIPER_WEAK_NAME_3"),
+						tt_desc = _("TOWER_SNIPER_WEAK_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "tw_sell",
+				check = "ico_sell_0002",
+				halo = "glow_ico_sell",
+				image = "ico_sell_0001",
+				place = 9,
+			},
+		},
+	},
+	plague_hospital = {
+		[4] = {
+			{
+				action = "upgrade_power",
+				action_arg = "mike",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_plague_hospital_plague_icon_mike",
+				place = 5,
+				sounds = {"d43_plague_taunt_2"},
+				tt_phrase = _("TOWER_PLAGUE_HOSPITAL_MIKE_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_MIKE_NAME_1"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_MIKE_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_MIKE_NAME_2"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_MIKE_DESCRIPTION_2"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "house",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_plague_hospital_plague_icon_house",
+				place = 6,
+				sounds = {"d43_plague_taunt_3"},
+				tt_phrase = _("TOWER_PLAGUE_HOSPITAL_HOUSE_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_HOUSE_NAME_1"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_HOUSE_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_HOUSE_NAME_2"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_HOUSE_DESCRIPTION_2"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "biohazard",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_plague_hospital_plague_icon_biohazard",
+				place = 7,
+				sounds = {"d43_plague_taunt_4"},
+				tt_phrase = _("TOWER_PLAGUE_HOSPITAL_BIOHAZARD_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_BIOHAZARD_NAME_1"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_BIOHAZARD_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_PLAGUE_HOSPITAL_BIOHAZARD_NAME_2"),
+						tt_desc = _("TOWER_PLAGUE_HOSPITAL_BIOHAZARD_DESCRIPTION_2"),
+					},
+				},
+			},
+			{
+				action = "tw_rally",
+				halo = "glow_ico_sub",
+				image = "sub_icons_0001",
+				place = 8,
+			},
+			{
+				action = "tw_sell",
+				check = "ico_sell_0002",
+				halo = "glow_ico_sell",
+				image = "ico_sell_0001",
+				place = 9,
+			},
+		},
+	},
+	command_center = {
+		[4] = {
+			{
+				action = "upgrade_power",
+				action_arg = "radar",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_command_center_cc_icon_radar",
+				place = 7,
+				sounds = {"d43_cc_taunt_2"},
+				tt_phrase = _("TOWER_COMMAND_CENTER_RADAR_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_RADAR_NAME_1"),
+						tt_desc = _("TOWER_COMMAND_CENTER_RADAR_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_RADAR_NAME_2"),
+						tt_desc = _("TOWER_COMMAND_CENTER_RADAR_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_RADAR_NAME_3"),
+						tt_desc = _("TOWER_COMMAND_CENTER_RADAR_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "intranet",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_command_center_cc_icon_intranet",
+				place = 6,
+				sounds = {"d43_cc_taunt_3"},
+				tt_phrase = _("TOWER_COMMAND_CENTER_INTRANET_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_INTRANET_NAME_1"),
+						tt_desc = _("TOWER_COMMAND_CENTER_INTRANET_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_INTRANET_NAME_2"),
+						tt_desc = _("TOWER_COMMAND_CENTER_INTRANET_DESCRIPTION_2"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "reaper",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_command_center_cc_icon_reaper",
+				place = 3,
+				sounds = {"d43_cc_taunt_4"},
+				tt_phrase = _("TOWER_COMMAND_CENTER_REAPER_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_REAPER_NAME_1"),
+						tt_desc = _("TOWER_COMMAND_CENTER_REAPER_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_REAPER_NAME_2"),
+						tt_desc = _("TOWER_COMMAND_CENTER_REAPER_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_REAPER_NAME_3"),
+						tt_desc = _("TOWER_COMMAND_CENTER_REAPER_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "airstrike",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_command_center_cc_icon_airstrike",
+				place = 5,
+				sounds = {"d43_cc_taunt_4"},
+				tt_phrase = _("TOWER_COMMAND_CENTER_AIRSTRIKE_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_AIRSTRIKE_NAME_1"),
+						tt_desc = _("TOWER_COMMAND_CENTER_AIRSTRIKE_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_AIRSTRIKE_NAME_2"),
+						tt_desc = _("TOWER_COMMAND_CENTER_AIRSTRIKE_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_COMMAND_CENTER_AIRSTRIKE_NAME_3"),
+						tt_desc = _("TOWER_COMMAND_CENTER_AIRSTRIKE_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "tw_sell",
+				check = "ico_sell_0002",
+				halo = "glow_ico_sell",
+				image = "ico_sell_0001",
+				place = 9,
+			},
+		},
+	},
+	ice_cooler = {
+		[4] = {
+			{
+				action = "upgrade_power",
+				action_arg = "party",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_ice_cooler_ice_cooler_icon_party",
+				place = 5,
+				sounds = {"d43_ice_cooler_taunt_1"},
+				tt_phrase = _("TOWER_ICE_COOLER_PARTY_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_ICE_COOLER_PARTY_NAME_1"),
+						tt_desc = _("TOWER_ICE_COOLER_PARTY_DESCRIPTION_1"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "flavors",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_ice_cooler_ice_cooler_icon_flavors",
+				place = 6,
+				sounds = {"d43_ice_cooler_taunt_2"},
+				tt_phrase = _("TOWER_ICE_COOLER_FLAVORS_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_ICE_COOLER_FLAVORS_NAME_1"),
+						tt_desc = _("TOWER_ICE_COOLER_FLAVORS_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_ICE_COOLER_FLAVORS_NAME_2"),
+						tt_desc = _("TOWER_ICE_COOLER_FLAVORS_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_ICE_COOLER_FLAVORS_NAME_3"),
+						tt_desc = _("TOWER_ICE_COOLER_FLAVORS_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "fans",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_ice_cooler_ice_cooler_icon_fans",
+				place = 7,
+				sounds = {"d43_ice_cooler_taunt_3"},
+				tt_phrase = _("TOWER_ICE_COOLER_FANS_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_ICE_COOLER_FANS_NAME_1"),
+						tt_desc = _("TOWER_ICE_COOLER_FANS_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_ICE_COOLER_FANS_NAME_2"),
+						tt_desc = _("TOWER_ICE_COOLER_FANS_DESCRIPTION_2"),
+					},
+				},
+			},
+			{
+				action = "tw_sell",
+				check = "ico_sell_0002",
+				halo = "glow_ico_sell",
+				image = "ico_sell_0001",
+				place = 9,
+			},
+		},
+	},
+	machine_gunner = {
+		[4] = {
+			{
+				action = "upgrade_power",
+				action_arg = "storm",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_machine_gunner_machine_gunner_icon_storm",
+				place = 7,
+				sounds = {"d43_machine_gunner_taunt_3"},
+				tt_phrase = _("TOWER_MACHINE_GUNNER_STORM_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_MACHINE_GUNNER_STORM_NAME_1"),
+						tt_desc = _("TOWER_MACHINE_GUNNER_STORM_DESCRIPTION_1"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "medal",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_machine_gunner_machine_gunner_icon_medal",
+				place = 6,
+				sounds = {"d43_machine_gunner_taunt_2"},
+				tt_phrase = _("TOWER_MACHINE_GUNNER_MEDAL_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_MACHINE_GUNNER_MEDAL_NAME_1"),
+						tt_desc = _("TOWER_MACHINE_GUNNER_MEDAL_DESCRIPTION_1"),
+					},
+				},
+			},
+			{
+				action = "upgrade_power",
+				action_arg = "arrow",
+				check = "special_icons_0020",
+				halo = "glow_ico_special",
+				image = "d43_machine_gunner_machine_gunner_icon_arrow",
+				place = 5,
+				sounds = {"d43_machine_gunner_taunt_4"},
+				tt_phrase = _("TOWER_MACHINE_GUNNER_ARROW_NOTE"),
+				tt_list = {
+					{
+						tt_title = _("TOWER_MACHINE_GUNNER_ARROW_NAME_1"),
+						tt_desc = _("TOWER_MACHINE_GUNNER_ARROW_DESCRIPTION_1"),
+					},
+					{
+						tt_title = _("TOWER_MACHINE_GUNNER_ARROW_NAME_2"),
+						tt_desc = _("TOWER_MACHINE_GUNNER_ARROW_DESCRIPTION_2"),
+					},
+					{
+						tt_title = _("TOWER_MACHINE_GUNNER_ARROW_NAME_3"),
+						tt_desc = _("TOWER_MACHINE_GUNNER_ARROW_DESCRIPTION_3"),
+					},
+				},
+			},
+			{
+				action = "tw_sell",
+				check = "ico_sell_0002",
+				halo = "glow_ico_sell",
+				image = "ico_sell_0001",
+				place = 9,
+			},
+		},
+	},
+	-- END DOVE43 BUILTIN TOWERS
+
 	tower_balance_docs = require("data.tower_balance_docs"),
 }
 
@@ -22249,5 +22725,127 @@ tower_menus.hero_buy_e = {{
 		halo = "glow_ico_sell", image = "ico_sell_0001", place = 9
 	}
 }}
+
+tower_menus.blastin_bullriders = {
+	[4] = {
+		{
+			action = "upgrade_power", action_arg = "precision",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_blastin_bullriders_blastin_bullriders_icon_precision", place = 5,
+			sounds = {"d43_blastin_taunt_3"},
+			tt_phrase = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_NAME_1"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_DESCRIPTION_1")},
+				{tt_title = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_NAME_2"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_DESCRIPTION_2")},
+				{tt_title = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_NAME_3"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_PRECISION_DESCRIPTION_3")},
+			},
+		},
+		{
+			action = "upgrade_power", action_arg = "double_trouble",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_blastin_bullriders_blastin_bullriders_icon_trouble", place = 6,
+			sounds = {"d43_blastin_taunt_1"},
+			tt_phrase = _("TOWER_BLASTIN_BULLRIDERS_DOUBLE_TROUBLE_NOTE"),
+			tt_list = {{tt_title = _("TOWER_BLASTIN_BULLRIDERS_DOUBLE_TROUBLE_NAME_1"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_DOUBLE_TROUBLE_DESCRIPTION_1")}},
+		},
+		{
+			action = "upgrade_power", action_arg = "buying_time",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_blastin_bullriders_blastin_bullriders_icon_time", place = 7,
+			sounds = {"d43_blastin_taunt_2"},
+			tt_phrase = _("TOWER_BLASTIN_BULLRIDERS_BUYING_TIME_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_BLASTIN_BULLRIDERS_BUYING_TIME_NAME_1"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_BUYING_TIME_DESCRIPTION_1")},
+				{tt_title = _("TOWER_BLASTIN_BULLRIDERS_BUYING_TIME_NAME_2"), tt_desc = _("TOWER_BLASTIN_BULLRIDERS_BUYING_TIME_DESCRIPTION_2")},
+			},
+		},
+		{action = "tw_rally", halo = "glow_ico_sub", image = "sub_icons_0001", place = 8},
+		{action = "tw_sell", check = "ico_sell_0002", halo = "glow_ico_sell", image = "ico_sell_0001", place = 9},
+	},
+}
+tower_menus.wifi_babies = {
+	[4] = {
+		{
+			action = "upgrade_power", action_arg = "tantrum",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_wifi_babies_wifi_babies_icon_tantrum", place = 5,
+			sounds = {"d43_wifi_babies_taunt_2"},
+			tt_phrase = _("TOWER_WIFI_BABIES_TANTRUM_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_WIFI_BABIES_TANTRUM_NAME_1"), tt_desc = _("TOWER_WIFI_BABIES_TANTRUM_DESCRIPTION_1")},
+				{tt_title = _("TOWER_WIFI_BABIES_TANTRUM_NAME_2"), tt_desc = _("TOWER_WIFI_BABIES_TANTRUM_DESCRIPTION_2")},
+			},
+		},
+		{
+			action = "upgrade_power", action_arg = "big_brain",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_wifi_babies_wifi_babies_icon_bigbrain", place = 6,
+			sounds = {"d43_wifi_babies_taunt_3"},
+			tt_phrase = _("TOWER_WIFI_BABIES_BIG_BRAIN_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_WIFI_BABIES_BIG_BRAIN_NAME_1"), tt_desc = _("TOWER_WIFI_BABIES_BIG_BRAIN_DESCRIPTION_1")},
+				{tt_title = _("TOWER_WIFI_BABIES_BIG_BRAIN_NAME_2"), tt_desc = _("TOWER_WIFI_BABIES_BIG_BRAIN_DESCRIPTION_2")},
+				{tt_title = _("TOWER_WIFI_BABIES_BIG_BRAIN_NAME_3"), tt_desc = _("TOWER_WIFI_BABIES_BIG_BRAIN_DESCRIPTION_3")},
+			},
+		},
+		{
+			action = "upgrade_power", action_arg = "projection",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "d43_wifi_babies_wifi_babies_icon_projection", place = 7,
+			sounds = {"d43_wifi_babies_taunt_4"},
+			tt_phrase = _("TOWER_WIFI_BABIES_PROJECTION_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_WIFI_BABIES_PROJECTION_NAME_1"), tt_desc = _("TOWER_WIFI_BABIES_PROJECTION_DESCRIPTION_1")},
+				{tt_title = _("TOWER_WIFI_BABIES_PROJECTION_NAME_2"), tt_desc = _("TOWER_WIFI_BABIES_PROJECTION_DESCRIPTION_2")},
+				{tt_title = _("TOWER_WIFI_BABIES_PROJECTION_NAME_3"), tt_desc = _("TOWER_WIFI_BABIES_PROJECTION_DESCRIPTION_3")},
+			},
+		},
+		{action = "tw_sell", check = "ico_sell_0002", halo = "glow_ico_sell", image = "ico_sell_0001", place = 9},
+	},
+}
+tower_menus.wicked_sisters_stregi = {
+	[4] = {
+		{
+			action = "tw_change_mode", image = "quickmenu_action_icons_0002",
+			image_mode0 = "quickmenu_action_icons_0002",
+			image_mode1 = "quickmenu_action_icons_0001",
+			halo = "quickmenu_action_icons_0001_hover", place = 3,
+			tt_title_mode0 = _("TOWER_WICKED_SISTERS_STREGI_MODE0_NAME"),
+			tt_desc_mode0 = _("TOWER_WICKED_SISTERS_STREGI_MODE0_DESCRIPTION"),
+			tt_phrase_mode0 = _("TOWER_WICKED_SISTERS_STREGI_MODE0_NOTE"),
+			tt_title_mode1 = _("TOWER_WICKED_SISTERS_STREGI_MODE1_NAME"),
+			tt_desc_mode1 = _("TOWER_WICKED_SISTERS_STREGI_MODE1_DESCRIPTION"),
+			tt_phrase_mode1 = _("TOWER_WICKED_SISTERS_STREGI_MODE1_NOTE"),
+		},
+		{
+			action = "upgrade_power", action_arg = "z_doll",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "wss_icon_doll", place = 5, sounds = {"wss_doll_upg_voice"},
+			tt_phrase = _("TOWER_WICKED_SISTERS_STREGI_DOLL_NOTE"),
+			tt_list = {{tt_title = _("TOWER_WICKED_SISTERS_STREGI_DOLL_NAME"),
+				tt_desc = _("TOWER_WICKED_SISTERS_STREGI_DOLL_DESCRIPTION")}},
+		},
+		{
+			action = "upgrade_power", action_arg = "z_aveggie",
+			check = "special_icons_0020", halo = "glow_ico_special",
+			image = "wss_icon_veggie", place = 6, sounds = {"wss_veggie_upg_voice"},
+			tt_phrase = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_NOTE"),
+			tt_list = {
+				{tt_title = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_NAME_1"), tt_desc = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_DESCRIPTION_1")},
+				{tt_title = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_NAME_2"), tt_desc = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_DESCRIPTION_2")},
+				{tt_title = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_NAME_3"), tt_desc = _("TOWER_WICKED_SISTERS_STREGI_VEGGIE_DESCRIPTION_3")},
+			},
+		},
+		{
+			action = "tw_repair", action_arg = "z_ecrow", image = "wss_icon_parade",
+			place = 7,
+			tt_title = _("TOWER_WICKED_SISTERS_STREGI_PARADE_NAME"),
+			tt_desc = _("TOWER_WICKED_SISTERS_STREGI_PARADE_DESCRIPTION"),
+			tt_phrase = _("TOWER_WICKED_SISTERS_STREGI_PARADE_NOTE"),
+		},
+		{action = "tw_rally", halo = "glow_ico_sub", image = "sub_icons_0001", place = 8},
+		{action = "tw_sell", check = "ico_sell_0002", halo = "glow_ico_sell", image = "ico_sell_0001", place = 9},
+	},
+}
 
 return tower_menus

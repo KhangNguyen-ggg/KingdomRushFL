@@ -1081,6 +1081,14 @@ function upgrades:enhance_hero5()
 end
 
 local G4_TOWER_PREFIXES = {
+	"tower_sniper", -- Dove43 native branch
+	"tower_plague_hospital", -- Dove43 native branch
+	"tower_command_center", -- Dove43 native branch
+	"tower_ice_cooler", -- Dove43 native branch
+	"tower_machine_gunner", -- Dove43 native branch
+	"tower_blastin_bullriders", -- Dove43 native branch
+	"tower_wifi_babies", -- Dove43 native branch
+	"tower_wicked_sisters_stregi", -- Dove43 native branch
 	"tower_shadow_archer_lvl",
 	"tower_dark_knights_lvl",
 	"tower_infernal_mage_lvl",
@@ -1106,6 +1114,9 @@ local G4_TOWER_PREFIXES = {
 }
 
 local G4_MAGE_PREFIXES = {
+	"tower_ice_cooler", -- Dove43 native branch
+	"tower_wifi_babies", -- Dove43 native branch
+	"tower_wicked_sisters_stregi", -- Dove43 native branch
 	"tower_deep_devils_lvl",
 	"tower_infernal_mage_lvl",
 	"tower_blazing_watcher_lvl",
@@ -1115,6 +1126,8 @@ local G4_MAGE_PREFIXES = {
 }
 
 local G4_GXR_PREFIXES = {
+	"tower_sniper", -- Dove43 native branch
+	"tower_machine_gunner", -- Dove43 native branch
 	"tower_shadow_archer_lvl",
 	"tower_bone_flingers_lvl",
 	"tower_goblirang_lvl",
@@ -1138,6 +1151,10 @@ local G4_BARRACK_PREFIXES = {
 }
 
 local G4_DAMAGE_KEYS = {
+	zombie_damage_min = true,
+	zombie_damage_max = true,
+	mike_damage_min = true,
+	mike_damage_max = true,
 	damage = true,
 	damage_inc = true,
 	damage_inc_max = true,
@@ -1160,6 +1177,7 @@ local function g4_template_names(prefixes)
 	local names = {}
 
 	for _, prefix in ipairs(prefixes) do
+		if E.entities[prefix] then table.insert(names, prefix) end
 		for level = 1, 4 do
 			local name = prefix .. level
 
@@ -1373,7 +1391,7 @@ local function g4_build_upgrade_baseline()
 	local baseline = {
 		damage_mage = g4_record_fields(mage_names, G4_DAMAGE_KEYS, poison_names),
 		damage_other = g4_record_fields(nonmage_names, G4_DAMAGE_KEYS, damage_other_exclusions),
-		hp = g4_record_fields(all_names, {hp_max = true}),
+		hp = g4_record_fields(all_names, {hp_max = true, zombie_hp = true, mike_hp = true}),
 		prices = g4_record_fields(all_names, {price_base = true, price_inc = true}),
 		ranges = {},
 		radii = {}
@@ -1383,6 +1401,10 @@ local function g4_build_upgrade_baseline()
 		and E.entities.tower_rotten_forest_lvl4.powers.tree
 
 	g4_record_direct(rotten_tree_power, "hp", baseline.hp)
+	local ice_fans = E.entities.tower_ice_cooler and E.entities.tower_ice_cooler.powers.fans
+	if ice_fans then
+		table.insert(baseline.hp, {holder = ice_fans, key = "hp", value = g4_copy_numeric(ice_fans.hp)})
+	end
 
 	for _, name in ipairs(g4_template_names(G4_GXR_PREFIXES)) do
 		local attacks = E.entities[name].attacks
@@ -1401,6 +1423,7 @@ local function g4_build_upgrade_baseline()
 		"tower_balloon_lvl",
 		"tower_ogre_shipwreck_lvl"
 	})
+	table.append(artillery_roots, {"tower_plague_hospital", "tower_command_center", "tower_blastin_bullriders"})
 	local artillery_names = g4_collect_template_graph(artillery_roots)
 
 	baseline.radii = g4_record_fields(artillery_names, {damage_radius = true})

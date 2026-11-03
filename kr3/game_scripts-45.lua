@@ -2468,17 +2468,61 @@ function scripts.tower_ogre_shipwreck.get_info(this)
     }
 end
 
+local function ogre_shipwreck_set_base_armor(soldier, new_base_armor, original_base_armor)
+	local health = soldier and soldier.health
+
+	if not health then
+		return
+	end
+
+	local old_base_armor = health.ogre_shipwreck_base_armor
+
+	if old_base_armor == nil then
+		-- An existing aura may already be included in health.armor on the first upgrade.
+		local template = E:get_template(soldier.template_name)
+		old_base_armor = original_base_armor or template and template.health and template.health.armor or health.armor or 0
+	end
+
+	local raw_armor = health.raw_armor
+
+	if raw_armor == nil then
+		raw_armor = health.armor or old_base_armor
+	end
+
+	local temporary_armor = raw_armor - old_base_armor
+
+	health.ogre_shipwreck_base_armor = new_base_armor
+	health.raw_armor = new_base_armor + temporary_armor
+	health.armor = km.clamp(0, 1, health.raw_armor)
+end
+
+local function ogre_shipwreck_apply_enhance(soldier, enhanced_template)
+	if not soldier or not soldier.health or not enhanced_template then
+		return
+	end
+
+	ogre_shipwreck_set_base_armor(soldier, enhanced_template.health.armor)
+	soldier.melee.attacks[1].damage_max = enhanced_template.melee.attacks[1].damage_max
+	soldier.melee.attacks[1].damage_min = enhanced_template.melee.attacks[1].damage_min
+end
+
 function scripts.tower_ogre_shipwreck.soldier_insert(this, store)
 	if scripts.soldier_barrack.insert(this, store) then
 		local tower = store.entities[this.soldier.tower_id]
 		local pow_e = tower and tower.powers and tower.powers.enhance
 		local enhanced = pow_e and pow_e.level > 0
+		local original_template = E:get_template(this.template_name)
+		local original_base_armor = original_template and original_template.health and original_template.health.armor or this.health.armor or 0
+
 		if this.soldier.tower_soldier_idx == 1 then
 			if enhanced then
 				local b = E:create_entity("cook_ogre_lvl3")
-				this.health.armor = b.health.armor
+
+				ogre_shipwreck_set_base_armor(this, b.health.armor, original_base_armor)
 				this.melee.attacks[1].damage_max = b.melee.attacks[1].damage_max
 				this.melee.attacks[1].damage_min = b.melee.attacks[1].damage_min
+			else
+				ogre_shipwreck_set_base_armor(this, original_base_armor, original_base_armor)
 			end
 		end
 		if this.soldier.tower_soldier_idx == 2 then
@@ -2488,7 +2532,7 @@ function scripts.tower_ogre_shipwreck.soldier_insert(this, store)
 			this.health.hp = this.health.hp_max
 			this.regen.health = b.regen.health
 			this.regen.cooldown = b.regen.cooldown
-			this.health.armor = b.health.armor
+			ogre_shipwreck_set_base_armor(this, b.health.armor, original_base_armor)
 			this.melee.attacks[1].damage_min = b.melee.attacks[1].damage_min
 			this.melee.attacks[1].damage_max = b.melee.attacks[1].damage_max
 			this.melee.attacks[1].hit_time = b.melee.attacks[1].hit_time
@@ -2637,11 +2681,13 @@ function scripts.tower_ogre_shipwreck.update(this, store, script)
 			end
 		end
 
-		if pow_e and pow_e.level > 0 and b.soldiers[2] then
-			if b.soldiers[2].health.armor < dg2.health.armor then
-				b.soldiers[2].health.armor = dg2.health.armor
-				b.soldiers[2].melee.attacks[1].damage_max = dg2.melee.attacks[1].damage_max
-				b.soldiers[2].melee.attacks[1].damage_min = dg2.melee.attacks[1].damage_min
+		if pow_e and pow_e.level > 0 then
+			if b.soldiers[1] and b.soldiers[1].health.ogre_shipwreck_base_armor ~= og3.health.armor then
+				ogre_shipwreck_apply_enhance(b.soldiers[1], og3)
+			end
+
+			if b.soldiers[2] and b.soldiers[2].health.ogre_shipwreck_base_armor ~= dg2.health.armor then
+				ogre_shipwreck_apply_enhance(b.soldiers[2], dg2)
 			end
 		end
 
@@ -2667,16 +2713,12 @@ function scripts.tower_ogre_shipwreck.update(this, store, script)
 							this.render.sprites[6].name = "idleGoblin"
 						end
 						--local og3 = E:create_entity("cook_ogre_lvl3")
-						b.soldiers[1].health.armor = og3.health.armor
-					    b.soldiers[1].melee.attacks[1].damage_max = og3.melee.attacks[1].damage_max
-						b.soldiers[1].melee.attacks[1].damage_min = og3.melee.attacks[1].damage_min
+						ogre_shipwreck_apply_enhance(b.soldiers[1], og3)
 						if b.soldiers[1].health.hp ~= 0 then
 							b.soldiers[1].health.hp = b.soldiers[1].health.hp_max
 						end
 						--local dg2 = E:create_entity("deckhand_goblin_blue_lvl2")
-						b.soldiers[2].health.armor = dg2.health.armor
-					    b.soldiers[2].melee.attacks[1].damage_max = dg2.melee.attacks[1].damage_max
-						b.soldiers[2].melee.attacks[1].damage_min = dg2.melee.attacks[1].damage_min
+						ogre_shipwreck_apply_enhance(b.soldiers[2], dg2)
 						if b.soldiers[2].health.hp ~= 0 then
 							b.soldiers[2].health.hp = b.soldiers[2].health.hp_max
 						end
@@ -3801,7 +3843,7 @@ function scripts.mod_possession_skill.update(this, store, script)
 	end
 
 	this.pos = target.pos
-	U.animation_start(this, "start", nil, store.tick_ts, false)
+	U.animation_start(this, this.possession_animations and this.possession_animations[1] or "start", nil, store.tick_ts, false)
 	SU.remove_modifiers(store, target, nil, this.template_name)
 	U.unblock_all(store, target)
 
@@ -3814,7 +3856,7 @@ function scripts.mod_possession_skill.update(this, store, script)
 
 	while true do
 		if U.animation_finished(this) then
-			U.animation_start(this, "loop", nil, store.tick_ts, true)
+			U.animation_start(this, this.possession_animations and this.possession_animations[2] or "loop", nil, store.tick_ts, true)
 		end
 
 		target = store.entities[modifier.target_id]
@@ -3824,7 +3866,7 @@ function scripts.mod_possession_skill.update(this, store, script)
 				this._possession_skill_killed_handler(target)
 			end
 
-			U.y_animation_play(this, "end", nil, store.tick_ts, false)
+			U.y_animation_play(this, this.possession_animations and this.possession_animations[3] or "end", nil, store.tick_ts, false)
 			queue_remove(store, this)
 			return
 		end
@@ -7938,6 +7980,9 @@ function scripts.tower_deep_devils.update(this, store, script)
 
 	this.sentinels = {}
 	local dg2 = E:create_entity("soldier_deep_devils_lvl5")
+	local deep_devils_lvl4 = E:get_template("soldier_deep_devils_lvl4")
+
+	dg2.health.hp_max = deep_devils_lvl4.health.hp_max + 50
 	
 	while true do
 		local b = this.barrack
@@ -7961,6 +8006,10 @@ function scripts.tower_deep_devils.update(this, store, script)
 					end
 
 					s = E:create_entity(b.soldier_type)
+					if b.soldier_type == "soldier_deep_devils_lvl5" then
+						s.health.hp_max = dg2.health.hp_max
+						s.health.hp = dg2.health.hp_max
+					end
 					s.soldier.tower_id = this.id
 					s.soldier.tower_soldier_idx = i
 					s.pos = V.v(V.add(this.pos.x, this.pos.y, b.respawn_offset.x, b.respawn_offset.y))
@@ -10877,5 +10926,2288 @@ function scripts.sc_frost_gem_damage.update(this, store)
 	this.tween.disabled = false
 	this.tween.ts = store.tick_ts
 end
+
+-- BEGIN WICKED SISTERS STREGI
+do
+-- 女巫姐妹花·斯特蕾吉 逻辑脚本
+local config = {["soldier_ranged_max"]=180,["soldier_ranged_min"]=40,["tower_price"]=220,["veggie_cooldown"]=30,["veggie_health_factors"]={0.8,0.65,0.5},["veggie_prices"]={188,164,164},["attack_slow_duration"]=5,["attack_slow_factor"]=0.3,["crow_cost_percent"]=0.5,["crow_max"]=3,["crow_range_factor"]=0.15,["crow_rest_time"]=0.5,["doll_block_range"]=90,["doll_circle_radius"]=90,["doll_cooldown"]=26,["doll_death_boss_percent"]=0.06,["doll_death_damage_percent"]=0.3,["doll_death_stun_duration"]=3,["doll_hp"]=320,["doll_hp_drain"]=8,["doll_move_speed"]=120,["doll_prices"]={188,0,0},["doll_stun_radius"]=90,["doll_taunt_max"]=5,["dream_max_targets"]=7,["dream_min_targets"]=3,["dream_nodes"]=50,["dream_sleep"]=5,["hit_cd_reduce"]=1,["mode_cooldown"]=18,["mud_damage"]=100,["mud_dot"]=10,["mud_dot_every"]=0.1,["mud_duration"]=7,["mud_min_targets"]=3,["mud_radius"]=80,["pumpkin_speed_factor"]=0.67,["sheep_speed_factor"]=1.5,["soldier_cooldown"]=2,["soldier_damage_max"]=22,["soldier_damage_min"]=15,["doll_damage_max"]=18,["doll_damage_min"]=14,["soldier_melee_range"]=40,["soldier_range"]=180}
+-- 万圣游行黑箱参数（隐藏机制）：写死在此，不进 config / 玩家配置窗口。
+-- 只影响黑猫成功/乌鸦失败的概率与黑猫赏金倍数，玩家不可见、不可调。
+local WSS_BB = {
+    min_win_rate = 0.45,        -- 基础胜率下限
+    max_win_rate = 0.55,        -- 基础胜率上限
+    rank_exponent = 0.7,        -- 投注排名幂指数（放大差异）
+    bounty_factor = 3,          -- 黑猫赏金 = 投注 × 此倍数（300%）
+    -- 每局开局的初始排名队列（代表“市场历史投注分布”）。新开游戏时 bet_history 以此为底，
+    -- 让前几笔真实投注立刻有可比的排名（否则空历史时排名无意义、全恒为 0.5）。
+    -- 只参与排名分母，不代表玩家真实投注；按升序写入。
+    seed_history = {29, 39, 49, 59, 79, 129, 239, 349},
+}
+local E = require("entity_db")
+local native_U = require("utils_123")
+local U = setmetatable({}, {__index = native_U})
+function U.find_enemies_in_range_filter_off(pos, range, flags, bans)
+    return native_U.find_enemies_in_range(simulation.store.entities, pos, 0, range, flags or 0, bans or 0)
+end
+U.animation_start_default = native_U.animation_start
+U.animation_name_facing_point_simple = U.animation_name_facing_point
+local S = require("sound_db")
+local P = require("path_db")
+local GR = require("grid_db")
+local SH = require("klove.shader_db")
+local V = require("klua.vector")
+local signal = require("hump.signal")
+local native_SU = require("script_utils_123")
+local SU = setmetatable({}, {__index = native_SU})
+local bit = require("bit")
+local band = bit.band
+local bor = bit.bor
+local log = require("klua.log"):new("wss_scripts")
+
+local v = V.v
+local vclone = V.vclone
+local random = math.random
+
+U.y_wait_unconditional = U.y_wait
+function U.animation_start_once_specific_no_flip(entity, name, ts, sid)
+    return U.animation_start(entity, name, nil, ts, false, sid)
+end
+function U.animation_start_specific(entity, name, flip, ts, loop, sid)
+    return U.animation_start(entity, name, flip, ts, loop, sid)
+end
+function U.y_animation_play_once_specific_no_flip(entity, name, ts, sid)
+    return U.y_animation_play(entity, name, nil, ts, false, sid)
+end
+function U.walk_off__accel__unsnapped(entity, dt)
+    return U.walk(entity, dt, nil, true)
+end
+function U.update_max_speed(entity, speed)
+    entity.motion.max_speed = speed
+end
+function U.speed_mul(entity, factor)
+    entity.motion.max_speed = entity.motion.max_speed * factor
+end
+function U.entity_insert_shader(entity, shader, args, id)
+    if entity.render and entity.render.sprites then
+        for _, sprite in pairs(entity.render.sprites) do
+            sprite.shader = shader
+            sprite.shader_args = args
+        end
+    end
+end
+function U.entity_remove_shader(entity, id)
+    if entity.render and entity.render.sprites then
+        for _, sprite in pairs(entity.render.sprites) do
+            sprite.shader = nil
+            sprite.shader_args = nil
+        end
+    end
+end
+function SU.is_valid_mock_target(enemy)
+    return enemy and enemy.enemy and enemy.melee and enemy.health and not enemy.health.dead
+end
+function SU.mock_enemy(doll, enemy)
+    U.block_enemy(simulation.store, doll, enemy)
+    if not doll.soldier or doll.soldier.target_id ~= enemy.id then return false end
+    enemy._mock_source_id = doll.id
+    return true
+end
+function SU.unmock_enemy(enemy)
+    U.unblock_all(simulation.store, enemy)
+    enemy._mock_source_id = nil
+end
+
+local function queue_insert(store, e)
+    simulation:queue_insert_entity(e)
+end
+
+local function queue_remove(store, e)
+    simulation:queue_remove_entity(e)
+end
+
+local function queue_damage(store, d)
+    store.damage_queue[#store.damage_queue + 1] = d
+end
+
+local function fts(v)
+    return v / FPS
+end
+
+local function ready_to_attack(attack, store, factor)
+    return store.tick_ts - attack.ts > attack.cooldown * (factor or 1)
+end
+
+-- 命中减技能冷却：所有技能（双魔药模式、素食主义、惊喜玩偶）共享 -n 秒。
+-- 只在真正命中（远程法球结算伤害 / 近战攻击命中存活目标）时调用，未命中不结算。
+local function wss_reduce_skill_cds(tower, n)
+    if not tower then
+        return
+    end
+
+    local pd = tower.tower_upgrade_persistent_data
+
+    if not pd then
+        return
+    end
+
+    for _, k in ipairs({"wss_mode_ts", "wss_veggie_ts", "wss_doll_ts"}) do
+        if pd[k] then
+            pd[k] = pd[k] - n
+        end
+    end
+end
+
+-- 当前斯特蕾吉射程：塔当前射程（含全部科技射程增益，全额给斯特蕾吉）
+-- ×（1 + 15%×乌鸦数）；斯特蕾吉本体享受所有科技增益（范围增幅由乌鸦提供）
+local function wss_attack_range(tower)
+    local base = (tower and tower.attacks and tower.attacks.range) or config.soldier_ranged_max
+
+    return base * (1 + (config.crow_range_factor or 0.15) * ((tower and tower._wss_crow_count) or 0))
+end
+
+-- 暴露给 GUI 显示/其他模块复用：确保“显示圈”与“实际索敌/施法范围”永远同源，
+-- 包含法师科技射程（法术延伸/和谐本征）、运行时其他塔射程 buff 与乌鸦加成
+scripts.wss_get_attack_range = wss_attack_range
+
+-- 集合范围 = 基础 180 ×（1 + 15%×乌鸦数），不含科技射程；乌鸦加成与斯特蕾吉射程同源
+local function wss_rally_range(tower)
+    return math.floor(config.soldier_range *
+                          (1 + (config.crow_range_factor or 0.15) * ((tower and tower._wss_crow_count) or 0)) + 1e-4)
+end
+
+-- 万圣游行花费 = 当前金币的 50%（向上取整，至少 1 金；如 13 → 7）。点击时实时计算（不做每帧轮询）；
+-- 轮盘打开时由 TowerMenu.update 惰性同步按钮价格（金币变化才刷新）
+local function wss_crow_cost(store)
+    local percent = config.crow_cost_percent or 0.5
+
+    return math.max(1, math.ceil(store.player_gold * percent))
+end
+
+-- 法师科技伤害倍率细分（用户规则）：
+--   bolt（斯特蕾吉远程法球）= 强化魔力 × 奥术符文 × 魔法力量 × 和谐本征 × 魔法闪耀
+--   melee（斯特蕾吉近战）   = 魔法闪耀（和谐本征、奥术符文不参与近战倍率；肃清立场通过塔 damage_factor 生效）
+--   玩偶只吃肃清立场（命中时按塔 damage_factor 动态结算），不吃其他法师科技倍率；蚀骨毒药不吃任何法师科技倍率
+-- 法球类科技（缓慢诅咒/奥数粉碎/不稳定魔力/宝藏）只挂在远程法球上，近战天然不吃。
+local wss_mage_tower_map
+
+-- include_brilliance=false 时不含魔法闪耀（魔法闪耀按场上法师塔数动态取值，百科全书面板不使用）
+local function mage_damage_breakdown(store, include_brilliance)
+    local bolt, melee = 1, 1
+    local ok, UP = pcall(require, "upgrades")
+
+    if not ok or not UP or not UP.get_upgrade then
+        return bolt, melee
+    end
+
+    local u = UP:get_upgrade("mage_empowered_magic")
+    if u and u.damage_factor then
+        bolt = bolt * u.damage_factor
+    end
+
+    u = UP:get_upgrade("mage_arcane_spell")
+    if u and u.damage_factor then
+        bolt = bolt * u.damage_factor
+    end
+
+    u = UP:get_upgrade("mage_power")
+    if u and u.damage_factor then
+        bolt = bolt * u.damage_factor
+    end
+
+    u = UP:get_upgrade("mage_harmony")
+    if u and u.damage_factor then
+        bolt = bolt * u.damage_factor
+    end
+
+    u = UP:get_upgrade("mage_brilliance")
+    if include_brilliance ~= false and u and u.damage_factors then
+        if not wss_mage_tower_map and UP.mage_towers then
+            wss_mage_tower_map = table.to_map(UP.mage_towers)
+        end
+
+        -- 场上法师塔总数（含本塔），与 game_upgrades 的 existing_towers 逻辑一致
+        local n = 0
+
+        if store and store.towers and wss_mage_tower_map then
+            for _, e in pairs(store.towers) do
+                if wss_mage_tower_map[e.template_name] then
+                    n = n + 1
+                end
+            end
+        end
+
+        n = math.max(n, 1)
+        local f = u.damage_factors[math.max(1, math.min(#u.damage_factors, n))]
+
+        bolt = bolt * (f or 1)
+        melee = melee * (f or 1)
+    end
+
+    return bolt, melee
+end
+
+-- 在 origin 的 range 范围内，找到“半径 radius 内敌人最多”的位置（玩偶落点用）
+local function wss_densest_enemy_pos(store, origin, range, radius)
+    local enemies = U.find_enemies_in_range_filter_off(origin, range, 0, 0)
+
+    if not enemies or #enemies == 0 then
+        return nil
+    end
+
+    local best_pos, best_n
+    local r2 = radius * radius
+
+    for _, e in ipairs(enemies) do
+        local n = 0
+
+        for _, o in ipairs(enemies) do
+            if V.dist2(e.pos.x, e.pos.y, o.pos.x, o.pos.y) <= r2 then
+                n = n + 1
+            end
+        end
+
+        if not best_n or n > best_n then
+            best_n = n
+            best_pos = e.pos
+        end
+    end
+
+    return best_pos
+end
+
+------------------------------------------------------------------
+-- 素食主义：变形 mod（绵羊/南瓜；南瓜保留护甲；时长到期还原）
+------------------------------------------------------------------
+scripts.wss_polymorph = {}
+
+function scripts.wss_polymorph.insert(this, store)
+    local m = this.modifier
+    local target = store.entities[m.target_id]
+
+    if not target or not target.health or target.health.dead or band(target.vis.bans, F_POLYMORPH) ~= 0 then
+        return false
+    end
+
+    local pm = this.polymorph
+    local target_gold = 0
+
+    if pm.transfer_gold_factor then
+        target_gold = target.enemy.gold
+        target.enemy.gold = 0
+    end
+
+    local e_name
+
+    if pm.custom_entity_names["flying"] and U.flag_has(target.vis.flags, F_FLYING) then
+        e_name = pm.custom_entity_names["flying"]
+    else
+        e_name = pm.custom_entity_names.default
+    end
+
+    local d = E:create_damage()
+
+    d.damage_type = bor(DAMAGE_EAT, DAMAGE_NO_LIFESTEAL)
+    d.source_id = this.id
+    d.target_id = target.id
+    d.pop = pm.pop
+    queue_damage(store, d)
+
+    target.vis.bans = F_ALL
+
+    if pm.hit_fx_sizes then
+        local fx = E:create_entity(pm.hit_fx_sizes[target.unit.size])
+
+        fx.pos = V.vclone(target.pos)
+
+        if m.use_mod_offset then
+            fx.pos.x, fx.pos.y = fx.pos.x + target.unit.mod_offset.x, fx.pos.y + target.unit.mod_offset.y
+        end
+
+        fx.render.sprites[1].ts = store.tick_ts
+        fx.render.sprites[1].draw_order = 2
+        queue_insert(store, fx)
+    end
+
+    S:queue("wss_veggie_in")
+
+    local e = E:create_entity(e_name)
+
+    e.pos = V.vclone(target.pos)
+    e.nav_path = table.deepclone(target.nav_path)
+
+    if pm.transfer_lives_cost_factor then
+        e.enemy.lives_cost = math.floor(target.enemy.lives_cost * pm.transfer_lives_cost_factor)
+    end
+
+    if pm.transfer_gold_factor then
+        e.enemy.gold = math.floor(target_gold * pm.transfer_gold_factor)
+    end
+
+    if pm.transfer_health_factor then
+        -- 按原敌当前剩余生命计算（与原版 mod_polymorph 一致，无保底）
+        local base_hp = target.health.hp or target.health.hp_max
+        e.health.hp_max = math.floor(base_hp * pm.transfer_health_factor)
+        e.health.hp = e.health.hp_max
+        e.health.patched = target.health.patched
+    end
+
+    if pm.transfer_speed_factor then
+        -- 按原速度（变形前的基础速度）计算，不受加速类增益影响
+        local base_speed = this._wss_base_speed or target.motion.max_speed
+
+        U.update_max_speed(e, pm.transfer_speed_factor * base_speed)
+    end
+
+    if pm.keep_armor then
+        e.health.armor = target.health.armor
+        e.health.magic_armor = target.health.magic_armor
+    end
+
+    -- 黑猫诅咒迁移：变形会替换目标实体（旧敌人被移除），把诅咒改指到新实体，
+    -- 保证“诅咒除非死亡或进防守点否则永不消失（变形/传送均不失效）”
+    if target._wss_cursed then
+        e._wss_cursed = true
+
+        for _, ent in pairs(store.entities) do
+            if ent.template_name == "wss_crow_curse" and ent.modifier.target_id == target.id then
+                ent.modifier.target_id = e.id
+                -- 新实体是 pending 插入（下一帧才进 store），标记诅咒“等待目标”，
+                -- 否则诅咒 update 会在目标暂缺的间隙误判为进防守点而提前清理
+                ent._wss_pending_target = true
+                ent._curse_pos = nil
+            end
+        end
+
+        -- 金币随行特效同样迁移到新变形体：旧实体被移除时特效会误判为“目标消失”而自毁，
+        -- 这里改指新实体并标记等待入队，避免变形后头顶金币特效消失
+        for _, ent in pairs(store.entities) do
+            if ent.template_name == "wss_crow_coin_follow" and ent._follow_id == target.id then
+                ent._follow_id = e.id
+                ent._wss_pending_target = true
+
+                -- 新变形体（绵羊/南瓜）体型不同，头顶高度按新实体血条偏移重算
+                local new_head_y = e.health_bar and e.health_bar.offset and e.health_bar.offset.y or 30
+                local ang = ent._wss_coin_ang or 0
+
+                ent.render.sprites[1].offset = v(9 * math.cos(ang), new_head_y + 6 * math.sin(ang))
+            end
+        end
+    end
+
+    queue_insert(store, e)
+
+    signal.emit("mod-applied", this, target)
+    queue_remove(store, this)
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 普通攻击减速：30% 减速，持续 5 秒（淡蓝色染色特效）
+------------------------------------------------------------------
+scripts.wss_attack_slow = {}
+
+function scripts.wss_attack_slow.insert(this, store)
+    local target = store.entities[this.modifier.target_id]
+
+    -- 对齐原版 mod_slow.insert 守卫：目标必须存活、可移动且非无敌
+    if not target or target.health.dead or not target.motion or target.motion.invulnerable then
+        return false
+    end
+
+    -- 40 关提兰索尔的可攻击部位（enemy_stage_40_boss_hit_point）是 render=nil 的纯碰撞体：
+    -- 本 mod 的淡蓝染色依赖 entity.render（U.entity_insert_shader 直接索引 entity.render），
+    -- 无 render 会崩溃；这类实体不施加减速
+    if not target.render then
+        return false
+    end
+
+    -- 缓慢诅咒（科技，50%）与斯特蕾吉自身减速（30%）同时存在时只取最高值：
+    -- 目标已被 mod_slow_curse 覆盖时暂缓应用自身减速，诅咒结束后再由 update 补上
+    this._wss_deferred = U.has_modifiers(store, target, "mod_slow_curse")
+
+    if not this._wss_deferred then
+        if not scripts.mod_slow.insert(this, store) then
+            return false
+        end
+    end
+
+    -- 原版 mod_slow.insert 已设置 modifier.ts；这里兜底补齐，避免极端时序下为 nil
+    this.modifier.ts = this.modifier.ts or store.tick_ts
+
+    this.pos = target.pos
+
+    if this.shader then
+        U.entity_insert_shader(target, SH:get(this.shader), this.shader_args, this.id)
+    end
+
+    return true
+end
+
+-- 状态机（templates 中 main_script.type = 1，每帧都会被调用）：
+-- 参考原版 mod_track_target / 英雄 eiskalt 普攻减速：按 modifier.ts + duration 到期自移除。
+-- 同一目标重复命中时 mod_lifecycle 会重置 m.ts（resets_same），等效于刷新减速时长。
+function scripts.wss_attack_slow.update(this, store)
+    local m = this.modifier
+    local target = store.entities[m.target_id]
+
+    if not target or target.health.dead or m.duration >= 0 and store.tick_ts - m.ts > m.duration then
+        queue_remove(store, this)
+
+        return
+    end
+
+    -- 诅咒消失后补上自身 30% 减速（不刷新时长，仅应用速度倍率）
+    if this._wss_deferred and not U.has_modifiers(store, target, "mod_slow_curse") then
+        this._wss_deferred = nil
+        U.speed_mul(target, this.slow.factor)
+    end
+
+    this.pos = target.pos
+    -- 每帧刷新“减速到期时间”，供普攻索敌优先选未被减速/剩余减速时间最短的敌人
+    target._wss_slow_until = m.ts + m.duration
+end
+
+function scripts.wss_attack_slow.remove(this, store)
+    local target = store.entities[this.modifier.target_id]
+
+    if target then
+        target._wss_slow_until = nil
+
+        if target.render then
+            U.entity_remove_shader(target, this.id)
+        end
+    end
+
+    -- 只有实际应用过减速才需要除回（deferred 期间未乘过）
+    if not this._wss_deferred then
+        return scripts.mod_slow.remove(this, store)
+    end
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 蚀骨毒药（咻~啪啦）：施法范围 = 斯特蕾吉射程内且需 ≥3 敌；
+-- 落点选“80 范围内敌人最多”处 → 投掷药水
+-- （80 范围瞬间 100 真实伤害 + 7 秒药液每 0.1 秒 10 真实伤害）
+------------------------------------------------------------------
+-- 药液光环自带脚本：落地延时后先打瞬间伤害，再按周期法伤；
+-- 淡入淡出过渡交给模板里重新启用的原版 tween（alpha/scale keys 与英雄 path_aoe 一致）
+scripts.wss_mud_aura = {}
+
+function scripts.wss_mud_aura.update(this, store)
+    local ts = store.tick_ts
+    local duration = this.actual_duration or this.aura.duration or 8
+    local radius = this.aura.radius or 100
+    local cycle = this.aura.cycle_time or 0.25
+    local impact_at = ts + (this.impact_delay or fts(14))
+    local last_ts = ts - cycle
+    local impacted = false
+    -- 蚀骨毒药吃肃清立场：伤害按塔 damage_factor（= 1 ×（1 + 肃清立场增量 0.14~0.30），只乘一次）动态结算；
+    -- 不吃和谐本征与其他法师科技倍率
+    local impact_base = this.damage_min or config.mud_damage
+    local dot_base = this.dot_min or config.mud_dot
+
+    -- 药液光环的 source 是女巫塔：每次结算时读取当前塔 damage_factor，肃清立场变化时同步生效
+    local function mud_damage_factor()
+        local tw = this.aura.source_id and store.entities[this.aura.source_id]
+
+        return tw and tw.tower and tw.tower.damage_factor or 1
+    end
+
+    while store.tick_ts - ts < duration do
+        if not impacted and store.tick_ts >= impact_at then
+            -- 药水落地：一次性 100 真实伤害（原版 start_wait_time = fts(14) 后结算）
+            impacted = true
+            last_ts = store.tick_ts
+            S:queue("wss_mud_impact")
+            local victims = U.find_enemies_in_range_filter_off(this.pos, radius, 0, 0)
+
+            if victims then
+                for _, v in ipairs(victims) do
+                    if v.health and not v.health.dead then
+                        local d = E:assign_damage(this.damage_type or DAMAGE_MAGICAL_EXPLOSION,
+                            impact_base * mud_damage_factor(), this.id, v.id)
+
+                        queue_damage(store, d)
+                    end
+                end
+            end
+        elseif impacted and store.tick_ts - last_ts >= cycle then
+            -- 药液持续期：每 0.1 秒 10 真实伤害
+            last_ts = store.tick_ts
+            local enemies = U.find_enemies_in_range_filter_off(this.pos, radius, 0, 0)
+
+            if enemies then
+                for _, e in ipairs(enemies) do
+                    if e.health and not e.health.dead then
+                        local d = E:assign_damage(this.damage_type or DAMAGE_MAGICAL_EXPLOSION,
+                            dot_base * mud_damage_factor(), this.id, e.id)
+
+                        queue_damage(store, d)
+                    end
+                end
+            end
+        end
+
+        coroutine.yield()
+    end
+
+    queue_remove(store, this)
+end
+
+-- 斯特蕾吉施法动画：在塔协程里让士兵播放英雄原版技能动作（只启动一次）；
+-- 士兵协程按动画是否仍在播放来保持动作，播完自动切回 idle
+local function witch_cast_anim(tower, store, anim, cast_time)
+    tower._wss_casting = true
+    local witch = tower.barrack and tower.barrack.soldiers[1]
+
+    if witch and store.entities[witch.id] then
+        witch._wss_cast_anim = anim
+        -- 只启动一次，不每帧重启（否则动画永远停在第一帧）
+        U.animation_start_default(witch, anim, nil, store.tick_ts, false)
+    end
+end
+
+-- 等待斯特蕾吉当前施法动画（until_ts 可指定只等到动画中段的某个时刻，
+-- 参考原版英雄：cast_time 播放到一半就生成技能特效，动画随后自然播完）
+local function wait_witch_anim(store, witch, until_ts)
+    if not witch or not store.entities[witch.id] then
+        return
+    end
+
+    local guard = until_ts or (store.tick_ts + 3)
+
+    while store.tick_ts < guard do
+        if U.animation_finished(witch) then
+            break
+        end
+
+        coroutine.yield()
+    end
+end
+
+-- 玩偶影响范围圈提示：持续 duration 秒后自毁
+scripts.wss_doll_range_circle = {}
+
+function scripts.wss_doll_range_circle.update(this, store)
+    local ts = store.tick_ts
+    local t = this.duration or 4
+
+    while store.tick_ts - ts < t do
+        local doll = this._doll_id and store.entities[this._doll_id]
+
+        -- 玩偶死亡/消失时圆圈同步消失；存活时跟随玩偶移动
+        if not doll or doll.health and doll.health.dead then
+            break
+        end
+
+        if doll.pos then
+            this.pos = doll.pos
+        end
+
+        coroutine.yield()
+    end
+
+    queue_remove(store, this)
+end
+
+-- 玩偶控制器：每 0.1 秒扣 10 血 + 嘲讽（最多 4 名敌人攻击玩偶，满员不再吸引）
+scripts.wss_doll_controller = {}
+
+-- 玩偶死亡爆炸视觉：只播放原版闪光诱饵爆炸贴图，短暂停留后自毁
+scripts.wss_doll_death_visual = {}
+
+function scripts.wss_doll_death_visual.update(this, store)
+    local ts = store.tick_ts
+    local dur = this.aura.duration or fts(20)
+
+    while store.tick_ts - ts < dur do
+        coroutine.yield()
+    end
+
+    queue_remove(store, this)
+end
+
+-- 玩偶死亡效果（90 范围，含空军）：
+-- 梦迁魔药模式 → 晕眩 3 秒；蚀骨毒药模式 → 最大生命值 30% 魔法伤害（Boss 为 6%），并享受肃清立场
+local function wss_doll_death_effect(store, doll, mode)
+    local radius = config.doll_stun_radius or 90
+    local enemies = U.find_enemies_in_range_filter_off(doll.pos, radius, 0, 0)
+
+    if mode == 1 then
+        -- 梦迁魔药模式：晕眩（Boss 免疫——眩晕会设置 unit.is_stunned，打断 Boss 施法动画
+        -- （SU.enemy_interrupted），且施法冷却未刷新导致其反复重试，见魔王堡垒牛魔王“封塔动画死循环”）
+        if enemies then
+            for _, e in ipairs(enemies) do
+                if e.health and not e.health.dead and band(e.vis.flags, F_BOSS) == 0 then
+                    local m = E:create_entity("wss_doll_death_stun_mod")
+
+                    m.modifier.target_id = e.id
+                    m.modifier.source_id = doll.owner and doll.owner.id
+                    m.pos = vclone(e.pos)
+                    queue_insert(store, m)
+                end
+            end
+        end
+    else
+        -- 蚀骨毒药模式：最大生命值百分比魔法伤害（参考火枪手狙击：非 Boss 按 hp_max 加伤、Boss 单独公式）
+        -- 肃清立场：塔 damage_factor = 1 ×（1 + 肃清立场增量 0.14~0.30），只乘一次
+        local df = doll.owner and doll.owner.tower and doll.owner.tower.damage_factor or 1
+
+        if enemies then
+            for _, e in ipairs(enemies) do
+                if e.health and not e.health.dead and e.health.hp_max then
+                    local factor = band(e.vis.flags, F_BOSS) ~= 0 and (config.doll_death_boss_percent or 0.06) or
+                                       (config.doll_death_damage_percent or 0.6)
+                    local dmg = math.floor(e.health.hp_max * factor * df)
+
+                    if dmg > 0 then
+                        local d = E:assign_damage(DAMAGE_MAGICAL, dmg, doll.owner and doll.owner.id or doll.id, e.id)
+
+                        queue_damage(store, d)
+                    end
+                end
+            end
+        end
+    end
+
+    -- 死亡爆炸视觉
+    local fx = E:create_entity("wss_doll_death_stun")
+
+    fx.pos = vclone(doll.pos)
+    fx.render.sprites[1].ts = store.tick_ts
+    fx.render.sprites[2].ts = store.tick_ts
+    queue_insert(store, fx)
+end
+
+function scripts.wss_doll_controller.update(this, store)
+    local doll = this._doll_id and store.entities[this._doll_id]
+
+    if not doll then
+        queue_remove(store, this)
+
+        return
+    end
+
+    local last_drain = store.tick_ts
+    local mocked = {}
+
+    while true do
+        doll = store.entities[this._doll_id]
+
+        if not doll then
+            -- 玩偶实体已从 store 移除（极端情况）：只解除嘲讽并清理控制器，不再结算死亡效果
+            for _, e in ipairs(mocked) do
+                if e and store.entities[e.id] and e._mock_source_id == this._doll_id then
+                    SU.unmock_enemy(e)
+                end
+            end
+
+            queue_remove(store, this)
+
+            return
+        end
+
+        if doll.health.dead or not store.entities[doll.id] then
+            -- 玩偶死亡：解除所有嘲讽，让敌人恢复正常逻辑
+            for _, e in ipairs(mocked) do
+                if e and store.entities[e.id] and e._mock_source_id == doll.id then
+                    SU.unmock_enemy(e)
+                end
+            end
+
+            -- 按当前魔药模式结算死亡效果（梦迁→眩晕；蚀骨毒药→最大生命%魔法伤害）
+            local mode = doll and doll.owner and doll.owner.tower_upgrade_persistent_data and
+                             doll.owner.tower_upgrade_persistent_data.current_mode or 0
+
+            wss_doll_death_effect(store, doll, mode)
+            queue_remove(store, this)
+
+            return
+        end
+
+        -- 每 0.1 秒扣减 10 点生命：只排队一次真实伤害，由健康系统扣血并触发死亡流程。
+        -- 不再同时直接扣血（否则与伤害队列叠加成 222/s，玩偶会“死得太快”）
+        if store.tick_ts - last_drain >= (this.drain_every or 0.1) then
+            last_drain = store.tick_ts
+            local drain_value = this.drain_value or (config.doll_hp_drain or 10)
+
+            local d = E:assign_damage(DAMAGE_TRUE, drain_value, this.id, doll.id)
+
+            queue_damage(store, d)
+        end
+
+        -- 嘲讽：拦截范围内最多 6 名敌人（参考黑暗骑士“结阵”的 mock 逻辑）
+        local taunt_max = this.taunt_max or (config.doll_taunt_max or 4)
+        local enemies = U.find_enemies_in_range_filter_off(doll.pos, config.doll_block_range or 90, 0, 0)
+        local need = math.max(0, taunt_max - #mocked)
+
+        if enemies and need > 0 then
+            for _, e in ipairs(enemies) do
+                if need <= 0 then
+                    break
+                end
+
+                local already = false
+
+                for _, m in ipairs(mocked) do
+                    if m == e then
+                        already = true
+
+                        break
+                    end
+                end
+
+                if not already and SU.is_valid_mock_target(e) and SU.mock_enemy(doll, e) then
+                    mocked[#mocked + 1] = e
+                    need = need - 1
+                end
+            end
+        end
+
+        -- 清理已死/已解嘲的目标
+        for i = #mocked, 1, -1 do
+            local e = mocked[i]
+
+            if not store.entities[e.id] or e.health.dead or e._mock_source_id ~= doll.id then
+                table.remove(mocked, i)
+            end
+        end
+
+        coroutine.yield()
+    end
+end
+
+local function cast_mud(store, this, tower)
+    if tower._wss_casting then
+        return false
+    end
+
+    -- 施法范围 = 斯特蕾吉当前射程（以女巫位置为圆心，而非塔位置；含科技射程与黑猫加成）
+    local witch = tower.barrack and tower.barrack.soldiers[1]
+    local origin = (witch and store.entities[witch.id]) and witch.pos or this.pos
+    local cast_range = wss_attack_range(tower)
+    local enemies = U.find_enemies_in_range_filter_off(origin, cast_range, 0, 0)
+
+    if not enemies or #enemies < config.mud_min_targets then
+        return false
+    end
+
+    -- 与惊喜玩偶一致：落点选射程内“半径 80（药液范围）内敌人最多”的位置
+    local target_pos = wss_densest_enemy_pos(store, origin, cast_range, config.mud_radius or 80)
+
+    if not target_pos then
+        return false
+    end
+
+    -- 原版英雄衔接方式：skill_4 施法动画播放到 cast_time（fts(25)≈0.83秒）时
+    -- 就在动画中段投掷药水（落地特效 + 光环），动画随后自然播完，衔接才流畅
+    witch_cast_anim(tower, store, "skill_4", fts(54))
+    wait_witch_anim(store, tower.barrack and tower.barrack.soldiers[1], store.tick_ts + fts(25))
+
+    local b = E:create_entity("wss_mud_aura")
+
+    b.pos = vclone(target_pos)
+    b.aura.source_id = tower.id
+    b.aura.level = 1
+    b.aura.duration = config.mud_duration
+    b.actual_duration = config.mud_duration
+    b.impact_delay = fts(14)
+    -- 光环 tween 从落地时刻开始计时（淡入/淡出，参考原版英雄 path_aoe 的 level_up keys）
+    b.tween.ts = store.tick_ts
+    b.tween.props[1].ts = store.tick_ts
+    b.tween.props[2].ts = store.tick_ts
+    b.tween.props[3].ts = store.tick_ts
+    queue_insert(store, b)
+
+    -- 药水落地特效（空中瓶 + 落地水花，克隆模板已调成绿色）
+    local fx = E:create_entity("wss_fx_mud_in")
+
+    fx.pos = V.vclone(target_pos)
+    fx.render.sprites[1].ts = store.tick_ts
+    fx.render.sprites[2].ts = store.tick_ts
+    queue_insert(store, fx)
+
+    S:queue("wss_mud_cast")
+    -- 等施法动画完整播完再允许下一次行动
+    wait_witch_anim(store, tower.barrack and tower.barrack.soldiers[1])
+    tower._wss_casting = nil
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 梦迁魔药（昏昏欲退）：斯特蕾吉射程 ≥3 可传送敌 → 最多 7 名后移 50 节点 + 4 秒睡眠
+------------------------------------------------------------------
+local function cast_dream(store, this, tower)
+    if tower._wss_casting then
+        return false
+    end
+
+    -- 施法范围 = 斯特蕾吉当前射程（以女巫位置为圆心，而非塔位置；含科技射程与黑猫加成）
+    local witch = tower.barrack and tower.barrack.soldiers[1]
+    local origin = (witch and store.entities[witch.id]) and witch.pos or this.pos
+    local cast_range = wss_attack_range(tower)
+    local enemies = U.find_enemies_in_range_filter_off(origin, cast_range, 0, 0)
+    local targets = {}
+
+    if enemies then
+        for _, e in ipairs(enemies) do
+            if e.health and not e.health.dead and band(e.vis.flags, F_BOSS) == 0 then
+                targets[#targets + 1] = e
+            end
+        end
+    end
+
+    if #targets < config.dream_min_targets then
+        return false
+    end
+
+    local count = math.min(#targets, config.dream_max_targets or 7)
+
+    -- 原版昏昏欲退（大招）施法动画（levelup）完整播放后，再执行传送
+    witch_cast_anim(tower, store, "level_up", fts(36))
+    wait_witch_anim(store, tower.barrack and tower.barrack.soldiers[1])
+    S:queue("wss_dream_out")
+
+    for i = 1, count do
+        local e = targets[i]
+        local m = E:create_entity("wss_dream_teleport")
+
+        m.modifier.target_id = e.id
+        m.modifier.source_id = tower.id
+        m.pos = vclone(e.pos)
+        queue_insert(store, m)
+    end
+
+    tower._wss_casting = nil
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 素食主义：目标判定（魔法师塔逻辑）与释放
+------------------------------------------------------------------
+-- 绵羊自定义脚本：只负责正常行走（无法阻挡）、可被防御塔正常击杀；
+-- 不再响应玩家点击（点击摧毁机制已移除），点击只清空标记不产生任何效果
+scripts.wss_enemy_sheep = {}
+
+function scripts.wss_enemy_sheep.update(this, store)
+    while true do
+        if this.health.dead then
+            SU.y_enemy_death(store, this)
+
+            return
+        end
+
+        if this.ui.clicked then
+            this.ui.clicked = nil
+        end
+
+        if this.unit.is_stunned then
+            U.animation_start_default(this, "idle", nil, store.tick_ts, true)
+            coroutine.yield()
+        else
+            SU.y_enemy_walk_until_blocked(store, this, true)
+        end
+
+        coroutine.yield()
+    end
+end
+
+local function veggie_eligible(e)
+    if not e or not e.health or e.health.dead or band(e.vis.flags, F_BOSS) ~= 0 or band(e.vis.bans, F_POLYMORPH) ~= 0 or
+        band(e.vis.flags, F_SKELETON) ~= 0 then
+        return false
+    end
+
+    local tn = e.template_name
+
+    if tn == "enemy_hellhound" or tn == "enemy_hellhound_rider" or tn == "enemy_skeleton_knight" or tn ==
+        "enemy_empty_husk" or tn == "enemy_empty_husk_swarm" then
+        return false
+    end
+
+    -- 已经是变形单位（本插件与游戏原版的绵羊/南瓜/青蛙/兔子等）不能再被变形
+    if tn == "wss_sheep_ground" or tn == "wss_sheep_fly" or tn == "wss_pumpkin_ground" or tn == "wss_pumpkin_fly" or tn ==
+        "enemy_sheep_ground" or tn == "enemy_sheep_fly" or tn == "enemy_frog_ground" or tn == "enemy_pumpkin_witch" or
+        tn == "enemy_pumpkin_witch_flying" or tn == "enemy_rabbit" then
+        return false
+    end
+
+    return true
+end
+
+local function pick_veggie_target(store, this)
+    -- 施法范围 = 斯特蕾吉当前射程（含黑猫加成），射程提升时素食主义施法范围同步提升
+    local witch = this.barrack and this.barrack.soldiers[1]
+    local origin = (witch and store.entities[witch.id]) and witch.pos or this.pos
+    local vrange = wss_attack_range(this)
+    local enemies = U.find_enemies_in_range_filter_off(origin, vrange, 0, 0)
+    local best
+
+    if enemies then
+        for _, e in ipairs(enemies) do
+            if veggie_eligible(e) then
+                -- 选取生命值上限（hp_max）最高的敌人
+                if not best or (e.health.hp_max or 0) > (best.health.hp_max or 0) then
+                    best = e
+                end
+            end
+        end
+    end
+
+    -- 优先变形射程内生命上限（hp_max）最高的敌人
+    return best
+end
+
+local function cast_veggie(store, this, enemy, level)
+    if this._wss_casting then
+        return
+    end
+
+    local sorcerer_poly = E:get_template("mod_polymorph_sorcerer").polymorph
+    local sheep = random() < 0.5
+
+    -- 原版变成蔬菜施法动画（skill_1）完整播放后，再执行变形
+    witch_cast_anim(this, store, "skill_1", fts(52))
+    wait_witch_anim(store, this.barrack and this.barrack.soldiers[1])
+
+    local m = E:create_entity("wss_polymorph")
+
+    m.modifier.target_id = enemy.id
+    m.modifier.source_id = this.id
+    m.pos = V.vclone(enemy.pos)
+    m._wss_base_speed = E:get_template(enemy.template_name).motion.max_speed
+    m.polymorph.custom_entity_names = {}
+    -- 变形生命 = 原敌当前剩余生命 × 80/65/50%（按技能等级）
+    m.polymorph.transfer_health_factor = (config.veggie_health_factors or {0.8, 0.65, 0.5})[level] or 0.8
+    m.polymorph.transfer_gold_factor = 1
+    m.polymorph.transfer_lives_cost_factor = 1
+    m.polymorph.hit_fx_sizes = sorcerer_poly.hit_fx_sizes
+    m.polymorph.pop = sorcerer_poly.pop
+
+    if sheep then
+        m.polymorph.custom_entity_names.default = "wss_sheep_ground"
+        m.polymorph.custom_entity_names.flying = "wss_sheep_fly"
+        m.polymorph.transfer_speed_factor = config.sheep_speed_factor or 1.5
+        m.polymorph.keep_armor = false
+    else
+        m.polymorph.custom_entity_names.default = "wss_pumpkin_ground"
+        m.polymorph.custom_entity_names.flying = "wss_pumpkin_fly"
+        m.polymorph.transfer_speed_factor = config.pumpkin_speed_factor or 0.5
+        m.polymorph.keep_armor = true
+    end
+
+    -- 永久变形（无时长，不还原）
+    m.polymorph.duration = nil
+
+    queue_insert(store, m)
+    this._wss_casting = nil
+end
+
+------------------------------------------------------------------
+-- 惊喜玩偶：斯特蕾吉本体不瞬移；原地播放消失/出现动画（原版闪光诱饵），
+-- 玩偶瞬间传送到射程内敌人最密集的位置
+-- （玩偶 700 血每 0.1 秒扣 10、嘲讽拦截最多 4 名，死亡→90 范围 3 秒晕眩）
+------------------------------------------------------------------
+
+local function cast_doll(store, this, tower, level)
+    if tower._wss_casting then
+        return false
+    end
+
+    local witch = tower.barrack and tower.barrack.soldiers[1]
+
+    if not witch or not store.entities[witch.id] then
+        return false
+    end
+
+    -- 落点 = 斯特蕾吉射程内“玩偶拦截半径内敌人最多”的位置
+    local spot = wss_densest_enemy_pos(store, witch.pos, wss_attack_range(tower), config.doll_block_range or 90)
+
+    if not spot then
+        return false
+    end
+
+    tower._wss_casting = true
+    -- 原版闪光诱饵：消失动画 → 玩偶落位 → 出现动画（本体不移动）
+    witch._wss_cast_anim = "disengage_disappear"
+    U.animation_start_default(witch, "disengage_disappear", nil, store.tick_ts, false)
+    S:queue("wss_doll_cast")
+    U.y_wait_unconditional(store, fts(6))
+
+    -- 玩偶创建（含控制器/范围圈）包在 pcall 里：即使出错，下面的“出现动画”也必然执行，
+    -- 避免斯特蕾吉卡在消失（隐身）状态
+    local ok, err = pcall(function()
+        local doll = E:create_entity("wss_witch_doll")
+
+        doll.pos = vclone(spot)
+        doll.nav_rally.pos = vclone(spot)
+        doll.nav_rally.center = vclone(spot)
+        doll.nav_rally.new = false
+        doll.owner = tower
+        -- 玩偶可受伤（模板已设 false，这里运行时再强制一次，防止任何路径把它改回无敌）
+        doll.health.ignore_damage = false
+        -- 清空伤害免疫，确保每秒 100 的真实伤害必然生效
+        doll.health.immune_to = 0
+        -- 玩偶保留 14~18 基础伤害，攻速为 2 秒 × 塔攻速系数；物理伤害、不减速；
+        -- 只吃肃清立场：命中时按塔 damage_factor（= 1 ×（1 + 肃清立场增量 0.14~0.30），只乘一次）
+        -- 动态结算，不吃其他法师科技倍率
+        local cf = (tower.tower and tower.tower.cooldown_factor) or 1
+        local doll_owner = tower
+
+        doll.melee.attacks[1].damage_min = config.doll_damage_min
+        doll.melee.attacks[1].damage_max = config.doll_damage_max
+        doll.melee.attacks[1].cooldown = config.soldier_cooldown * cf
+        doll.melee.attacks[1].fn_damage = function(_, _, atk, _)
+            return math.random(atk.damage_min, atk.damage_max) *
+                       (doll_owner.tower and doll_owner.tower.damage_factor or 1)
+        end
+        queue_insert(store, doll)
+
+        -- 玩偶控制器：每 0.1 秒扣血 + 嘲讽拦截（跟随玩偶，玩偶死亡时解除嘲讽）
+        local ctl = E:create_entity("wss_doll_controller")
+
+        ctl.pos = vclone(spot)
+        ctl._doll_id = doll.id
+        queue_insert(store, ctl)
+
+        -- 玩偶周围影响范围圈提示（90）
+        local circle = E:create_entity("wss_doll_range_circle")
+
+        circle.pos = vclone(spot)
+        -- 玩偶约 700/100 ≈ 7 秒寿命，范围圈随玩偶死亡同步消失，这里只作兜底
+        circle.duration = 10
+        circle._doll_id = doll.id -- 玩偶消失时圆圈同步消失
+        queue_insert(store, circle)
+    end)
+
+    -- 等消失动画播完，再补出现动画（保证本体恢复可见）
+    wait_witch_anim(store, witch)
+    witch._wss_cast_anim = "disengage_appear"
+    U.animation_start_default(witch, "disengage_appear", nil, store.tick_ts, false)
+    wait_witch_anim(store, witch)
+    tower._wss_casting = nil
+
+    if not ok then
+        log.warning("wss doll spawn failed: %s", tostring(err))
+
+        return false
+    end
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 万圣游行：黑猫（地面环绕、范围增益）与乌鸦（环绕、逐个锁定诅咒、金币掉落）
+------------------------------------------------------------------
+local function wss_fly_step(this, store, dest, max_speed, ramp_radius, accel_cap)
+    local dx, dy = V.sub(dest.x, dest.y, this.pos.x, this.pos.y)
+    local dist = V.len(dx, dy)
+    local df = 1
+    local ac = accel_cap or 900
+
+    if ramp_radius and ramp_radius > 0 and dist <= ramp_radius then
+        df = math.max(dist / ramp_radius, 0.1)
+    end
+
+    local fm = this.force_motion
+
+    fm.a.x, fm.a.y = V.add(fm.a.x, fm.a.y, V.trim(ac, V.mul(10 * df, dx, dy)))
+    fm.v.x, fm.v.y = V.add(fm.v.x, fm.v.y, V.mul(store.tick_length, fm.a.x, fm.a.y))
+    fm.v.x, fm.v.y = V.trim(max_speed, fm.v.x, fm.v.y)
+    this.pos.x, this.pos.y = V.add(this.pos.x, this.pos.y, V.mul(store.tick_length, fm.v.x, fm.v.y))
+    fm.a.x, fm.a.y = V.mul(-0.05 / store.tick_length, fm.v.x, fm.v.y)
+    this.render.sprites[1].flip_x = this.pos.x < dest.x
+end
+
+-- 统计同物种存活的宠物数量（猫只按猫、乌鸦只按乌鸦，各自等相位排列）
+local function wss_count_species(store, tower, tpl)
+    local n = 0
+
+    if tower and store.entities then
+        for _, e in pairs(store.entities) do
+            if e.owner == tower and e.template_name == tpl then
+                n = n + 1
+            end
+        end
+    end
+
+    return n
+end
+
+local function pick_crow_target(store, tower)
+    -- 只随机选择斯特蕾吉射程内的敌人：不锁 boss、不锁飞行、不与已被诅咒的敌人重复。
+    -- 不用 U.find_enemies_in_range_filter_off —— 它依赖路径节点有效性（P:is_node_valid），
+    -- 万圣游行/自定义波次敌人不满足会被整批过滤，导致黑猫永远找不到目标只会环绕。
+    -- 这里直接用 store.enemies 按位置半径过滤，保证任意地图敌人都会被锁定。
+    local witch = tower and tower.barrack and tower.barrack.soldiers and tower.barrack.soldiers[1]
+    local origin = (witch and store.entities[witch.id]) and witch.pos or (tower and tower.pos)
+    local range = origin and (wss_rally_range(tower) + wss_attack_range(tower)) or nil
+    local pool = {}
+
+    if origin and range then
+        local r2 = range * range
+        local enemies = store.enemies
+
+        if enemies then
+            for _, e in pairs(enemies) do
+                if e and e.health and not e.health.dead and e.pos and not e._wss_cursed and band(e.vis.flags, F_BOSS) ==
+                    0 and band(e.vis.flags, F_FLYING) == 0 then
+                    local dx = e.pos.x - origin.x
+                    local dy = e.pos.y - origin.y
+
+                    if dx * dx + dy * dy <= r2 then
+                        pool[#pool + 1] = e
+                    end
+                end
+            end
+        end
+    end
+
+    return #pool > 0 and pool[random(1, #pool)] or nil
+end
+
+-- 乌鸦：范围增益宠物（安慰奖）。只环绕塔旋转、不锁定敌人，每只 +15% 斯特蕾吉射程与集合范围
+local function wss_crow_update(this, store)
+    local tower = this.owner
+
+    -- 幽灵塔4级“换塔”期间塔会被临时移出 store：此时不自杀，等塔插回后继续环绕
+    if not tower or (not store.entities[tower.id] and not tower._wss_swapping) then
+        queue_remove(store, this)
+
+        return
+    end
+
+    local radius = this.orbit_radius or 45
+    this.main_script.context = this.main_script.context or {}
+    local ctx = this.main_script.context
+    ctx.spawn_ts = ctx.spawn_ts or store.tick_ts
+    local spawned = false
+
+    while true do
+        if not this.owner or (not store.entities[this.owner.id] and not this.owner._wss_swapping) then
+            queue_remove(store, this)
+
+            return
+        end
+
+        -- 同物种等相位、逆时针、椭圆排列（纵向按游戏惯例压缩 0.7 倍），半径 45
+        local total = wss_count_species(store, tower, "wss_crow")
+        local phase = 2 * math.pi * ((this.species_index or 1) - 1) / math.max(total, 1)
+        local angle = -store.tick_ts * (this.orbit_speed or 0.8) + phase
+        local dest = v(tower.pos.x + radius * math.cos(angle), tower.pos.y + radius * 0.7 * math.sin(angle))
+        local dist = V.dist(this.pos.x, this.pos.y, dest.x, dest.y)
+
+        -- 出生动画（in）播放完或超时后切到 fly，避免动画循环时卡住不移动
+        if not spawned and (U.animation_finished(this) or store.tick_ts - ctx.spawn_ts > fts(12)) then
+            spawned = true
+        end
+
+        U.animation_start_default(this, "fly", nil, store.tick_ts, true)
+
+        if dist > 8 then
+            wss_fly_step(this, store, dest, this.orbit_speed_idle or 130, this.ramp_dist_idle or 50, 900)
+        elseif this.force_motion then
+            this.force_motion.v.x, this.force_motion.v.y = 0, 0
+        end
+
+        coroutine.yield()
+    end
+end
+
+-- 黑猫：成功召唤。从塔上追击斯特蕾吉射程内的一名地面敌人（速度 = 目标速度×1.2，至少 120），
+-- 与敌人重合后播放攻击动画（hero_witch_cat_attack）+ 烟雾（竹宗三侠绿熊猫落地烟雾），
+-- 攻击动画期间透明度逐渐降低直至消失，结束后施加诅咒（赏金 +300% 花费、可被奥术结晶增幅、
+-- 金币视觉特效固定 6 枚）并删除黑猫实体。黑猫不会被敌人索敌、不拦截、无士兵标签，纯视觉追击。
+-- 每只黑猫独立索敌：不做串行队列，各猫各自挑一个未被诅咒的地面敌人（用 _wss_cursed 标记避免重复挑同一目标）。
+local function wss_cat_update(this, store)
+    local tower = this.owner
+
+    -- 幽灵塔4级“换塔”期间塔会被临时移出 store：此时不自杀，等塔插回后继续环绕
+    if not tower or (not store.entities[tower.id] and not tower._wss_swapping) then
+        queue_remove(store, this)
+
+        return
+    end
+
+    local radius = this.orbit_radius or 45
+    this.main_script.context = this.main_script.context or {}
+    local ctx = this.main_script.context
+    ctx.rest_ts = ctx.rest_ts or store.tick_ts
+
+    while true do
+        if not this.owner or (not store.entities[this.owner.id] and not this.owner._wss_swapping) then
+            -- 女巫塔被拆除：黑猫消失
+            queue_remove(store, this)
+
+            return
+        end
+
+        local target = this.cursed_target
+
+        if target and (not store.entities[target.id] or target.health.dead) then
+            -- 目标在追击途中死亡/消失：清空本次锁定的目标标记，重置休息计时再选新目标
+            if target._wss_cursed then
+                target._wss_cursed = nil
+            end
+
+            this.cursed_target = nil
+            ctx.rest_ts = store.tick_ts
+            target = nil
+        end
+
+        -- 独立索敌：休息计时结束后，若当前无目标则挑一个未被诅咒的地面敌人（_wss_cursed 防止重复）
+        if not target and store.tick_ts - ctx.rest_ts >= (config.crow_rest_time or 0.75) then
+            local t = pick_crow_target(store, tower)
+
+            if t then
+                this.cursed_target = t
+                target = t
+                t._wss_cursed = true -- 先标记已锁定，防止其他黑猫重复选择
+            end
+        end
+
+        if target then
+            -- 从塔上直线追击目标：速度 = 目标速度×1.2（至少 120）
+            local chase_speed = math.max(120, (target.motion and target.motion.max_speed or 100) * 1.2)
+            local ddx, ddy = V.sub(target.pos.x, target.pos.y, this.pos.x, this.pos.y)
+            local dist = V.len(ddx, ddy)
+
+            -- 追击：完全照抄原版士兵移动翻转（script_utils.soldier_go_back_step：animation_name_facing_point_simple + animation_start_default）
+            local an, af = U.animation_name_facing_point_simple(this, "walk", target.pos)
+            U.animation_start_default(this, an, af, store.tick_ts, true)
+
+            if dist <= 20 then
+                -- 与敌人重合：播放攻击动画（朝向目标）
+                local atk_an, atk_af = U.animation_name_facing_point_simple(this, "attack", target.pos)
+                U.animation_start(this, atk_an, atk_af, store.tick_ts, false, 1)
+
+                while not U.animation_finished(this) do
+                    coroutine.yield()
+                end
+
+                -- 攻击动画播完后，目标可能已在动画期间死亡：此时诅咒无法挂上（insert 会校验存活）。
+                -- 不能让黑猫凭空消失——清空目标，回到塔旁重新挑选新目标（下一帧环绕并重挑）。
+                if not store.entities[target.id] or target.health.dead then
+                    if target._wss_cursed then
+                        target._wss_cursed = nil
+                    end
+
+                    this.cursed_target = nil
+                    ctx.rest_ts = store.tick_ts
+                    target = nil
+                else
+                    -- 目标仍存活：才施加诅咒，烟雾随黑猫消失一起播放，黑猫消失（释放上限）
+                    tower._wss_cursed_count = (tower._wss_cursed_count or 0) + 1
+                    local smoke = E:create_entity("fx_panda_smoke_level_up")
+
+                    if smoke then
+                        smoke.pos = V.vclone(this.pos) -- 烟雾在黑猫消失处（黑猫位置），并非敌人位置
+                        smoke.render.sprites[1].ts = store.tick_ts
+                        smoke.render.sprites[1].scale = v(0.7, 0.7) -- 烟雾缩小 30%
+                        queue_insert(store, smoke)
+                    end
+
+                    -- 施加诅咒（赏金 = 本次技能花费的 300%，可被奥术结晶增幅；金币视觉特效固定 6 枚）
+                    local curse = E:create_entity("wss_crow_curse")
+
+                    curse.modifier.target_id = target.id
+                    curse.modifier.source_id = tower.id
+                    curse.pos = V.vclone(target.pos)
+                    curse._curse_pos = V.vclone(target.pos)
+                    curse._crow_id = this.id
+                    curse._wss_cost = this._wss_cost or 0 -- 本次技能花费（诅咒赏金 = 300% 花费）
+                    curse._crow_gone = true -- 诅咒移除时不再重复移除黑猫/扣计数
+                    -- 大体形敌人头顶高度：沿用游戏金币特效做法（health_bar.offset.y），
+                    -- 保证随行金币与死亡掉落金币都能对准敌人本体
+                    curse._wss_coin_y = target.health_bar and target.health_bar.offset and target.health_bar.offset.y or 30
+                    queue_insert(store, curse)
+
+                    -- 金币随行特效：固定 6 枚，30% 透明度，椭圆排布挂在头顶，跟随敌人、死亡后消失
+                    local head_y = curse._wss_coin_y
+
+                    for i = 1, 6 do
+                        local ang = (i - 1) / 6 * math.pi * 2
+                        local coin = E:create_entity("wss_crow_coin_follow")
+
+                        if coin then
+                            coin.pos = vclone(target.pos)
+                            coin._follow_id = target.id
+                            coin._wss_coin_ang = ang
+                            coin.render.sprites[1].offset = v(9 * math.cos(ang), head_y + 6 * math.sin(ang))
+                            coin.render.sprites[1].ts = store.tick_ts
+                            queue_insert(store, coin)
+                        end
+                    end
+
+                    -- 释放黑猫上限（黑猫已消失）
+                    if tower then
+                        tower._wss_pet_count = math.max(0, (tower._wss_pet_count or 1) - 1)
+                        tower._wss_cat_count = math.max(0, (tower._wss_cat_count or 1) - 1)
+                    end
+
+                    queue_remove(store, this)
+
+                    return
+                end
+            end
+
+            -- 直线追击：沿目标方向以追击速度移动（恒定速度，非加速物理）
+            -- 目标可能在攻击动画期间死亡并被置 nil 回塔重挑，此处需 target 存在才移动
+            if target and dist > 0 then
+                local step = chase_speed * store.tick_length
+
+                if step >= dist then
+                    this.pos.x, this.pos.y = target.pos.x, target.pos.y
+                else
+                    this.pos.x = this.pos.x + ddx / dist * step
+                    this.pos.y = this.pos.y + ddy / dist * step
+                end
+            end
+        else
+            -- 环绕塔等待（一直占用上限，不会消失）：原版士兵翻转写法
+            local total = wss_count_species(store, tower, "wss_cat")
+            local phase = 2 * math.pi * ((this.species_index or 1) - 1) / math.max(total, 1)
+            local angle = -store.tick_ts * (this.orbit_speed or 0.8) + phase
+            local dest = v(tower.pos.x + radius * math.cos(angle), tower.pos.y + radius * 0.7 * math.sin(angle))
+            local an, af = U.animation_name_facing_point_simple(this, "walk", dest)
+            U.animation_start_default(this, an, af, store.tick_ts, true)
+            wss_fly_step(this, store, dest, this.flight_speed_idle or 180, this.ramp_dist_idle or 60, 700)
+            -- wss_fly_step 内部固定设置 flip_x = pos.x < dest.x（为朝左贴图的乌鸦设计），
+            -- 会覆盖上面的 facing_point 翻转；黑猫贴图朝右，重新按移动方向设置（dest 在左 → 翻转）
+            this.render.sprites[1].flip_x = dest.x < this.pos.x
+        end
+
+        coroutine.yield()
+    end
+end
+
+scripts.wss_crow = {}
+scripts.wss_crow.update = wss_crow_update
+
+-- 万圣游行轮盘 tooltip 描述：按当前塔动态生成（含本塔累计盈亏与场上赏金人数）；
+-- 由入口 TowerMenuTooltip:show 钩子每次显示时调用，不写入全局菜单表（多塔互不污染）
+scripts.wss_parade_desc = function(entity)
+    local profit = entity and entity._wss_parade_profit or 0
+    local cursed = 0
+
+    -- 实时统计场上本塔的赏金敌人数量（被诅咒实体，死亡/进点后随实体移除归零）
+    if entity then
+        local game_gui = require("game_gui")
+        local store = game_gui and game_gui.game and game_gui.game.simulation and game_gui.game.simulation.store
+
+        if store then
+            for _, e in pairs(store.entities) do
+                if e.template_name == "wss_crow_curse" and e.modifier and e.modifier.source_id == entity.id then
+                    cursed = cursed + 1
+                end
+            end
+        end
+    end
+
+    return
+        "投注50%金币抽奖(50金币起抽)：\n●50%概率失败：前3次失败赠送1只+15%范围乌鸦；50%概率成功：召唤黑猫使随机敌人+(300%本次投注)赏金。\n●累计盈亏：" ..
+            profit .. "，赏金人数：" .. cursed
+end
+
+-- 自动购买按钮 tooltip 描述：显示开关状态与当前条件（黑猫+被诅咒敌人≤1 且金币≥100），
+-- 黑猫/赏金数实时按场上实体统计（不依赖计数字段，避免赏金敌人死亡/进点后计数残留）
+scripts.wss_auto_buy_desc = function(entity)
+    local cats, cursed = 0, 0
+
+    if entity then
+        local game_gui = require("game_gui")
+        local store = game_gui and game_gui.game and game_gui.game.simulation and game_gui.game.simulation.store
+
+        if store then
+            for _, e in pairs(store.entities) do
+                if e.owner == entity and e.template_name == "wss_cat" then
+                    cats = cats + 1
+                elseif e.template_name == "wss_crow_curse" and e.modifier and e.modifier.source_id == entity.id then
+                    cursed = cursed + 1
+                end
+            end
+        end
+    end
+
+    local on = entity and entity._wss_auto_buy
+
+    return string.format(
+        "自动购买：%s。\n满100金币后当(黑猫数+赏金人数)<2时自动抽奖。\n当前：黑猫数%d、赏金人数%d。",
+        on and "已开启" or "已关闭", cats, cursed)
+end
+
+scripts.wss_cat = {}
+scripts.wss_cat.update = wss_cat_update
+
+-- 金币随行特效：30% 透明度跟随被诅咒敌人头顶，敌人死亡/消失后自毁
+scripts.wss_crow_coin_follow = {}
+
+function scripts.wss_crow_coin_follow.update(this, store)
+    local target = this._follow_id and store.entities[this._follow_id]
+
+    if not target then
+        -- 变形迁移中：新实体尚未入队完成，等待（避免误判为消失而自毁）
+        if this._wss_pending_target then
+            return
+        end
+
+        queue_remove(store, this)
+
+        return
+    end
+
+    -- 变形迁移完成：目标已出现，清除等待标记
+    if this._wss_pending_target then
+        this._wss_pending_target = nil
+    end
+
+    if target.health.dead then
+        queue_remove(store, this)
+
+        return
+    end
+
+    this.pos.x, this.pos.y = target.pos.x, target.pos.y
+end
+
+-- 金币掉落特效：自定义生命周期（固定约 1.15 秒后自毁，tween 负责 alpha 淡出），
+-- 不依赖原版 fx 的 timed.runs 动画播放计数（避免特效一闪而过/只闻其声不见其形）
+scripts.wss_coin_fx = {}
+
+function scripts.wss_coin_fx.update(this, store)
+    local ts = store.tick_ts
+
+    while store.tick_ts - ts < 1.15 do
+        coroutine.yield()
+    end
+
+    queue_remove(store, this)
+end
+
+scripts.wss_crow_curse = {}
+
+function scripts.wss_crow_curse.insert(this, store)
+    local target = store.entities[this.modifier.target_id]
+
+    if not target or target.health.dead then
+        return false
+    end
+
+    this.modifier.ts = store.tick_ts
+    this.pos = target.pos
+    signal.emit("mod-applied", this, target)
+
+    return true
+end
+
+function scripts.wss_crow_curse.update(this, store)
+    local target = store.entities[this.modifier.target_id]
+
+    if target and target.health.dead then
+        -- 目标死亡：允许掉金币
+        this._wss_dead = true
+        queue_remove(store, this)
+
+        return
+    end
+
+    if not target then
+        if this._wss_pending_target then
+            -- 目标刚被变形替换、新实体尚未入队完成：等待，不清理诅咒（也不发金币）
+            return
+        end
+
+        -- 目标从场上消失（进防守点/被变形替换等非死亡路径）：不发金币
+        this._wss_no_gold = true
+        queue_remove(store, this)
+
+        return
+    end
+
+    -- 目标（变形后的新实体）已出现：清除等待标记
+    if this._wss_pending_target then
+        this._wss_pending_target = nil
+    end
+
+    this.pos = target.pos
+end
+
+function scripts.wss_crow_curse.remove(this, store)
+    local tower = store.entities[this.modifier.source_id]
+    -- 用敌人死亡时的最新位置（this.pos 由 update 每帧跟随），而不是创建诅咒时的旧位置
+    local pos = (this.pos and V.vclone(this.pos)) or this._curse_pos
+
+    -- 诅咒赏金：只有敌人真正死亡才发放（额外赏金 = 本次技能花费的 300%，即 3×花费），
+    -- 可被科技奥术结晶增幅（被法球命中的敌人赏金提高，多次命中最高提升 10%）；
+    -- 进防守点/被移除等非死亡路径不发金币、不播音效
+    if pos and this._wss_dead then
+        local target = store.entities[this.modifier.target_id]
+        local extra = WSS_BB.bounty_factor * (this._wss_cost or 0)
+
+        -- 奥术结晶增幅：按目标已累加的赏金增幅进度（0~10%）放大诅咒赏金
+        if target and target._mage_treasure_extra_gold and target._mage_treasure_extra_gold_max and
+            target._mage_treasure_extra_gold_max > 0 then
+            local factor = 1 + (target._mage_treasure_extra_gold / target._mage_treasure_extra_gold_max) * 0.1
+
+            extra = math.floor(extra * factor)
+        end
+
+        if extra > 0 then
+            store.player_gold = store.player_gold + extra
+
+            -- 万圣游行累计收益统计（本塔赚取；亏损在花费时已记为负数）
+            if tower then
+                tower._wss_parade_profit = (tower._wss_parade_profit or 0) + extra
+            end
+        end
+
+        -- 死亡掉落金币特效：固定 6 枚，按敌人头顶高度偏移，对齐大体形/飞行敌人的本体
+        local head_y = this._wss_coin_y or 0
+
+        for i = 1, 6 do
+            local c = E:create_entity("wss_coin_fx")
+            local ang = (i - 1) / 6 * math.pi * 2
+
+            c.pos = v(pos.x + 10 * math.cos(ang), pos.y + 7 * math.sin(ang))
+            c.render.sprites[1].offset = v(0, head_y)
+            c.render.sprites[1].ts = store.tick_ts
+            c.tween.ts = store.tick_ts
+            queue_insert(store, c)
+        end
+    end
+
+    -- 乌鸦消失（若乌鸦已先一步到达头顶自毁，或目标早死/消失时乌鸦已回到塔等待，则不再移除）
+    local pet = store.entities[this._crow_id]
+
+    if pet and not (this._crow_gone or this._wss_crow_returned) then
+        queue_remove(store, pet)
+    end
+
+    if tower then
+        -- 黑猫若已自毁（_crow_gone）或已回塔等待（_wss_crow_returned），计数不在此处重复扣减
+        if not (this._crow_gone or this._wss_crow_returned) then
+            tower._wss_pet_count = math.max(0, (tower._wss_pet_count or 1) - 1)
+            tower._wss_cat_count = math.max(0, (tower._wss_cat_count or 1) - 1)
+        end
+
+        tower._wss_cursed_count = math.max(0, (tower._wss_cursed_count or 1) - 1)
+    end
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 万圣游行 黑箱概率引擎（隐藏机制，每局重置）
+-- 数学模型：基于投注额排名的动态胜率 + 状态机乘数修正。
+-- 参数见文件顶部 WSS_BB（写死，不进 config / 玩家配置窗口）；只改黑猫成功/乌鸦失败的
+-- 概率，不改结算规则（成功=黑猫诅咒，失败=安慰奖乌鸦；胜率基准受投注额排名驱动）。
+-- 注：引擎的“win=+2×投注”对应游戏内“黑猫赏金=300%投注，敌人死亡时结算”，净赚 2×投注。
+------------------------------------------------------------------
+local function wss_bb_state(store)
+    if not store._wss_parade_bb then
+        -- 用内置排名队列的副本作为开局初始队列（深拷贝，避免真实投注污染 seed_history 常量）
+        local history = {}
+
+        for _, v in ipairs(WSS_BB.seed_history) do
+            history[#history + 1] = v
+        end
+
+        store._wss_parade_bb = {
+            bet_history = history,      -- 初始 = seed_history（前8笔），此后追加真实投注
+        }
+    end
+
+    return store._wss_parade_bb
+end
+
+-- 计算本次投注的动态胜率（黑猫成功概率）：只按投注额排名修正（无连胜/连败机制）
+local function wss_bb_win_rate(bb, current_bet)
+    -- 1. 排名映射（0~1）：把本次投注插入历史，取从小到大排列的百分位，用幂函数放大差异
+    local all = {}
+
+    for _, v in ipairs(bb.bet_history) do
+        all[#all + 1] = v
+    end
+
+    all[#all + 1] = current_bet
+    table.sort(all)
+
+    local rank = 1
+
+    for i, v in ipairs(all) do
+        if v == current_bet then
+            rank = i
+
+            break
+        end
+    end
+
+    local rank_norm = (#all > 1) and ((rank - 1) / (#all - 1)) or 0.5
+    local mapped = rank_norm ^ WSS_BB.rank_exponent
+    local base_rate = WSS_BB.min_win_rate + (WSS_BB.max_win_rate - WSS_BB.min_win_rate) * mapped
+
+    -- 2. 动态边界钳制（不让排名映射把胜率推到离谱区间）
+    local lower = math.max(0.2, base_rate - 0.1)
+    local upper = math.min(0.9, base_rate + 0.15)
+
+    return math.max(lower, math.min(upper, base_rate))
+end
+
+-- 一次真实投注后追加进历史（仅排名修正用，不再记录连胜/连败）
+local function wss_bb_record(bb, current_bet)
+    bb.bet_history[#bb.bet_history + 1] = current_bet
+end
+
+local function cast_crow(store, this, tower, cost)
+    if tower._wss_casting then
+        return false
+    end
+
+    -- 黑猫满 3 只（成功上限）即锁定技能盘（按钮禁用，不能再点击）；
+    -- 乌鸦满 3 只不锁按钮（安慰奖抽中时无任何收益）；当前金币不足 100 不抽（100 才起抽）
+    local cats = tower._wss_cat_count or 0
+    local crows = tower._wss_crow_count or 0
+
+    if cats >= 3 then
+        return false
+    end
+
+    if store.player_gold < 100 then
+        return false
+    end
+
+    -- 黑箱概率引擎：用动态胜率（投注额排名修正）决定本次是黑猫成功还是乌鸦失败。
+    -- 替换原先的固定 50%；乌鸦满 3 只后再抽中安慰奖 = 无收益（费用照扣）。
+    local bb = wss_bb_state(store)
+    local win_rate = wss_bb_win_rate(bb, cost or 0)
+    local is_cat = random() < win_rate
+    wss_bb_record(bb, cost or 0)
+
+    if not is_cat and crows >= 3 then
+        -- 安慰奖但乌鸦已满：不召唤（本次费用照扣，纯浪费 50% 金币），但保留乌鸦召唤音效
+        S:queue("ShadowArcherCrowAttack")
+
+        return true
+    end
+
+    local pet_tpl = is_cat and "wss_cat" or "wss_crow"
+
+    -- 防御：模板未注册或创建失败时只记日志，不向上抛错（避免塔协程崩溃导致塔/士兵消失）
+    if not E:get_template(pet_tpl) then
+        log.warning("wss cast_crow: template %s not registered", pet_tpl)
+
+        return false
+    end
+
+    local pet = E:create_entity(pet_tpl)
+
+    if not pet then
+        log.warning("wss cast_crow: failed to create %s", pet_tpl)
+
+        return false
+    end
+
+    pet.pos = v(tower.pos.x, tower.pos.y + 10)
+    pet.owner = tower
+    pet.orbit_radius = 45
+    pet._is_cat = is_cat
+    pet._wss_cost = cost or 0 -- 本次技能花费（黑猫诅咒赏金 = 300% 花费）
+    pet.main_script.context = pet.main_script.context or {}
+    queue_insert(store, pet)
+    tower._wss_pet_count = (tower._wss_pet_count or 0) + 1
+
+    if is_cat then
+        -- 黑猫（成功）：本塔单调物种序号（环绕等相位用）；每只独立索敌，无需串行队列
+        tower._wss_cat_seq = (tower._wss_cat_seq or 0) + 1
+        pet.species_index = tower._wss_cat_seq
+        tower._wss_cat_count = cats + 1
+        S:queue("wss_crows_cast") -- 黑猫声（夜晚之怒召唤声）
+    else
+        -- 乌鸦（安慰奖）：范围增益宠物，每只 +15% 斯特蕾吉射程与集合范围
+        tower._wss_crow_seq = (tower._wss_crow_seq or 0) + 1
+        pet.species_index = tower._wss_crow_seq
+        tower._wss_crow_count = crows + 1
+        -- 集合范围 = 基础 180 ×（1 + 15%×乌鸦数）；塔本体不享受科技射程
+        tower.barrack.rally_range = wss_rally_range(tower)
+        S:queue("ShadowArcherCrowAttack") -- 乌鸦声
+    end
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 塔更新：士兵生成、集合点、双魔药模式（共享冷却，切换不刷新）
+------------------------------------------------------------------
+scripts.tower_wicked_sisters_stregi = scripts.tower_wicked_sisters_stregi or {}
+
+-- 百科全书的塔面板数值：显示科技加成后的数值（按当前已研究科技计算）——
+-- 伤害 = 15~22 × 法球常驻倍率 × 塔 damage_factor；范围取集合范围；攻速 × 塔攻速系数。
+-- 与暮光长弓面板同规则：只算固定倍率——强化魔力 ×1.15、奥术符文 ×1.15、和谐本征 ×1.07 进面板；
+-- 魔法闪耀（1.18~1.36，按场上法师塔数动态取值）不进面板，战斗内实时计算；
+-- 不稳定魔力（10%×2）、法术打击（破甲时×1.2）、奥术粉碎、缓慢诅咒等概率/条件触发的科技也不进面板，
+-- 它们由运行时的 damage_hooks / mods 生效。
+function scripts.tower_wicked_sisters_stregi.get_info(this)
+    local bolt_f = mage_damage_breakdown(nil, false)
+
+    return {
+        type = STATS_TYPE_TOWER_MAGE,
+        damage_min = math.floor(config.soldier_damage_min * bolt_f) * this.tower.damage_factor,
+        damage_max = math.floor(config.soldier_damage_max * bolt_f) * this.tower.damage_factor,
+        damage_type = DAMAGE_MAGICAL_EXPLOSION,
+        range = this.barrack.rally_range,
+        cooldown = config.soldier_cooldown * this.tower.cooldown_factor
+    }
+end
+
+function scripts.tower_wicked_sisters_stregi.update(this, store)
+    -- 万圣游行按钮（tw_repair）依赖 this.repair 显示价格：缺失时补默认值
+    if not this.repair then
+        this.repair = {
+            cost = wss_crow_cost(store),
+            active = false
+        }
+    end
+
+    local current_mode = this.tower_upgrade_persistent_data.current_mode
+    local b = this.barrack
+    local witch = b.soldiers[1]
+
+    -- 斯特蕾吉不在场（未生成/被意外移除）时补生成，避免“点一下技能人没了”
+    if not witch or not store.entities[witch.id] then
+        witch = E:create_entity(b.soldier_type)
+        witch.pos.x, witch.pos.y = this.pos.x, this.pos.y + 16
+        witch.nav_rally.pos = vclone(b.rally_pos)
+        witch.nav_rally.center = vclone(b.rally_pos)
+        witch.owner = this
+        -- 标记“已入队但尚未插入”：queue_insert 只是入队，下一帧才进 store.entities，
+        -- 防止下面的每帧守卫在同一帧误判为“丢失”而重复生成第二个斯特蕾吉
+        witch._wss_pending = true
+        witch._wss_queued_ts = store.tick_ts
+        queue_insert(store, witch)
+        b.soldiers[1] = witch
+        witch.wick_mode = current_mode
+        witch.nav_rally.new = true
+    end
+
+    local shared_cd = config.mode_cooldown or 18
+    local mode_ts = this.tower_upgrade_persistent_data.wss_mode_ts or 0
+    local veggie_ts = this.tower_upgrade_persistent_data.wss_veggie_ts or 0
+    local doll_ts = this.tower_upgrade_persistent_data.wss_doll_ts or 0
+
+    while true do
+        -- 万圣游行点击后轮盘不关闭（首次检测到 TowerMenu 全局时安装，只装一次）
+
+        -- 斯特蕾吉每帧守卫：实体若被意外移除（错误清理等），直接在集合点原地补生成，
+        -- 不会再出现“人没了、要点集合按钮、从塔位置走出来”的现象
+        witch = b.soldiers[1]
+
+        -- 刚创建等待入队（_wss_pending）时不算“丢失”；实体插入后由士兵 insert 清除该标记
+        if not witch or
+            (not store.entities[witch.id] and
+                (not witch._wss_pending or store.tick_ts - (witch._wss_queued_ts or 0) > 2)) then
+            witch = E:create_entity(b.soldier_type)
+            witch.pos.x, witch.pos.y = b.rally_pos.x, b.rally_pos.y
+            witch.nav_rally.pos = vclone(b.rally_pos)
+            witch.nav_rally.center = vclone(b.rally_pos)
+            witch.nav_rally.new = false
+            witch.owner = this
+            witch.wick_mode = current_mode
+            witch._wss_pending = true
+            witch._wss_queued_ts = store.tick_ts
+            queue_insert(store, witch)
+            b.soldiers[1] = witch
+        end
+
+        -- 模式切换按钮（tw_change_mode）会连带设置 user_selection.in_progress；
+        -- 先记录本帧标志，避免把“切换模式”误判成“点击万圣游行召唤动物”
+        local mode_switch_click = this.change_mode
+        if this.repair then
+            this.repair.cost = wss_crow_cost(store)
+        end
+
+        -- 万圣游行：点击付费召唤（每次投注当前金币的 50%，可反复点击；点击立即召唤）
+        if this.user_selection and this.user_selection.in_progress and not mode_switch_click then
+            this.user_selection.in_progress = nil
+            local ok, err = pcall(function()
+                -- 花费 = 当前金币 50%（点击时实时计算，不做每帧轮询）
+                local cost = wss_crow_cost(store)
+
+                if store.player_gold >= cost and cast_crow(store, this, this, cost) then
+                    store.player_gold = store.player_gold - cost
+
+                    -- 万圣游行累计收益统计（含安慰奖无事发生的浪费）：本塔花费计入亏损
+                    this._wss_parade_profit = (this._wss_parade_profit or 0) - cost
+
+                    -- 点击后立即刷新按钮价格（轮盘打开时 TowerMenu.update 也会随金币变化惰性同步）
+                    if this.repair then
+                        this.repair.cost = wss_crow_cost(store)
+                    end
+                end
+            end)
+
+            if not ok then
+                -- 任何异常都不能让塔协程崩溃（否则游戏会移除整座塔，士兵随之消失）
+                log.warning("wss crow click failed: %s", tostring(err))
+            end
+        end
+
+        -- 自动购买：开关开启时，条件（黑猫+被诅咒敌人≤1 且金币≥100）满足则自动抽奖，每次间隔 1.2 秒。
+        -- 黑猫/被诅咒敌人数量实时按场上实体统计（不依赖计数字段，避免赏金敌人死亡/进点后计数残留导致不再购买）
+        if this._wss_auto_buy then
+            local auto_ts = this._wss_auto_buy_ts or 0
+
+            if store.tick_ts - auto_ts >= 1.2 then
+                local cats, cursed = 0, 0
+
+                for _, e in pairs(store.entities) do
+                    if e.owner == this and e.template_name == "wss_cat" then
+                        cats = cats + 1
+                    elseif e.template_name == "wss_crow_curse" and e.modifier and e.modifier.source_id == this.id then
+                        cursed = cursed + 1
+                    end
+                end
+
+                if cats + cursed <= 1 and store.player_gold >= 100 then
+                    this._wss_auto_buy_ts = store.tick_ts
+                    local ok2, err2 = pcall(function()
+                        local cost = wss_crow_cost(store)
+
+                        if store.player_gold >= cost and cast_crow(store, this, this, cost) then
+                            store.player_gold = store.player_gold - cost
+
+                            -- 自动购买花费同样计入本塔累计盈亏
+                            this._wss_parade_profit = (this._wss_parade_profit or 0) - cost
+
+                            if this.repair then
+                                this.repair.cost = wss_crow_cost(store)
+                            end
+                        end
+                    end)
+
+                    if not ok2 then
+                        log.warning("wss crow auto buy failed: %s", tostring(err2))
+                    end
+                end
+            end
+        end
+
+        if mode_switch_click then
+            this.change_mode = false
+
+            -- 模式切换按钮带来的 user_selection 一并消费，防止下一帧被误判为万圣游行
+            if this.user_selection then
+                this.user_selection.in_progress = nil
+            end
+
+            S:queue("wss_mode_voice") -- 切换模式语音
+
+            if current_mode == 0 then
+                -- 切到梦迁魔药（紫色法伤形态，塔的锅/烟/女巫播放 toViolet 切换动画）
+                current_mode = 1
+
+                if witch then
+                    witch.wick_mode = 1
+                end
+
+                this.render.sprites[6].hidden = true
+                U.animation_start_once_specific_no_flip(this, "toViolet", store.tick_ts, 5)
+                U.y_animation_play_once_specific_no_flip(this, "toViolet", store.tick_ts, 4)
+                U.animation_start_specific(this, "Violet", nil, store.tick_ts, true, 4)
+                this.render.sprites[6].name = "violet"
+                this.render.sprites[6].hidden = false
+                U.y_animation_wait(this, 4)
+            else
+                -- 切回蚀骨毒药（绿色形态）
+                current_mode = 0
+
+                if witch then
+                    witch.wick_mode = 0
+                end
+
+                this.render.sprites[6].hidden = true
+                U.animation_start_once_specific_no_flip(this, "toGreen", store.tick_ts, 5)
+                U.y_wait_unconditional(store, fts(this.tower.cooldown_factor * 4))
+                U.y_animation_play_once_specific_no_flip(this, "toGreen", store.tick_ts, 4)
+                U.animation_start_specific(this, "Green", nil, store.tick_ts, true, 4)
+                this.render.sprites[6].name = "green"
+                this.render.sprites[6].hidden = false
+                U.y_animation_wait(this, 4)
+            end
+
+            this.tower_upgrade_persistent_data.current_mode = current_mode
+        end
+
+        if b.rally_new then
+            b.rally_new = false
+            signal.emit("rally-point-changed", this)
+            S:queue(this.sound_events.change_rally_point)
+
+            if witch then
+                witch.nav_rally.pos = vclone(b.rally_pos)
+                witch.nav_rally.center = vclone(b.rally_pos)
+                witch.nav_rally.new = true
+            end
+        end
+
+        -- 集合范围 = 基础 180 ×（1 + 15%×猫数）；
+        -- 塔本体不享受科技射程（科技射程全额给斯特蕾吉）
+        this.barrack.rally_range = wss_rally_range(this)
+
+        -- 双魔药模式：共享冷却
+        if not this.tower.blocked and store.tick_ts - mode_ts > shared_cd then
+            local ok, err = pcall(function()
+                local casted = false
+
+                if current_mode == 0 then
+                    casted = cast_mud(store, this, this)
+                else
+                    casted = cast_dream(store, this, this)
+                end
+
+                if casted then
+                    mode_ts = store.tick_ts
+                    this.tower_upgrade_persistent_data.wss_mode_ts = mode_ts
+
+                    if random() < 0.33 then
+                        S:queue("wss_shiny_voice") -- 施法 33% 语音
+                    end
+                end
+            end)
+
+            if not ok then
+                log.warning("wss mud/dream cast failed: %s", tostring(err))
+            end
+        end
+
+        -- 技能1 素食主义
+        local pow_v = this.powers.z_aveggie
+
+        if pow_v and pow_v.level > 0 and not this.tower.blocked then
+            local vcd = config.veggie_cooldown or 28
+
+            if store.tick_ts - veggie_ts > vcd then
+                local ok, err = pcall(function()
+                    local enemy = pick_veggie_target(store, this)
+
+                    if enemy then
+                        veggie_ts = store.tick_ts
+                        this.tower_upgrade_persistent_data.wss_veggie_ts = veggie_ts
+                        cast_veggie(store, this, enemy, pow_v.level)
+
+                        if random() < 0.33 then
+                            S:queue("wss_shiny_voice") -- 施法 33% 语音
+                        end
+                    end
+                end)
+
+                if not ok then
+                    log.warning("wss veggie cast failed: %s", tostring(err))
+                end
+            end
+        end
+
+        -- 技能2 惊喜玩偶
+        local pow_d = this.powers.z_doll
+
+        if pow_d and pow_d.level > 0 and not this.tower.blocked then
+            local dcd = config.doll_cooldown or 22
+
+            if store.tick_ts - doll_ts > dcd then
+                local ok, err = pcall(function()
+                    if cast_doll(store, this, this, pow_d.level) then
+                        doll_ts = store.tick_ts
+                        this.tower_upgrade_persistent_data.wss_doll_ts = doll_ts
+
+                        if random() < 0.33 then
+                            S:queue("wss_shiny_voice") -- 施法 33% 语音
+                        end
+                    end
+                end)
+
+                if not ok then
+                    log.warning("wss doll cast failed: %s", tostring(err))
+                end
+            end
+        end
+
+        coroutine.yield()
+    end
+end
+
+function scripts.tower_wicked_sisters_stregi.remove(this, store)
+    if this._wss_swapping then
+        -- 幽灵塔4级“换塔”：塔只是暂时移出 store，稍后会插回；保留斯特蕾吉与猫/乌鸦
+        return true
+    end
+
+    if this.barrack and this.barrack.soldiers then
+        for _, s in ipairs(this.barrack.soldiers) do
+            if s and store.entities[s.id] then
+                queue_remove(store, s)
+            end
+        end
+    end
+
+    -- 拆除女巫塔：其乌鸦/黑猫一并消失，黑猫同时从全局锁定顺序表中移除
+    for _, e in pairs(store.entities) do
+        if e.owner == this and (e.template_name == "wss_crow" or e.template_name == "wss_cat") then
+            queue_remove(store, e)
+        end
+    end
+
+    return true
+end
+
+------------------------------------------------------------------
+-- 士兵更新：斯特蕾吉飞行女巫（三层动画 + 双魔法弹分流）
+------------------------------------------------------------------
+scripts.soldier_wicked_sisters_stregi = {}
+function scripts.soldier_wicked_sisters_stregi.update(this, store)
+    local ab = this.attacks.list[1]
+    local tw = this.owner and this.owner.tower
+
+    ab.ts = store.tick_ts
+
+    -- 安全桩（断藤大桥等 base 逻辑遍历 store.entities 时会对 soldier/enemy 读 e.health.dead）：
+    -- 斯特蕾吉因“无 health 不进入 store.soldiers”而保持不可拦截；但 base 的 decal_bouncing_bridge
+    -- 等会遍历 store.entities 并对任意 (e.soldier or e.enemy) 实体直接读 e.health.dead，导致 nil 索引崩溃。
+    -- 这里在插入之后补一个最小 health 桩（last_hook 只在 insert 时用 soldier+health 判断进 store.soldiers，
+    -- 此时 health 尚不存在 → 不会把她加入可拦截士兵列表；之后才补上 health，仅供只读的 e.health.dead 使用）。
+    -- ignore_damage=true 且 hp 极高：即使被误读也不会判死/被删。
+    if not this.health then
+        this.health = {
+            hp = 1e9,
+            hp_max = 1e9,
+            dead = false,
+            ignore_damage = true,
+        }
+    end
+
+    -- 近战不再减速敌人，只保留技能冷却缩减；调用时机=近战攻击真正命中存活目标时
+    local function hit_effect(tower)
+        wss_reduce_skill_cds(tower, config.hit_cd_reduce or 1)
+    end
+
+    -- 索敌优先级：被诅咒（任何女巫塔黑猫诅咒）→ 空中未减速 → 地面未减速 → 剩余减速时间最短的敌人
+    local function wss_pick_target(list, min_dist2)
+        local best
+        local best_prio = 4
+        local best_remain = 1e9
+
+        if list then
+            for _, e in ipairs(list) do
+                if not min_dist2 or V.dist2(this.pos.x, this.pos.y, e.pos.x, e.pos.y) >= min_dist2 then
+                    local until_ts = e._wss_slow_until or 0
+                    local flying = band(e.vis.flags, F_FLYING) ~= 0
+                    local cursed = e._wss_cursed == true -- 被任何女巫塔黑猫诅咒（不分塔）
+                    local prio
+
+                    if cursed then
+                        prio = 0 -- 被诅咒最优先
+                    elseif until_ts <= store.tick_ts then
+                        prio = flying and 1 or 2 -- 未减速：空中 1、地面 2
+                    else
+                        prio = 3 -- 减速：剩余最短（兜底）
+                    end
+
+                    local remain = until_ts - store.tick_ts
+
+                    if prio < best_prio or prio == best_prio and remain < best_remain then
+                        best = e
+                        best_prio = prio
+                        best_remain = remain
+                    end
+                end
+            end
+        end
+
+        return best
+    end
+
+    local function fire_bolt(tgt, i, af)
+        if not tgt or not tgt.health or tgt.health.dead then
+            return
+        end
+
+        local b = E:create_entity(ab.bullet[i])
+        local off = ab.start_offsets[i]
+
+        b.pos.x = this.pos.x + (af and -1 or 1) * off.x
+        b.pos.y = this.pos.y + off.y
+        b.bullet.damage_factor = tw and tw.damage_factor or 1
+        -- 远程法球伤害 = 基础 15~22 × 法球伤害科技倍率（向下取整）；damage_factor 由塔攻击力/肃清立场提供
+        local bolt_f = mage_damage_breakdown(store)
+
+        b.bullet.damage_min = math.floor(config.soldier_damage_min * bolt_f)
+        b.bullet.damage_max = math.floor(config.soldier_damage_max * bolt_f)
+        b.bullet.from = vclone(b.pos)
+        b.bullet.source_id = this.id
+        b.bullet.to = v(tgt.pos.x + tgt.unit.hit_offset.x, tgt.pos.y + tgt.unit.hit_offset.y)
+        b.bullet.target_id = tgt.id
+        -- 命中时生效的 mods：保留模板科技 mods（缓慢诅咒/奥数粉碎/宝藏等），
+        -- 再追加斯特蕾吉自身减速（缓慢诅咒覆盖时由 wss_attack_slow 内部取最高值）
+        local tpl_mods = b.bullet.mods or (b.bullet.mod and {b.bullet.mod}) or {}
+        local mods = {}
+
+        for _, m in ipairs(tpl_mods) do
+            mods[#mods + 1] = m
+        end
+
+        if not table.contains(mods, "wss_attack_slow") then
+            mods[#mods + 1] = "wss_attack_slow"
+        end
+
+        b.bullet.mod = nil
+        b.bullet.mods = mods
+        -- 命中才减技能冷却：给本颗法球追加命中伤害钩子，只有真正对存活目标结算伤害时触发
+        local hooks = {}
+
+        for _, h in ipairs(b.bullet.damage_hooks or {}) do
+            hooks[#hooks + 1] = h
+        end
+
+        local cd_tower = this.owner
+        local cd_reduce = config.hit_cd_reduce or 1
+
+        hooks[#hooks + 1] = function()
+            wss_reduce_skill_cds(cd_tower, cd_reduce)
+        end
+
+        b.bullet.damage_hooks = hooks
+        queue_insert(store, b)
+    end
+
+    while true do
+        local r = this.nav_rally
+
+        while r.new do
+            r.new = false
+            U.set_destination(this, r.pos)
+            local an, af = U.animation_name_facing_point_simple(this, "walk", this.motion.dest)
+            U.animation_start_default(this, an, af, store.tick_ts, true)
+
+            while not this.motion.arrived and not r.new do
+                U.walk_off__accel__unsnapped(this, store.tick_length)
+                coroutine.yield()
+                this.motion.speed.x, this.motion.speed.y = 0, 0
+            end
+
+            coroutine.yield()
+        end
+
+        -- 施法动画期间不攻击（按动画是否仍在播放判断，不重启动画）
+        local casting = this._wss_cast_anim and this.render.sprites[1].name == this._wss_cast_anim and
+                            not U.animation_finished(this)
+
+        if not casting and ready_to_attack(ab, store, tw and tw.cooldown_factor or 1) then
+            -- 射程 = 塔当前射程（含全部科技射程增益） ×（1 + 15%×乌鸦数）
+            local range_factor = 1 + (config.crow_range_factor or 0.15) *
+                                     ((this.owner and this.owner._wss_crow_count) or 0)
+            local tw_range = (this.owner and this.owner.attacks and this.owner.attacks.range) or
+                                 config.soldier_ranged_max
+
+            local ranged_max = tw_range * range_factor
+            local ranged_min = config.soldier_ranged_min * range_factor
+            local melee = U.find_enemies_in_range_filter_off(this.pos, config.soldier_melee_range, 0, 0)
+            local ranged = U.find_enemies_in_range_filter_off(this.pos, ranged_max, 0, 0)
+            local min_r2 = ranged_min * ranged_min
+            local mt = wss_pick_target(melee)
+            local rt = wss_pick_target(ranged, min_r2)
+
+            if mt or rt then
+                ab.ts = store.tick_ts
+                local an, af
+
+                if mt then
+                    -- 近战模式：单次命中
+                    an, af = U.animation_name_facing_point_simple(this, "melee_attack", mt.pos)
+                    U.animation_start_default(this, an, af, store.tick_ts, false)
+                    U.y_wait_unconditional(store, ab.hit_time)
+
+                    -- 近战：物理伤害；只吃魔法闪耀 × 塔 damage_factor（肃清立场）；
+                    -- 法球类/强化魔力/奥术符文/和谐本征不吃。攻击真正命中存活目标才结算伤害与冷却缩减
+                    if mt.health and not mt.health.dead and store.entities[mt.id] then
+                        local _, melee_f = mage_damage_breakdown(store)
+                        local d = E:assign_damage(DAMAGE_PHYSICAL,
+                            math.random(math.floor(config.soldier_damage_min * melee_f),
+                                math.floor(config.soldier_damage_max * melee_f)) * (tw and tw.damage_factor or 1),
+                            this.id, mt.id)
+
+                        queue_damage(store, d)
+                        hit_effect(this.owner)
+                        S:queue("HeroBuilderBasicAttack")
+                    end
+                else
+                    -- 远程模式：双魔法弹，≥2 敌分开
+                    local t2
+
+                    if ranged then
+                        local others = {}
+
+                        for _, e in ipairs(ranged) do
+                            if e ~= rt then
+                                others[#others + 1] = e
+                            end
+                        end
+
+                        t2 = wss_pick_target(others, min_r2)
+                    end
+
+                    an, af = U.animation_name_facing_point_simple(this, "range_attack", rt.pos)
+                    U.animation_start_default(this, an, af, store.tick_ts, false)
+                    U.y_wait_unconditional(store, ab.hit_time)
+                    fire_bolt(rt, 1, af)
+                    fire_bolt(t2, 2, af)
+                    S:queue("wss_stregi_attack")
+                end
+
+                while not U.animation_finished(this, 1) do
+                    if this.nav_rally.new then
+                        break
+                    end
+
+                    coroutine.yield()
+                end
+            else
+                ab.ts = ab.ts + 0.1
+            end
+        end
+
+        -- 集合点附近小幅浮动徘徊
+        if store.tick_ts - this.idle_flip.ts > this.idle_flip.cooldown then
+            this.idle_flip.ts = store.tick_ts
+            this.idle_flip.last_dir = -1 * this.idle_flip.last_dir
+            local new_pos = vclone(this.pos)
+
+            new_pos.x = new_pos.x + this.idle_flip.last_dir * (this.idle_flip.walk_dist or 27)
+
+            if not GR:cell_is(new_pos.x, new_pos.y, TERRAIN_WATER) then
+                r.new = true
+                r.pos = new_pos
+            end
+        end
+
+        local cast_anim = this._wss_cast_anim
+
+        if cast_anim and this.render.sprites[1].name == cast_anim and not U.animation_finished(this) then
+            -- 施法动画播放中：保持（不重启，等它自然播完）
+        else
+            if cast_anim then
+                this._wss_cast_anim = nil
+            end
+
+            U.animation_start_default(this, "idle", nil, store.tick_ts, true)
+        end
+
+        coroutine.yield()
+    end
+end
+end
+-- END WICKED SISTERS STREGI
 
 return scripts

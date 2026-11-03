@@ -1,0 +1,22 @@
+-- Native original-data Volibear frames, downsampled 512 to 256 and alpha-trimmed.
+return {
+ volibear_native_r_run_0001={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={102,78,91,89},a_size={1024,480},f_quad={1,1,127,153},alias={}},
+ volibear_native_r_run_0002={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={102,83,91,92},a_size={1024,480},f_quad={130,1,127,145},alias={}},
+ volibear_native_r_run_0003={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={103,90,92,96},a_size={1024,480},f_quad={259,1,125,134},alias={}},
+ volibear_native_r_run_0004={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={100,87,94,99},a_size={1024,480},f_quad={386,1,126,134},alias={}},
+ volibear_native_r_run_0005={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={96,81,99,102},a_size={1024,480},f_quad={514,1,125,137},alias={}},
+ volibear_native_r_run_0006={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={95,77,98,106},a_size={1024,480},f_quad={641,1,127,137},alias={}},
+ volibear_native_r_run_0007={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={94,72,99,107},a_size={1024,480},f_quad={770,1,127,141},alias={}},
+ volibear_native_r_run_0008={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={96,69,102,109},a_size={1024,480},f_quad={899,1,122,142},alias={}},
+ volibear_native_r_run_0009={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={97,66,106,106},a_size={1024,480},f_quad={1,156,117,148},alias={}},
+ volibear_native_r_run_0010={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={99,63,104,102},a_size={1024,480},f_quad={120,156,117,155},alias={}},
+ volibear_native_r_run_0011={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={100,63,104,99},a_size={1024,480},f_quad={239,156,116,158},alias={}},
+ volibear_native_r_run_0012={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={100,65,106,102},a_size={1024,480},f_quad={357,156,114,153},alias={}},
+ volibear_native_r_run_0013={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={98,71,107,106},a_size={1024,480},f_quad={473,156,115,143},alias={}},
+ volibear_native_r_run_0014={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={96,77,103,103},a_size={1024,480},f_quad={590,156,121,140},alias={}},
+ volibear_native_r_run_0015={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={94,76,99,101},a_size={1024,480},f_quad={713,156,127,143},alias={}},
+ volibear_native_r_run_0016={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={94,73,100,100},a_size={1024,480},f_quad={842,156,126,147},alias={}},
+ volibear_native_r_run_0017={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={93,69,98,101},a_size={1024,480},f_quad={1,316,129,150},alias={}},
+ volibear_native_r_run_0018={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={94,67,94,100},a_size={1024,480},f_quad={132,316,132,153},alias={}},
+ volibear_native_r_run_0019={a_name="go_volibear_native_r_run_visualfix_p01.png",size={320,320},trim={97,67,92,96},a_size={1024,480},f_quad={266,316,131,157},alias={}},
+}

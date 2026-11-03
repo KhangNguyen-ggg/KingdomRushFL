@@ -1,4 +1,4 @@
-return{
+local dove43_data = {
     common4 = {
         files = {
             "Mapa.ogg",
@@ -1202,3 +1202,12 @@ return{
 		ids = {},
 	},
 }
+
+-- BEGIN DOVE43 BUILTIN TOWERS
+table.merge(dove43_data, {["d43_sniper_tower"]={["sounds"]={"d43_sniper_taunt_2","d43_sniper_shot","d43_sniper_laser_sight","d43_sniper_taunt_3","d43_sniper_taunt_4","d43_sniper_taunt_1"}},["d43_plague_hospital"]={["sounds"]={"d43_plague_taunt_4","d43_plague_taunt_1","d43_plague_summon","d43_plague_taunt_2","d43_plague_taunt_3"}},["d43_command_center"]={["sounds"]={"d43_cc_taunt_3","d43_cc_plane","d43_cc_taunt_4","d43_cc_radar","d43_cc_taunt_1","d43_cc_airstrike","d43_cc_missile","d43_cc_intranet","d43_cc_taunt_2"}},["d43_ice_cooler"]={["sounds"]={"d43_ice_cooler_party_throw","d43_ice_cooler_party_explosion","d43_ice_cooler_taunt_2","d43_ice_cooler_taunt_3","d43_ice_cooler_freeze","d43_ice_cooler_shoot_1","d43_ice_cooler_snowman_death","d43_ice_cooler_shoot_2","d43_ice_cooler_taunt_1","d43_ice_cooler_shoot_3"}},["d43_machine_gunner"]={["sounds"]={"d43_machine_gunner_arrow_explosion","d43_machine_gunner_shot","d43_machine_gunner_taunt_1","d43_machine_gunner_skill","d43_machine_gunner_taunt_4","d43_machine_gunner_taunt_2","d43_machine_gunner_arrow_shot","d43_machine_gunner_taunt_3"}}})
+-- END DOVE43 BUILTIN TOWERS
+-- BEGIN DOVE43 EXTRA TOWERS
+table.merge(dove43_data, {["d43_blastin_bullriders"]={["sounds"]={"d43_blastin_mortar_shot","d43_blastin_deep_explosion","d43_blastin_drone_shot","d43_blastin_mortar_impact","d43_blastin_taunt_2","d43_blastin_taunt_1","d43_blastin_taunt_3","d43_blastin_missile_launch"}},["d43_wifi_babies"]={["sounds"]={"d43_wifi_babies_taunt_4","d43_wifi_babies_cry_1","d43_wifi_babies_cry_2","d43_wifi_babies_cry_3","d43_wifi_babies_laser","d43_wifi_babies_projection","d43_wifi_babies_taunt_2","d43_wifi_babies_taunt_3","d43_wifi_babies_taunt_1"}}})
+-- BEGIN DOVE43 STREGI SOUNDS
+table.merge(dove43_data, {["d43_wicked_sisters_stregi"]={["sounds"]={"wss_veggie_upg_voice","wss_dream_out","wss_stregi_attack","wss_veggie_in","wss_shiny_voice","wss_doll_cast","wss_doll_boom","wss_crows_cast","wss_build_voice","wss_doll_upg_voice","wss_mud_cast","wss_mode_voice","wss_mud_impact"}}})
+return dove43_data

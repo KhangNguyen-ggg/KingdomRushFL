@@ -416,7 +416,7 @@ function screen_map:show_map_entry_hints()
 	local hide_ui_seen_key = "map_hide_ui_tip_" .. generation
 
 	if DBG_SHOW_BALLOONS or not seen[hide_ui_seen_key] then
-		local tip = screen_map_text_balloon("mapBaloon_heroLvlUp_notxt", "Nhấn Tab để ẩn giao diện\n(và ẩn thông báo này)", V.v(228, 44), v(15, 24), 26, hint_color)
+		local tip = screen_map_text_balloon("mapBaloon_heroLvlUp_notxt", "Nhấn Tab để ẩn giao diện\n(và ẩn hướng dẫn này)", V.v(228, 44), v(15, 24), 26, hint_color)
 
 		tip.anchor = v(tip.size.x / 2, tip.size.y)
 		tip.pos = v(self.sw / 2, self.sh - 160)
@@ -498,6 +498,8 @@ screen_map.required_textures = {
 	"kr6_encyclopedia_tower_skills",
 	"encyclopedia_special_towers",
 	"encyclopedia_special_tower_power_icons",
+	"encyclopedia_dove43_towers",
+	"encyclopedia_dove43_extra",
 	"encyclopedia_creeps",
 	"kr6_encyclopedia_creeps",
 	"kr4_level_thumbs",
@@ -565,7 +567,7 @@ local function enemy_enhance_label(value)
 		return CJK("High", "Cao", "大", "대")
 	end
 
-	return CJK("Off", "Đóng", "オフ", "끔")
+	return CJK("Off", "Tắt", "オフ", "끔")
 end
 
 local function kr4_map_hero_portrait_name(hd)
@@ -584,6 +586,37 @@ local function kr6_map_hero_portrait_name(hd)
 	end
 
 	return "mapButtons_portrait_hero_kr6_" .. hd.name
+end
+
+local function is_rebborn2_hero_thumb(hd)
+	return hd and hd.portrait and hd.portrait >= 950 and hd.portrait <= 954
+end
+
+function screen_map:set_hero_portrait(hd)
+	local portrait = self.hero_icon_portrait
+	local boss = infinite_heroes.get_boss(hd.name)
+	portrait._draw_self = boss and boss.portrait_draw or nil
+	portrait.clip, portrait.clip_fn = false, nil
+	portrait.anchor, portrait.pos, portrait.scale = v(0, 0), v(0, 0), v(1, 1)
+	if boss then
+		portrait:set_image(boss.icon)
+		-- Native map portraits occupy this oval inside the 226x184 button canvas.
+		local scale = math.max(76 / (portrait.size.x * 0.9), 68 / (portrait.size.y * 0.9))
+		portrait.anchor = v(portrait.size.x / 2, portrait.size.y / 2)
+		portrait.pos, portrait.scale = v(113, 74), v(scale, scale)
+		portrait.clip = true
+		portrait.clip_fn = function()
+			G.ellipse("fill", portrait.size.x / 2, portrait.size.y / 2, 38 / scale, 34 / scale, 64)
+		end
+	else
+		local kr4 = kr4_map_hero_portrait_name(hd)
+		local kr6 = kr6_map_hero_portrait_name(hd)
+		portrait:set_image(hd.icon <= 47 and string.format("mapButtons_portrait_hero_%04i", hd.icon) or kr4 or kr6 or string.format("hero_room_portraits_small_button_%s_0001", hd.name))
+		if hd.icon > 47 and not kr4 and not kr6 and not is_rebborn2_hero_thumb(hd) then
+			portrait.pos, portrait.scale = v(78, 44), v(0.8, 0.8)
+		end
+	end
+	portrait.hidden = false
 end
 
 local function refresh_mobile_font_tree(view)
@@ -659,6 +692,7 @@ local function default_rally_hero_list()
 end
 
 local function get_hero_stats(p)
+	if infinite_heroes.get_boss(p) then return {remaining_points = 0} end
 	local out = {}
 	local index, hero_name
 
@@ -1126,7 +1160,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	a_button.label.vertical_align = CJK("middle", "top", nil, "top")
 	a_button.label.text = _("Achievements")
 	a_button.label.fit_lines = 1
-	vietnamese_map_caption(a_button.label)
 
 	self.a_button = a_button
 
@@ -1151,7 +1184,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	e_button.label.vertical_align = CJK("middle", "top", nil, "top")
 	e_button.label.text = _("Encyclopedia")
 	e_button.label.fit_lines = 1
-	vietnamese_map_caption(e_button.label)
 
 	self.e_button = e_button
 	self.window:add_child(e_button)
@@ -1189,7 +1221,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button1.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button1.label.text = _("Rush")
 	change_button1.label.fit_lines = 1
-	vietnamese_map_caption(change_button1.label)
 
 	self.window:add_child(change_button1)
 
@@ -1222,7 +1253,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button2.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button2.label.text = _("Frontier")
 	change_button2.label.fit_lines = 1
-	vietnamese_map_caption(change_button2.label)
 
 	self.window:add_child(change_button2)
 	
@@ -1257,7 +1287,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button4.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button4.label.text = _("Vegnance")
 	change_button4.label.fit_lines = 1
-	vietnamese_map_caption(change_button4.label)
 	self.window:add_child(change_button4)
 
 
@@ -1291,7 +1320,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button5.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button5.label.text = _("Alliance")
 	change_button5.label.fit_lines = 1
-	vietnamese_map_caption(change_button5.label)
 	self.window:add_child(change_button5)
 
 	local change_button6 = GGButton:new("mapButtons-notxt_0600", "mapButtons-notxt_0601")
@@ -1323,7 +1351,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button6.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button6.label.text = "Genesis"
 	change_button6.label.fit_lines = 1
-	vietnamese_map_caption(change_button6.label)
 	self.window:add_child(change_button6)
 
 	local change_button3 = GGButton:new("mapButtons-notxt_0017", "mapButtons-notxt_0018")
@@ -1355,7 +1382,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	change_button3.label.vertical_align = CJK("middle", "top", nil, "top")
 	change_button3.label.text = _("Origin")
 	change_button3.label.fit_lines = 1
-	vietnamese_map_caption(change_button3.label)
 	self.window:add_child(change_button3)
 
 	self.change_button1 = change_button1
@@ -1458,7 +1484,6 @@ function screen_map:init(w, h, done_callback, map_change)
 				map_button.pos = v(a_button.pos.x - 850, sh - 90)
 				map_button.label.text = generation == current_generation and "Đổi bản đồ" or map_change_labels[generation]
 			end
-			vietnamese_map_caption(map_button.label)
 		end
 	end
 
@@ -1472,7 +1497,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	spell_select_button.label.vertical_align = CJK("middle", "top", nil, "top")
 	spell_select_button.label.text = "Chọn phép"
 	spell_select_button.label.fit_lines = 1
-	vietnamese_map_caption(spell_select_button.label)
 
 	function spell_select_button.on_click()
 		S:queue("GUIButtonCommon")
@@ -1496,7 +1520,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	tower5_room.label.vertical_align = CJK("middle", "top", nil, "top")
 	tower5_room.label.text = "Chọn tháp"
 	tower5_room.label.fit_lines = 1
-	vietnamese_map_caption(tower5_room.label)
 
 	function tower5_room.on_click(this, button, x, y)
 		S:queue("GUIButtonCommon")
@@ -1584,7 +1607,6 @@ function screen_map:init(w, h, done_callback, map_change)
 	u_button.label.vertical_align = CJK("middle", "top", nil, "top")
 	u_button.label.text = _("UPGRADES")
 	u_button.label.fit_lines = 1
-	vietnamese_map_caption(u_button.label)
 	self.u_button = u_button
 
 	self.window:add_child(u_button)
@@ -1679,9 +1701,8 @@ function screen_map:init(w, h, done_callback, map_change)
 	h_button.label.text_size = h_button.label.size
 	h_button.label.font_size = 18
 	h_button.label.vertical_align = CJK("middle", "top", nil, "top")
-	h_button.label.text = ISW(_("HERO ROOM"), "zh-Hans", "Anh hùng")
+	h_button.label.text = _("HERO ROOM")
 	h_button.label.fit_lines = 1
-	vietnamese_map_caption(h_button.label)
 
 	self.window:add_child(h_button)
 
@@ -7612,17 +7633,17 @@ local function encyclopedia_special_tower_fallback_description(tower_name, dt)
 	local has_powers = dt and type(dt.powers) == "table" and next(dt.powers) ~= nil
 
 	if has_barrack and has_attack then
-		return "Bố trí lính chuyên biệt chặn kẻ địch; thân tháp hỗ trợ bằng đòn đánh tầm xa hoặc đòn đặc biệt."
+		return "Triển khai lính chặn địch, đồng thời dùng hỏa lực tầm xa hoặc đòn đánh đặc biệt để hỗ trợ."
 	elseif has_barrack then
-		return "Bố trí hoặc thuê lính chuyên biệt để chặn và tấn công kẻ địch gần điểm tập kết."
+		return "Triển khai hoặc thuê lính để chặn và tấn công địch quanh điểm tập kết."
 	elseif has_attack and has_powers then
-		return "Tấn công kẻ địch trong tầm và tăng sức chiến đấu bằng kỹ năng riêng."
+		return "Tấn công địch trong tầm. Nâng cấp kỹ năng để tăng sức chiến đấu của tháp."
 	elseif has_attack then
-		return "Tự động tấn công kẻ địch trong tầm, cung cấp hỏa lực đặc biệt cho màn chơi."
+		return "Tự động tấn công địch trong tầm, hỗ trợ hỏa lực cho màn chơi."
 	elseif has_buy_attack then
-		return "Dùng vàng để gọi đòn tấn công hoặc hiệu ứng hỗ trợ riêng của công trình này."
+		return "Dùng vàng để kích hoạt đòn tấn công hoặc hiệu ứng hỗ trợ của công trình trong màn."
 	elseif has_powers then
-		return "Hỗ trợ chiến trường bằng kỹ năng riêng."
+		return "Dùng kỹ năng riêng để hỗ trợ chiến đấu."
 	end
 
 	return "Cung cấp hỗ trợ đặc biệt trong màn tương ứng hoặc qua menu xây dựng."
@@ -8385,7 +8406,7 @@ local function encyclopedia_show_tower_power_popup(panel, title, rows, show_bala
 		43,
 		255
 	}
-	title_label.text = show_balance_status == false and title or string.format("%s（%s）", title or "", encyclopedia_tower_doc_status())
+	title_label.text = show_balance_status == false and title or string.format("%s (%s)", title or "", encyclopedia_tower_doc_status())
 	title_label.text_align = "center"
 	title_label.fit_lines = 1
 	card:add_child(title_label)
@@ -8610,14 +8631,14 @@ local function encyclopedia_show_tower_mechanic_popup(panel, tower_name)
 
 	if encyclopedia_tower_doc_mode() == "enhanced" and encyclopedia_text_has_copy(entry.change_note) then
 		table.insert(rows, {
-			title = "Thay đổi",
+			title = "Thay đổi cân bằng",
 			desc = entry.change_note
 		})
 	end
 
 	if encyclopedia_text_has_copy(entry.port_note) then
 		table.insert(rows, {
-			title = "Chuyển thể",
+			title = "Ghi chú chuyển thể",
 			desc = entry.port_note
 		})
 	end
@@ -8668,7 +8689,7 @@ local function encyclopedia_add_tower_mechanic_button(panel, tower_name)
 		24,
 		255
 	}
-	label.text = "Cơ chế và hướng dẫn"
+	label.text = "Cơ chế tháp"
 	label.text_align = "center"
 	label.vertical_align = "middle"
 	label.text_offset.y = CJK(0, -2, 0, 0)
@@ -8728,7 +8749,7 @@ local function encyclopedia_add_special_tower_build_button(panel, tower_entry)
 		24,
 		255
 	}
-	label.text = "Cách xây dựng"
+	label.text = "Cách xây tháp"
 	label.text_align = "center"
 	label.vertical_align = "middle"
 	label.text_offset.y = CJK(0, -2, 0, 0)
@@ -10258,6 +10279,7 @@ function Hero5SelectView:initialize(sw, sh)
 		self.hero_select.over.pos = v(sx, sy)
 	end
 
+	self.real_selected = self.real_selected or self.selected_index
 	self.over_index = self.selected_index
 
 	-- local max_level = #screen_map.user_data.levels
@@ -10531,22 +10553,7 @@ function Hero5SelectView:initialize(sw, sh)
 		self.selected_spr.hidden = false
 		self.real_selected = i
 
-		local kr4_portrait_name = kr4_map_hero_portrait_name(hd)
-
-		if hd.icon <= 47 then
-			screen_map.hero_icon_portrait:set_image(string.format("mapButtons_portrait_hero_%04i", hd.icon))
-			screen_map.hero_icon_portrait.pos = V.v(0,0)
-		elseif kr4_portrait_name then
-			screen_map.hero_icon_portrait:set_image(kr4_portrait_name)
-			screen_map.hero_icon_portrait.pos = V.v(0, 0)
-			screen_map.hero_icon_portrait.scale = V.v(1, 1)
-		else
-			screen_map.hero_icon_portrait:set_image(string.format("hero_room_portraits_small_button_%s_0001", hd.name))
-			screen_map.hero_icon_portrait.pos = V.v(200,400)
-			screen_map.hero_icon_portrait.scale = V.v(0.7,0.7)
-		end
-
-		screen_map.hero_icon_portrait.hidden = false
+		screen_map:set_hero_portrait(hd)
 		self.portrait_over.colors.background = {
 			255,
 			255,
@@ -10867,26 +10874,18 @@ function Hero5SelectView:show()
 end
 
 function Hero5SelectView:update_selected_hero()
-
-	local i = screen_map.user_data.liuhui_hero.herolist[1]
-	local hd = screen_map.hero_data[i]
-	if i <= 47 then--加载前3代英雄
-		self.selected_hero1:set_image(string.format("heroroom_portraits_%04i", hd.thumb))
-	else--加载5代英雄
-		self.selected_hero1:set_image(string.format("hero_room_portraits_small_thumb_%s_0001", hd.name))
+	for slot = 1, 2 do
+		local index = screen_map.user_data.liuhui_hero.herolist[slot]
+		local hd = screen_map.hero_data[index]
+		local boss = infinite_heroes.get_boss(index)
+		local portrait = self["selected_hero" .. slot]
+		local classic = type(index) == "number" and index <= 47
+		local image = boss and boss.icon or (classic and string.format("heroroom_portraits_%04i", hd.thumb) or string.format("hero_room_portraits_small_thumb_%s_0001", hd.name))
+		portrait:set_image(image)
+		portrait._draw_self = boss and boss.portrait_draw or nil
+		portrait.pos = self:hero_thumb_pos(classic and slot or 48 + slot, 0, 300)
+		portrait.scale = boss and v(hrvt_size.x / portrait.size.x, hrvt_size.y / portrait.size.y) or classic and hrvt_scale or v(1, 1)
 	end
-	self.selected_hero1.pos =  i <= 47 and self:hero_thumb_pos(1, 0, 300) or self:hero_thumb_pos(49, 0, 300)
-	self.selected_hero1.scale = i <= 47 and hrvt_scale or v(1, 1)
-
-	local i = screen_map.user_data.liuhui_hero.herolist[2]
-	local hd = screen_map.hero_data[i]
-	if i <= 47 then--加载前3代英雄
-		self.selected_hero2:set_image(string.format("heroroom_portraits_%04i", hd.thumb))
-	else--加载5代英雄
-		self.selected_hero2:set_image(string.format("hero_room_portraits_small_thumb_%s_0001", hd.name))
-	end
-	self.selected_hero2.pos = i <= 47 and self:hero_thumb_pos(2, 0, 300) or self:hero_thumb_pos(50, 0, 300)
-	self.selected_hero2.scale = i <= 47 and hrvt_scale or v(1, 1)
 end
 
 SpellSelectView = class("SpellSelectView", PopUpView)
@@ -11300,20 +11299,8 @@ end
 
 function SpellSelectView:assign_selected_option(slot)
 	local option_id = self.selected_option_id
-	local assigned, reason
 
-	if not option_id then
-		return
-	end
-
-	assigned, reason = power_selection.set(screen_map.user_data, slot, option_id)
-
-	if not assigned then
-		if reason == "cataclysm_limit" then
-			tower_select_show_legacy_slot_hint(self, "Thiết lập phép", "Chỉ được mang tối đa 1 phép thiên tai", true)
-			S:queue("GUIButtonCommon")
-		end
-
+	if not option_id or not power_selection.set(screen_map.user_data, slot, option_id) then
 		return
 	end
 
@@ -11891,7 +11878,7 @@ function TowerSelectView:create_tower_deck_panel()
 				end
 
 				if enabled_count <= 1 then
-					tower_select_show_legacy_slot_hint(self, "Thiết lập bộ tháp", "Phải giữ ít nhất 1 bộ. Nếu không dùng tháp phần 1–3, chuyển tùy chọn sang [Phần 4–6].", true)
+					tower_select_show_legacy_slot_hint(self, "Chọn đội tháp", "Phải giữ ít nhất một tháp trong nhóm này. Để chỉ dùng tháp KR4-6, chuyển tùy chọn sang Ba phần sau.", true)
 					S:queue("GUIButtonCommon")
 
 					return
@@ -12326,7 +12313,7 @@ function TowerSelectView:load_towers(index)
 		51,
 		255
 	}
-	st2.text = legacy_tab and "Trang này giới thiệu tháp phần 1/2/3. Nâng tháp cơ bản lên cấp 3 để mở dạng cao cấp. Chọn bộ tháp phần 1–3 bằng các biểu tượng dưới bên trái." or special_tab and "Trang này giới thiệu tháp NPC và tháp đặc biệt. Nhấn Cách xây dựng để xem hướng dẫn." or "Trang này giới thiệu tháp phần 4/5/6. Chọn tháp, rồi nhấn ô thuộc phần 4–6 phía dưới bên phải để thêm vào bộ."
+	st2.text = legacy_tab and "Trang này giới thiệu tháp phần 1/2/3. Nâng tháp cơ bản lên cấp 3 để mở dạng cao cấp. Chọn bộ tháp phần 1–3 bằng các biểu tượng dưới bên trái." or special_tab and "Trang này giới thiệu tháp NPC và tháp đặc biệt. Nhấn Cách xây tháp để xem hướng dẫn." or "Trang này giới thiệu tháp phần 4/5/6. Chọn tháp, rồi nhấn ô thuộc phần 4–6 phía dưới bên phải để thêm vào bộ."
 	st2.fit_lines = 5
 	self.towers:add_child(st2)
 
@@ -12575,7 +12562,6 @@ function TowerSelectView:detail_tower(index)
 	local tower_entry = screen_map.tower_data[index]
 	local tower_name = tower_entry.name
 	local advanced_skills = kr6_tower_integration.legacy_advanced_skills[tower_name]
-	local is_kr6_tower = tower_entry.generation == 6
 	local is_special_encyclopedia_tower = screen_map_is_special_tower_entry(tower_entry)
 	local dt = encyclopedia_tower_entity(tower_entry, tower_name)
 
@@ -12740,7 +12726,10 @@ function TowerSelectView:detail_tower(index)
 		end
 
 		local tw = 360
-		local icon_scale = advanced_skills and 0.6 or is_kr6_tower and 1 or 0.5
+		-- Keep tower-selection skill icons at the same size as their encyclopedia
+		-- counterparts. KR6 legacy advanced skills intentionally use their shared
+		-- 0.6 atlas scale in both views; every other generation uses the default 1.0.
+		local icon_scale = advanced_skills and 0.6 or nil
 		local power_count = encyclopedia_add_tower_power_icons(self.right_panel, dt, tower_name, power_names, tw, nil, icon_scale)
 
 		if power_count == 0 then
@@ -14257,7 +14246,7 @@ function Kr6HeroUpgradeTreeView:refresh()
 	local hero_data = get_hero_stats(self.hero_index)
 	local remaining = hero_upgrades_6.remaining_points(screen_map.user_data, self.hero_name, hero_data.level, GS.skill_points_for_hero_level)
 
-	self.title.text = string.format("%s - %s", _(tree.display_key .. "_NAME"), ISW("HERO UPGRADES", "zh-Hans", "Công nghệ anh hùng", "zh-Hant", "英雄科技樹"))
+	self.title.text = string.format("%s - %s", _(tree.display_key .. "_NAME"), ISW("HERO UPGRADES", "zh-Hans", "Nâng cấp anh hùng", "zh-Hant", "英雄科技樹"))
 	self.points.text = tostring(remaining)
 
 	for _, node_id in ipairs(hero_upgrades_6.node_order) do
@@ -14299,9 +14288,6 @@ local hrvt_sep = v(6, 4)
 local hrvt_per_row = 8
 local hrvt_rebborn2_scale = v(0.95, 0.95)
 
-local function is_rebborn2_hero_thumb(hd)
-	return hd and hd.portrait and hd.portrait >= 950 and hd.portrait <= 954
-end
 
 local function hero_room_thumb_scale(i, hd, portrait)
 	if i <= 47 then
@@ -14428,32 +14414,7 @@ function HeroRoomView:initialize(sw, sh)
 				self.real_selected = i
 				self.hero_select.selected.pos = self:hero_thumb_cell_pos(i, hd)
 				self.hero_select.over.pos = self:hero_thumb_cell_pos(i, hd)
-				local kr4_portrait_name = kr4_map_hero_portrait_name(hd)
-				local kr6_portrait_name = kr6_map_hero_portrait_name(hd)
-
-				if hd.icon <= 47 then
-					screen_map.hero_icon_portrait:set_image(string.format("mapButtons_portrait_hero_%04i", hd.icon))
-					screen_map.hero_icon_portrait.pos = v(0, 0)
-					screen_map.hero_icon_portrait.scale = v(1, 1)
-				elseif kr4_portrait_name then
-					screen_map.hero_icon_portrait:set_image(kr4_portrait_name)
-					screen_map.hero_icon_portrait.pos = v(0, 0)
-					screen_map.hero_icon_portrait.scale = v(1, 1)
-				elseif kr6_portrait_name then
-					screen_map.hero_icon_portrait:set_image(kr6_portrait_name)
-					screen_map.hero_icon_portrait.pos = v(0, 0)
-					screen_map.hero_icon_portrait.scale = v(1, 1)
-				else
-					screen_map.hero_icon_portrait:set_image(string.format("hero_room_portraits_small_button_%s_0001", hd.name))
-					if is_rebborn2_hero_thumb(hd) then
-						screen_map.hero_icon_portrait.pos = v(0, 0)
-						screen_map.hero_icon_portrait.scale = v(1, 1)
-					else
-						screen_map.hero_icon_portrait.pos = v(78, 42)
-						screen_map.hero_icon_portrait.scale = v(0.8, 0.8)
-					end
-				end
-				screen_map.hero_icon_portrait.hidden = false
+				screen_map:set_hero_portrait(hd)
 				self.hero_select.selected.hidden = false
 
 				break
@@ -14590,6 +14551,12 @@ function HeroRoomView:initialize(sw, sh)
 		end
 		self.hero_views[index] = card
 		self.back:add_child(card)
+		if screen_map.user_data.heroes.selected == boss.name then
+			self.selected_boss, self.real_selected = boss.name, index
+			self.hero_select.selected.pos = self:hero_thumb_cell_pos(index)
+			self.hero_select.over.pos = self:hero_thumb_cell_pos(index)
+			self.hero_select.selected.hidden = false
+		end
 	end
 
 	self.hero_select.selected.propagate_on_click = true
@@ -14715,7 +14682,7 @@ function HeroRoomView:initialize(sw, sh)
 	self.kr6_tree_button.label.font_size = 19
 	self.kr6_tree_button.label.font_name = "body_bold"
 	self.kr6_tree_button.label.vertical_align = CJK("middle-caps", "middle", "middle", "middle")
-	self.kr6_tree_button.label.text = ISW("HERO UPGRADES", "zh-Hans", "Công nghệ anh hùng", "zh-Hant", "英雄科技樹")
+	self.kr6_tree_button.label.text = ISW("HERO UPGRADES", "zh-Hans", "Nâng cấp anh hùng", "zh-Hant", "英雄科技樹")
 	self.kr6_tree_button.label.fit_lines = 1
 	self.kr6_tree_button.hidden = true
 	bio_content_area:add_child(self.kr6_tree_button)
@@ -14960,6 +14927,10 @@ function HeroRoomView:initialize(sw, sh)
 			self:change_infinite_hero(1)
 			return
 		end
+		if self.selected_boss then
+			self:assign_selected_hero_to_deck("single", 1)
+			return
+		end
 		local i = self.selected_index
 		local hd = screen_map.hero_data[i]
 
@@ -14998,33 +14969,7 @@ function HeroRoomView:initialize(sw, sh)
 		self.select_but.hidden = true
 		self.selected_spr.hidden = false
 		self.real_selected = i
-		local kr4_portrait_name = kr4_map_hero_portrait_name(hd)
-		local kr6_portrait_name = kr6_map_hero_portrait_name(hd)
-
-		if hd.icon <= 47 then
-			screen_map.hero_icon_portrait:set_image(string.format("mapButtons_portrait_hero_%04i", hd.icon))
-			screen_map.hero_icon_portrait.pos = v(0, 0)
-			screen_map.hero_icon_portrait.scale = v(1, 1)
-		elseif kr4_portrait_name then
-			screen_map.hero_icon_portrait:set_image(kr4_portrait_name)
-			screen_map.hero_icon_portrait.pos = v(0, 0)
-			screen_map.hero_icon_portrait.scale = v(1, 1)
-		elseif kr6_portrait_name then
-			screen_map.hero_icon_portrait:set_image(kr6_portrait_name)
-			screen_map.hero_icon_portrait.pos = v(0, 0)
-			screen_map.hero_icon_portrait.scale = v(1, 1)
-		else
-			screen_map.hero_icon_portrait:set_image(string.format("hero_room_portraits_small_button_%s_0001", hd.name))
-			if is_rebborn2_hero_thumb(hd) then
-				screen_map.hero_icon_portrait.pos = v(0, 0)
-				screen_map.hero_icon_portrait.scale = v(1, 1)
-			else
-				screen_map.hero_icon_portrait.pos = v(78, 44)
-				screen_map.hero_icon_portrait.scale = v(0.8, 0.8)
-			end
-		end
-
-		screen_map.hero_icon_portrait.hidden = false
+		screen_map:set_hero_portrait(hd)
 		self.portrait_over.colors.background = {
 			255,
 			255,
@@ -15255,29 +15200,9 @@ function HeroRoomView:initialize(sw, sh)
 
 	self:update_selected_hero()
 
-	--英雄界面切换按钮
+	-- Open the selected card page, including allied entries beyond the original roster.
 	switch_hero_room_page()
-	if self.real_selected > 16 and self.real_selected <= 32 then
-		switch_hero_room_page()
-	elseif self.real_selected > 32 and self.real_selected <= 48 then
-		switch_hero_room_page()
-		switch_hero_room_page()
-	elseif self.real_selected >= 49 and self.real_selected <= 64 then
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-	elseif self.real_selected >= 65 and self.real_selected <= 80 then
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-	elseif self.real_selected >= 81 then
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-		switch_hero_room_page()
-	end
+	for _ = 1, math.floor((self.real_selected - 1) / 16) do switch_hero_room_page() end
 
 	local next_page_button = GGButton:new("heroroom_btnDone_large_0001", "heroroom_btnDone_large_0002")
 
@@ -15651,8 +15576,9 @@ function HeroRoomView:update_infinite_hero_panel()
 	self.infinite_selection.text = boss and self:allied_room_name(boss) or hd and _(string.upper(ht and ht.info and ht.info.i18n_key or hd.name) .. "_NAME", hd.name) or "Chọn hero/boss"
 	local available = hd and not hd.transplanting and not hd.coming_soon and (hd.available_level or 0) <= #screen_map.user_data.levels
 	local unlimited = infinite_heroes.enabled(screen_map.user_data)
-	self.select_but.hidden = not available or not unlimited and (boss ~= nil or self.selected_index == self.real_selected)
-	self.selected_spr.hidden = unlimited or boss ~= nil or self.selected_index ~= self.real_selected
+	local selected = boss and screen_map.user_data.heroes.selected == boss.name or not boss and self.selected_index == self.real_selected
+	self.select_but.hidden = not available or not unlimited and selected
+	self.selected_spr.hidden = unlimited or not selected
 	if unlimited and available then self.locked_spr.hidden = true end
 	if unlimited and self.help_select then self.help_select.hidden = true end
 	self.infinite_team_info.text = settings.infinite_teams[settings.infinite_team_index].name .. " (" .. settings.infinite_team_index .. "/" .. #settings.infinite_teams .. ")"
@@ -15690,18 +15616,26 @@ function HeroRoomView:set_hero_deck_slot(slot, hero_index)
 end
 
 function HeroRoomView:assign_selected_hero_to_deck(deck_name, slot_index)
-	local index = self.selected_index
+	local boss = infinite_heroes.get_boss(self.selected_boss)
+	local index = boss and boss.name or self.selected_index
 	local hd = screen_map.hero_data[index]
 
-	if not hd or hd.transplanting == true or hd.available_level > #screen_map.user_data.levels then
+	if not hd or hd.transplanting == true or (hd.available_level or 0) > #screen_map.user_data.levels then
 		S:queue("GUIButtonCommon")
 		return
 	end
 
-	if self.selected_boss then return end
 	if deck_name == "single" then
-		self.select_but.on_click()
-		return
+		if not boss then self.select_but.on_click(); return end
+		screen_map.user_data.heroes.selected = boss.name
+		for i, entry in ipairs(infinite_heroes.bosses.list) do
+			if entry.name == boss.name then
+				self.real_selected = #screen_map.hero_data + i
+				self.hero_select.selected.pos = self:hero_thumb_cell_pos(self.real_selected)
+				self.hero_select.selected.hidden = false
+				break
+			end
+		end
 	elseif deck_name == "double" then
 		screen_map.user_data.liuhui_hero.herolist[slot_index] = index
 	else
@@ -15716,7 +15650,7 @@ function HeroRoomView:assign_selected_hero_to_deck(deck_name, slot_index)
 		end
 
 		if duplicate_count >= 2 then
-			tower_select_show_legacy_slot_hint(self, "Thiết lập đội anh hùng", "Mỗi anh hùng được mang tối đa 2 bản", true)
+			tower_select_show_legacy_slot_hint(self, "Chọn đội anh hùng", "Ở chế độ này, chỉ được chọn tối đa hai bản sao của cùng một anh hùng.", true)
 			S:queue("GUIButtonCommon")
 
 			return
@@ -15725,9 +15659,12 @@ function HeroRoomView:assign_selected_hero_to_deck(deck_name, slot_index)
 		screen_map.user_data.liuhui_hero.rallylist[slot_index] = index
 	end
 
+	if boss then
+		screen_map.user_data.heroes.status[boss.name] = screen_map.user_data.heroes.status[boss.name] or {xp = 0, skills = {}}
+	end
 	local ht = E:get_template(hd.name)
 	local status = screen_map.user_data.heroes.status[hd.name]
-	local starting_xp = hd.starting_level < 2 and 0 or GS.hero_xp_thresholds[hd.starting_level - 1]
+	local starting_xp = (hd.starting_level or 1) < 2 and 0 or GS.hero_xp_thresholds[hd.starting_level - 1]
 
 	if ht and ht.sound_events and ht.sound_events.hero_room_select then
 		S:queue(ht.sound_events.hero_room_select)
@@ -15759,7 +15696,13 @@ function HeroRoomView:update_selected_hero()
 		self.double_hero_deck_outline.hidden = not use_double_hero
 	end
 
-	local single_index = get_hero_index(screen_map.user_data.heroes.selected) or self.selected_index
+	local single_boss = infinite_heroes.get_boss(screen_map.user_data.heroes.selected)
+	local single_index = single_boss and single_boss.name or get_hero_index(screen_map.user_data.heroes.selected) or self.selected_index
+	screen_map:set_hero_portrait(screen_map.hero_data[single_index])
+	if single_boss then
+		screen_map.skill_label.text = "0"
+		screen_map.skill_star.hidden = true
+	end
 	local indices = {
 		single_index,
 		screen_map.user_data.liuhui_hero.herolist[1],
@@ -15811,7 +15754,7 @@ end
 
 function HeroRoomView:update_sett_skill_panel(boss)
  local entries=boss and boss.skill_cards
- local popup=boss and boss.kind=="volibear_prestige"
+ local popup=entries~=nil
  self.tip_panel.hidden=true;self.tip_panel.volibear_popup=nil
  self.bio_text.hidden=popup or false
  if entries and self.sett_skill_panel and self.sett_skill_panel.boss_name~=boss.name then
@@ -15885,10 +15828,10 @@ function HeroRoomView:construct_allied_boss(name)
 	self.portrait_name:set_hero(boss.name, nil, self:allied_room_name(boss))
 	local skill_module = require("allied_boss_skills")
 	local skill = skill_module.skills[skill_module.kind(name)]
-	self.bio_text.text = skill.description .. (boss.basic_only and " Thêm vào đội Vô hạn hero để kiểm tra." or " Tất cả kỹ năng tự dùng khi đủ điều kiện. Thêm vào đội Vô hạn hero để chơi.")
+	self.bio_text.text = skill.description .. (boss.basic_only and " Chọn vào đội 1/2/4 hoặc Vô hạn tướng để kiểm tra." or " Tất cả kỹ năng tự dùng khi đủ điều kiện. Chọn vào đội 1/2/4 hoặc Vô hạn tướng để chơi.")
     local is_blackburn=boss.kind=="blackburn"
     local blackburn=require("blackburn_enhance")
-    local version=is_blackburn and blackburn or boss.kind=="godieth" and require("godieth_enhance")
+    local version=is_blackburn and blackburn or boss.kind=="godieth" and require("godieth_enhance") or boss.kind=="navira_blue" and require("navira_duelist")
     if not self.boss_version_button then
         local button=GGButton:new("heroroom_btnDone_large_0001","heroroom_btnDone_large_0002")
         button.anchor=v(button.size.x/2,button.size.y/2)
@@ -17095,7 +17038,7 @@ function DeveloperModeView:initialize(sw, sh)
 	local confirm_text = GGLabel:new(V.v(640, 90))
 
 	confirm_text.pos = V.v(40, 78)
-	confirm_text.text = "Nâng anh hùng lên cấp tối đa? Thao tác này không thể hoàn tác."
+	confirm_text.text = "Đưa anh hùng lên cấp tối đa? Thao tác này không thể hoàn tác."
 	confirm_text.font_name = "body"
 	confirm_text.font_size = 24
 	confirm_text.text_align = "center"
@@ -17117,7 +17060,7 @@ function DeveloperModeView:initialize(sw, sh)
 		local updated = prepare_max_level_heroes(user_data)
 
 		if not updated then
-			confirm_text.text = "Nâng cấp anh hùng thất bại; bản lưu chưa thay đổi."
+			confirm_text.text = "Không thể nâng cấp anh hùng. Save chưa bị thay đổi."
 			return
 		end
 
@@ -17130,7 +17073,7 @@ function DeveloperModeView:initialize(sw, sh)
 		if not storage:save_slot(user_data) then
 			user_data.heroes.status = previous_status
 			user_data.hero_upgrades_6 = previous_upgrades
-			confirm_text.text = "Lưu thất bại; anh hùng chưa thay đổi."
+			confirm_text.text = "Không thể ghi save. Anh hùng chưa bị thay đổi."
 			return
 		end
 
@@ -17221,7 +17164,7 @@ function MobileSettingsView:initialize(sw, sh)
 		this.pending_scale = new_scale
 		settings.mobile_font_scale = new_scale
 		storage:save_settings(settings, true)
-		this.label.text = string.format("Cỡ chữ: %.1f×", new_scale)
+		this.label.text = string.format("Cỡ chữ: %.1f lần", new_scale)
 		S:queue("GUIButtonCommon")
 	end
 
@@ -17241,7 +17184,7 @@ function MobileSettingsView:initialize(sw, sh)
 		this.pending_scale = new_scale
 		settings.mobile_ui_scale = new_scale
 		storage:save_settings(settings, true)
-		this.label.text = string.format("Cỡ UI: %.1f×", new_scale)
+		this.label.text = string.format("Cỡ giao diện: %.1f lần", new_scale)
 		S:queue("GUIButtonCommon")
 	end
 
@@ -17433,11 +17376,11 @@ function ShortcutSettingsView:initialize(sw, sh)
 					screen_map.map_shortcuts = self.bindings.map
 				end
 			elseif result == "reserved" then
-				self.status_label.text = "Esc và F1–F8 là phím cố định, không thể đổi."
+				self.status_label.text = "Esc và F1-F8 là phím cố định, không thể đổi."
 			elseif result == "conflict" then
 				self.status_label.text = "Phím này đã dùng cho: " .. tostring(conflict_label)
 			else
-				self.status_label.text = "Không thể dùng phím này"
+				self.status_label.text = "Không thể dùng phím này."
 			end
 
 			this.label.text = shortcut_settings.display_key(this.value)
@@ -17572,7 +17515,7 @@ function ShortcutSettingsView:initialize(sw, sh)
 		self:cancel_capture()
 		self.bindings[self.context] = shortcut_settings.reset_context(self.context)
 		self:refresh_buttons(self.context)
-		self.status_label.text = "Trang này đã về mặc định"
+		self.status_label.text = "Đã khôi phục mặc định cho trang này."
 
 		if self.context == "map" then
 			screen_map.map_shortcuts = self.bindings.map

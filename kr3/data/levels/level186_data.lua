@@ -471,46 +471,10 @@
 			["render.sprites[1].name"] = "Stage_36_masks_0006",
 			["render.sprites[1].animated"] = false,
 		},
-		{
-			template = "fx_repeat_forever",
-			pos = {
-				x = 49,
-				y = 383
-			},
-			["render.sprites[1].z"] = Z_OBJECTS_COVERS,
-			["render.sprites[1].name"] = "Stage36_Mask_Left",
-			["render.sprites[1].animated"] = false,
-		},
-		{
-			template = "fx_repeat_forever",
-			pos = {
-				x = 512,
-				y = 160
-			},
-			["render.sprites[1].z"] = Z_OBJECTS_COVERS,
-			["render.sprites[1].name"] = "Stage36_Mask_Toldo_Front",
-			["render.sprites[1].animated"] = false,
-		},
-		{
-			template = "fx_repeat_forever",
-			pos = {
-				x = 510,
-				y = 653
-			},
-			["render.sprites[1].z"] = Z_OBJECTS_COVERS,
-			["render.sprites[1].name"] = "Stage36_Mask_Toldo_Back",
-			["render.sprites[1].animated"] = false,
-		},
-		{
-			template = "fx_repeat_forever",
-			pos = {
-				x = 985,
-				y = 378
-			},
-			["render.sprites[1].z"] = Z_OBJECTS_COVERS,
-			["render.sprites[1].name"] = "Stage36_Mask_Right",
-			["render.sprites[1].animated"] = false,
-		},
+
+
+
+
 		{
 			template = "stage36_crowd",
 			pos = {

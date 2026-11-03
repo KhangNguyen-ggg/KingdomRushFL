@@ -3936,20 +3936,46 @@ branch_melee(tt, 60, 120, 2.5, 0.33, "attack")
 tt = branch_enemy_template("mega_boss_dragon", "viking_boss_dragon", 50000, 0, 0, 0, 0, 0, 0.26, 112, nil, {boss = true, flying = true, unblockable = true, single_walk = true})
 tt.info.i18n_key = "ENEMY_BOSS_JOKULL_ENCYC"
 tt.info.portrait_boss = "boss_health_bar_icon_0001"
-tt.health_bar.type = HEALTH_BAR_SIZE_MEDIUM
+tt.health_bar.type = HEALTH_BAR_SIZE_LARGE
+tt.health_bar.offset = v(0, 330)
 tt.health.immune_to = DAMAGE_ALL_TYPES
 tt.main_script.update = kr4_scripts.mega_boss_dragon.update
-tt.render.sprites[1].name = "viking_boss_dragon_front_idle"
-tt.render.sprites[1].prefix = nil
-tt.render.sprites[1].anchor = v(0.5, 0.5)
-tt.render.sprites[1].z = Z_OBJECTS + 5
+-- shortcut: this port lacks Jokull's skeleton; use his atlas parts until the original animation data is available.
+tt.render.sprites = {}
+for _, side in ipairs({-1, 1}) do
+	for _, part in ipairs({
+		{{"asset_dragon_cabeza", "asset_dragon_cabeza_damage_1", "asset_dragon_cabeza_damage_2"}, 0, 28, 1, 0},
+		{{"asset_dragon_boca", "asset_dragon_boca_damaged_1", "asset_dragon_boca_damaged_2"}, 0, 78, 1, 0},
+		{{"asst_eyeball", "asst_eyeball", "asst_eyeball_damage_2"}, 29, 182, 0.5, 0.5},
+		{{"asst_brow", "asst_brow", "asst_brow_damage_2"}, 31, 195, 0.5, 0.5}
+	}) do
+		local sprite = E:clone_c("sprite")
+		sprite.name = part[1][1]
+		sprite.stage161_damage_names = part[1]
+		sprite.animated = false
+		sprite.anchor = v(part[4], part[5])
+		sprite.offset = v(side * part[2], part[3])
+		sprite.scale = v(0.8, 0.8)
+		sprite.flip_x = side == 1
+		sprite.z = Z_OBJECTS + 5
+		table.insert(tt.render.sprites, sprite)
+	end
+end
+local jokull_horn = E:clone_c("sprite")
+jokull_horn.name = "asset_dragon_cuerno"
+jokull_horn.animated = false
+jokull_horn.anchor = v(0.5, 0.5)
+jokull_horn.offset = v(0, 222)
+jokull_horn.scale = v(0.8, 0.8)
+jokull_horn.z = Z_OBJECTS + 5
+table.insert(tt.render.sprites, jokull_horn)
 tt.vis.flags = 0
 tt.vis.bans = bor(F_RANGED, F_BLOCK, F_MOD, F_AREA)
 tt.ui.can_click = false
 tt.ui.can_select = false
-tt.unit.hit_offset = v(0, 67)
-tt.unit.mod_offset = v(0, 64)
-tt.unit.head_offset = v(0, 105)
+tt.unit.hit_offset = v(0, 180)
+tt.unit.mod_offset = v(0, 180)
+tt.unit.head_offset = v(0, 260)
 
 tt = branch_enemy_template("alleria", "alleria", 500, 0, 0, 60, 0, 1, 0.25, 48, "alleria_shadow", {
 	boss = true,

@@ -19,6 +19,11 @@ local bor = bit.bor
 local LU = {}
 local infinite_heroes = require("infinite_heroes")
 
+local function create_playable_hero(name)
+	if infinite_heroes.get_boss(name) then infinite_heroes.bosses.register(name) end
+	return E:create_entity(name)
+end
+
 function LU.queue_insert(store, e)
 	simulation:queue_insert_entity(e)
 end
@@ -475,7 +480,7 @@ function LU.insert_hero(store, name, pos)
 		template_name = name
 	end
 
-	local hero = E:create_entity(template_name)
+	local hero = create_playable_hero(template_name)
 
 	if not hero then
 		log.error("Could not create hero named %s", template_name)
@@ -502,7 +507,7 @@ function LU.insert_hero(store, name, pos)
 	if not name then
 		store.main_hero = hero
 		
-		local status = store.selected_hero_status
+		local status = store.selected_hero_status or infinite_heroes.get_boss(template_name) and {xp = 0, skills = {}}
 
 		if status and status.skills and status.xp then
 			--changed
@@ -610,7 +615,7 @@ function LU.insert_double_hero(store, name1, name2, pos, pos2)
 	end
 	local template_name = name1
 
-	local hero = E:create_entity(template_name)
+	local hero = create_playable_hero(template_name)
 
 	if not hero then
 		log.error("Could not create hero named %s", template_name)
@@ -640,7 +645,7 @@ function LU.insert_double_hero(store, name1, name2, pos, pos2)
 	if name1 then		
 		local slot = storage:load_slot(nil, true)
 		
-		local status = slot.heroes.status[name1]
+		local status = slot.heroes.status[name1] or infinite_heroes.get_boss(name1) and {xp = 0, skills = {}}
 
 		if status and status.skills and status.xp then
 			--changed
@@ -694,10 +699,7 @@ function LU.insert_double_hero(store, name1, name2, pos, pos2)
 		end
 	end
 
-	if not (name2 == name1) then
-		store.main1_hero = hero
-		print("load main1 hero")
-	end
+	store.main1_hero = hero
 
 	LU.queue_insert(store, hero)
 	signal.emit("hero-added", hero)
@@ -705,7 +707,7 @@ function LU.insert_double_hero(store, name1, name2, pos, pos2)
 
 	local template_name = name2
 
-	local hero = E:create_entity(template_name)
+	local hero = create_playable_hero(template_name)
 
 	if not hero then
 		log.error("Could not create hero named %s", template_name)
@@ -765,7 +767,7 @@ function LU.insert_double_hero(store, name1, name2, pos, pos2)
 	if name2 then		
 		
 		local slot = storage:load_slot(nil, true)
-		local status = slot.heroes.status[name2]
+		local status = slot.heroes.status[name2] or infinite_heroes.get_boss(name2) and {xp = 0, skills = {}}
 
 		if status and status.skills and status.xp then
 			--changed
@@ -862,7 +864,7 @@ function LU.insert_double_hero_return2(store, name1, name2, pos, pos2)
 	end
 	local template_name = name1
 
-	local hero = E:create_entity(template_name)
+	local hero = create_playable_hero(template_name)
 
 	if not hero then
 		log.error("Could not create hero named %s", template_name)
@@ -892,7 +894,7 @@ function LU.insert_double_hero_return2(store, name1, name2, pos, pos2)
 	if name1 then		
 		local slot = storage:load_slot(nil, true)
 		
-		local status = slot.heroes.status[name1]
+		local status = slot.heroes.status[name1] or infinite_heroes.get_boss(name1) and {xp = 0, skills = {}}
 
 		if status and status.skills and status.xp then
 			--changed
@@ -946,17 +948,14 @@ function LU.insert_double_hero_return2(store, name1, name2, pos, pos2)
 		end
 	end
 
-	if not (name2 == name1) then
-		store.main1_hero = hero
-		print("load main1 hero")
-	end
+	store.main1_hero = hero
 
 	LU.queue_insert(store, hero)
 	signal.emit("hero-added", hero)	
 
 	local template_name = name2
 
-	local hero2 = E:create_entity(template_name)
+	local hero2 = create_playable_hero(template_name)
 
 	if not hero2 then
 		log.error("Could not create hero named %s", template_name)
@@ -1007,7 +1006,7 @@ function LU.insert_double_hero_return2(store, name1, name2, pos, pos2)
 	if name2 then		
 		
 		local slot = storage:load_slot(nil, true)
-		local status = slot.heroes.status[name2]
+		local status = slot.heroes.status[name2] or infinite_heroes.get_boss(name2) and {xp = 0, skills = {}}
 
 		if status and status.skills and status.xp then
 			--changed

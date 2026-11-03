@@ -1,4 +1,4 @@
-﻿-- chunkname: @./all-desktop/game_gui.lua
+-- chunkname: @./all-desktop/game_gui.lua
 
 if DEBUG then
 	package.loaded["data.game_gui_data"] = nil
@@ -1809,6 +1809,7 @@ function game_gui:init(w, h, game)
 	local hud_bottom = HudBottomView:new(sw, sh)
 	local hud_counters = HudCountersView:new()
 	local boss_bar_container = KView:new(v(sw, sh))
+	boss_bar_container.hidden = true
 
 	boss_bar_container.propagate_on_click = true
 	boss_bar_container.propagate_on_down = true
@@ -2183,6 +2184,7 @@ function game_gui:init(w, h, game)
 	self.hud_bottom = hud_bottom
 	self.hud_counters = hud_counters
 	self.boss_bar_container = boss_bar_container
+	self.boss_bars_disabled = true
 	self.boss_health_bars = {}
 	self.boss_bar_order = {}
 	self.boss_bar_suppressed = {}
@@ -2372,7 +2374,7 @@ end
 function game_gui:sync_boss_health_bars(dt)
 	local store = self.game and self.game.store
 
-	if not store or not self.boss_health_bars then
+	if self.boss_bars_disabled or not store or not self.boss_health_bars then
 		return
 	end
 
@@ -2488,7 +2490,7 @@ function game_gui:update(dt)
 	--英雄距离显示	
 	local e = game_gui.selected_entity
 	local a = screen_map.user_data.true_melee_range
-    if e and a then
+	if e and a and not e.tower then
         if e.melee and e.melee.range then
             local ux, uy = game_gui:g2u(e.pos)
             game_gui:show_melee_range(ux, uy, e.melee.range)
@@ -2500,7 +2502,10 @@ function game_gui:update(dt)
             local ux, uy = game_gui:g2u(e.pos)
             game_gui:show_ranged_range(ux, uy, e.timed_attacks.list[1].max_range)
         end
-    end
+	else
+		self:hide_melee_range()
+		self:hide_ranged_range()
+	end
 	--	
 	self.window:update(dt)
 
@@ -7388,6 +7393,43 @@ function HudPauseButton:initialize()
 	end
 
 	self:add_child(button)
+	self.speed_buttons = {}
+	for index = 1, 2 do
+		local speed_button = GGButton:new("pause_base", "pause_base", "pause_base")
+		speed_button.id = index == 1 and "speed_slow" or "speed_fast"
+		speed_button.pos = v(self.size.x / 2 - (3 - index) * self.size.x * 76 / 160, self.size.y / 2)
+		speed_button.hit_rect = r(self.size.x * 43 / 160, self.size.y * 9 / 92, self.size.x * 74 / 160, self.size.y * 78 / 92)
+		speed_button.label.pos = v(0, 25 + button.size.y / 2 - self.size.y / 2)
+		speed_button.label.font_size = 26
+		speed_button.label.vertical_align = "middle"
+		function speed_button:on_click(mouse_button)
+			if mouse_button ~= 1 or game_gui.keys_disabled or game_gui.game.store.paused then return end
+			S:queue("GUIButtonCommon")
+			local current = game_gui.game.playback_speed
+			local next_speed
+			if self.id == "speed_slow" then
+				next_speed = current == "slow" and 1 or "slow"
+			else
+				next_speed = current == 4 and 12 or current == 12 and 1 or 4
+			end
+			self.parent:set_speed(next_speed)
+		end
+		self.speed_buttons[index] = speed_button
+		self:add_child(speed_button)
+	end
+	self:set_speed(1)
+end
+
+function HudPauseButton:set_speed(speed)
+	game_gui.game.playback_speed = speed
+	game_gui.game.upd = 0
+	for index, button in pairs(self.speed_buttons) do
+		local selected = index == 1 and speed == "slow" or index == 2 and (speed == 4 or speed == 12)
+		button.label.text = index == 1 and "Q" or speed == 12 and "R" or "E"
+		button.label_colors.default = selected and {255, 218, 80, 255} or {233, 233, 178, 255}
+		button.label.colors.text = button.label_colors.default
+		button.label.canvases_drawn = nil
+	end
 end
 
 function HudPauseButton:hide()
@@ -12188,6 +12230,9 @@ function TowerMenuButton:on_click()
 	if self.click_disabled then return end
 
 	local item, entity = self.item, self.entity
+	if item.action == "tw_upgrade" and (item.action_arg == "Goldfinger" or item.action_arg == "g5_special_buy" or item.action_arg == "tower_hero_buy_e") then
+		require("director"):load_deferred_cheat_textures(game_gui.game)
+	end
 
 	-- Touch screens have no hover state.  For actions that spend gold on a tower,
 	-- use the first tap as the information/preview tap and the second tap as the

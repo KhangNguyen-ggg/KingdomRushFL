@@ -5616,6 +5616,29 @@ end
 
 scripts.mod_tower_factors = {}
 
+local function scale_tower_ranges(target, factor)
+	local attacks = target.attacks
+
+	if attacks then
+		attacks.range = attacks.range * factor
+
+		-- Some artillery attacks search with their own range instead of attacks.range.
+		for _, attack in pairs(attacks.list or {}) do
+			if type(attack.range) == "number" then
+				attack.range = attack.range * factor
+			end
+
+			if type(attack.max_range) == "number" then
+				attack.max_range = attack.max_range * factor
+			end
+		end
+	end
+
+	if target.barrack then
+		target.barrack.rally_range = target.barrack.rally_range * factor
+	end
+end
+
 function scripts.mod_tower_factors.insert(this, store)
 	local m = this.modifier
 	local target = store.entities[m.target_id]
@@ -5631,13 +5654,7 @@ function scripts.mod_tower_factors.insert(this, store)
 	end
 
 	if this.range_factor then
-		if target.attacks then
-			target.attacks.range = target.attacks.range * this.range_factor
-		end
-
-		if target.barrack then
-			target.barrack.rally_range = target.barrack.rally_range * this.range_factor
-		end
+		scale_tower_ranges(target, this.range_factor)
 	end
 
 	if this.damage_factor then
@@ -5660,13 +5677,7 @@ function scripts.mod_tower_factors.remove(this, store)
 	end
 
 	if this.range_factor then
-		if target.attacks then
-			target.attacks.range = target.attacks.range / this.range_factor
-		end
-
-		if target.barrack then
-			target.barrack.rally_range = target.barrack.rally_range / this.range_factor
-		end
+		scale_tower_ranges(target, 1 / this.range_factor)
 	end
 
 	if this.damage_factor then
@@ -5697,13 +5708,7 @@ function scripts.mod_tower_factors.update(this, store)
 			target = store.entities[m.target_id]
 
 			if this.range_factor then
-				if target.attacks then
-					target.attacks.range = target.attacks.range * this.range_factor
-				end
-
-				if target.barrack then
-					target.barrack.rally_range = target.barrack.rally_range * this.range_factor
-				end
+				scale_tower_ranges(target, this.range_factor)
 			end
 
 			if this.damage_factor then

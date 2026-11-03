@@ -16,7 +16,7 @@ if blue then
 	table.remove(M.textures)
 	M.skill.label="Solo"
 	M.skill.cooldown=8
-	M.skill.description="Truy sát một địch tới chết; lệnh di chuyển hoặc mất tầm 450 xóa khóa. Chỉ đấm thường AOE 280 luân phiên vật lý/phép, bán kính x2. Đánh trúng hoặc tia hồn tích 20 dấu: mỗi dấu +15% đấm thường lên đối thủ, thêm 0,2% HP tối đa thành sát thương chuẩn và giảm 3% sát thương từ đối thủ (tối đa 60%). Hút 40% máu thực gây. Mỗi 8 giây gồng x2, đấm riêng đối thủ 840 chuẩn +12% HP tối đa. Mỗi 6 giây bắn 3 tia cùng một địch, mỗi tia 280 phép +1% HP tối đa chuẩn. Chặn 3 đòn, mỗi lần phản 2% HP tối đa chuẩn; nạp mỗi 10 giây. Không hút xác. Giữ đánh bay, lướt địa hình và miễn khống chế."
+	M.skill.description=require("navira_duelist").description(1)
 else
 	M.skill.label="Quét"
 	M.skill.description=require("navira_horde").description
@@ -69,8 +69,10 @@ end
 local function normal_ready(this,store,attack,target)
 	local state=C.state(this,store)
 	if attack.damage_type~=(state.next_damage_type or bit.bor(DAMAGE_PHYSICAL,DAMAGE_NO_DODGE)) then return false end
-	if blue and not require("navira_duelist").select(this,store,target) then return false end
-	state.pending_melee_ts=attack.ts
+	if blue and this.navira_duelist and not require("navira_duelist").select(this,store,target) then return false end
+	if this.enemy then
+		state.next_damage_type=bit.bor(bit.band(attack.damage_type,DAMAGE_MAGICAL)~=0 and DAMAGE_PHYSICAL or DAMAGE_MAGICAL,DAMAGE_NO_DODGE)
+	else state.pending_melee_ts=attack.ts end
 	if not blue then require("navira_horde").attack_start(this,store,attack) end
 	return true
 end
@@ -81,14 +83,13 @@ function M.prepare(t)
 	attack.damage_radius=(E:get_template(M.source).melee.attacks[1].damage_radius or 45)*2
 	attack.damage_type=bit.bor(DAMAGE_PHYSICAL,DAMAGE_NO_DODGE)
 	attack.shared_cooldown,attack.fn_can,attack.hit_fx=true,normal_ready,nil
-	if blue then attack.track_damage=true end
+	if blue then attack.track_damage=require('navira_duelist').level()==1 or nil end
 	t.melee.attacks[2]=table.deepclone(attack)
 	t.melee.attacks[2].damage_type=bit.bor(DAMAGE_MAGICAL,DAMAGE_NO_DODGE)
 	t.melee.order={1,2}
 	-- Hovering across terrain must not exclude Navira from bosses' ground attacks.
 	t.vis.flags=bit.band(t.vis.flags,bit.bnot(F_FLYING))
-	t.vis.bans=bit.bor(t.vis.bans,control_flags())
-	t.unit.ignore_stun,t.unit.modifier_filter=true,M.allow_modifier
+	M.protect(t)
 	t.nav_rally.requires_node_nearby=true
 	t.nav_grid.ignore_waypoints=false
 	t.nav_grid.valid_terrains=bit.band(TERRAIN_ALL_MASK,bit.bnot(TERRAIN_FLYING_NOWALK))
@@ -115,6 +116,11 @@ function M.prepare(t)
 	for frame=windup+1,#native.frames do charged.frames[#charged.frames+1]=native.frames[frame] end
 	A.db[prefix.."_charged_attack"]=charged
 	A.db.allied_navira_punch_run={prefix="allied_navira_punch",from=203,to=213}
+end
+
+function M.protect(t)
+	t.vis.bans=bit.bor(t.vis.bans,control_flags())
+	t.unit.ignore_stun,t.unit.modifier_filter=true,M.allow_modifier
 end
 
 function M.rally(this,store)
@@ -183,10 +189,12 @@ local function register_ray()
 				local target=store.entities[this.target_id]
 				local owner=store.entities[this.source_id]
 				if not blue and C.alive(target) and C.alive(owner) then require("navira_horde").ray(owner,target,store) end
-				if C.alive(target) and target.enemy and (not blue or C.alive(owner) and require("navira_duelist").ray(owner,store,target)) then
+				local solo=blue and owner and owner.navira_duelist
+				local opponent=blue and owner and require('navira_duelist').opponent(owner,target) or not blue and target and target.enemy
+				if C.alive(target) and opponent and (not blue or C.alive(owner)) and (not solo or require("navira_duelist").ray(owner,store,target)) then
 					local m=E:create_entity(fx.."_soul_stun")
 					m.modifier.source_id,m.modifier.target_id=this.source_id,target.id
-					if blue then m.modifier.duration=0.35 end
+					if solo then m.modifier.duration=0.35 end
 					if bit.band(target.vis.bans,F_STUN)==0 then C.insert(m) end
 				end
 			end
@@ -202,6 +210,12 @@ function M.register()
 	SH=require("klove.shader_db")
 	SU,GR=require("script_utils"),require("grid_db")
 	balance=require("balance/balance").enemies.undying_hatred.boss_navira
+	if blue then
+		local duel=require('navira_duelist')
+		M.skill.label=duel.level()==1 and 'Solo' or 'Chuẩn'
+		M.skill.cooldown=duel.level()==1 and 8 or 10
+		M.skill.description=duel.description(duel.level())
+	end
 	local t=C.create(M)
 	register_effects();register_ray()
 	if blue then require("navira_duelist").apply(t) else require("navira_horde").apply(t) end
@@ -249,9 +263,12 @@ local function punch_effect(this,store,target)
 	sprite.flip_x,sprite.scale,sprite.loop=body.flip_x,{x=4,y=4},false
 end
 
+M.punch_effect=punch_effect
+
 local function rays(this,store,focus)
 	local valid={}
-	if blue then
+	local solo=blue and this.navira_duelist
+	if solo then
 		if not C.alive(focus) then return end
 		valid={focus,focus,focus}
 	else
@@ -261,14 +278,14 @@ local function rays(this,store,focus)
 	end
 	table.sort(valid,function(a,b) return C.target_before(a,b,this.pos) end)
 	end
-	local native=E:get_template(C.native(this).fire_ball_bullet_t)
+	local native=E:get_template(this.enemy and this.fire_ball_bullet_t or C.native(this).fire_ball_bullet_t)
 	local count=blue and 3 or require("navira_horde").ray_count(this,store)
 	for i=1,math.min(count,#valid) do
 		local target=valid[i]
 		local e=E:create_entity(fx.."_soulray")
 		e.pos=C.copy(this.pos);e.pos.y=e.pos.y+80
 		e.source_id,e.target_id=this.id,target.id
-		local delay=blue and (i-1)*0.18 or 0
+		local delay=solo and (i-1)*0.18 or 0
 		e.hit_time=native.bullet.hit_time+delay
 		e.life=math.max(e.hit_time+1/30,(A:duration(native.render.sprites[1].prefix.."_run")))
 		local dx,dy=target.pos.x-e.pos.x,target.pos.y-e.pos.y
@@ -279,6 +296,7 @@ local function rays(this,store,focus)
 		C.insert(e)
 	end
 end
+M.rays=rays
 
 function M.passive(this,store)
 	local state=C.state(this,store)
@@ -287,7 +305,7 @@ function M.passive(this,store)
 		state.next_damage_type=bit.bor(bit.band(last.attack.damage_type,DAMAGE_MAGICAL)~=0 and DAMAGE_PHYSICAL or DAMAGE_MAGICAL,DAMAGE_NO_DODGE)
 		state.pending_melee_ts=nil
 	end
-	if blue then require("navira_duelist").tick(this,store);return end
+	if blue then if this.navira_duelist then require("navira_duelist").tick(this,store) end;return end
 	require("navira_horde").tick(this,store)
 	if not this._navira_absorb_aura then
 		local aura=E:create_entity(fx.."_absorb_aura")
@@ -339,33 +357,34 @@ function M.absorb(this,store)
 end
 
 function M.automatic(this,store,targets)
- if this.nav_rally.new then return false end
- local duel=blue and require("navira_duelist")
+ if this.nav_rally and this.nav_rally.new then return false end
+ local solo=blue and this.navira_duelist
+ local duel=solo and require("navira_duelist")
  local current
- if blue then current=duel.current(this,store) else current=store.entities[this.soldier.target_id] end
- if blue and not current then return false end
+ if solo then current=duel.current(this,store) else current=store.entities[this.soldier.target_id] end
+ if solo and not current then return false end
  local attack=this.melee.attacks[1]
  local punch_radius=attack.damage_radius*2
- local punch_cd=blue and M.skill.cooldown or require("navira_horde").punch_cooldown(this,store)
+ local punch_cd=blue and (solo and 8 or 10) or require("navira_horde").punch_cooldown(this,store)
  if C.ready(this,store,"punch",punch_cd) then
   local target=current
-  if not C.alive(target) or C.dist(this.pos,target.pos)>punch_radius or not blue and bit.band(target.vis.bans,F_AREA)~=0 then target=nil end
-  if not target and not blue then
+  if not C.alive(target) or C.dist(this.pos,target.pos)>punch_radius or not solo and bit.band(target.vis.bans,F_AREA)~=0 then target=nil end
+  if not target and not solo then
    for _,candidate in ipairs(targets) do
     if C.alive(candidate) and C.dist(this.pos,candidate.pos)<=punch_radius and bit.band(candidate.vis.bans,F_AREA)==0 then target=candidate;break end
    end
   end
   if target then
    -- Let ordinary melee claim a nearby ground slot before beginning the charge.
-   if bit.band(target.vis.flags,F_FLYING)==0 and not U.blocker_rank(store,this) then
+   if not this.enemy and bit.band(target.vis.flags,F_FLYING)==0 and not U.blocker_rank(store,this) then
     local melee_target=SU.soldier_pick_melee_target(store,this)
     if melee_target and bit.band(melee_target.vis.flags,F_FLYING)==0 then return false end
    end
    local flip=target.pos.x<this.pos.x
    this.render.sprites[1].flip_x=flip
-   if blue then C.stamp(this,store,"punch") end
+   if solo then C.stamp(this,store,"punch") end
    local function interrupted()
-    return this.nav_rally.new or blue and duel.current(this,store)~=target
+    return this.nav_rally and this.nav_rally.new or solo and duel.current(this,store)~=target
    end
    -- Keep the existing blocker throughout the charge and recovery.
    if not blue then require("navira_horde").attack_start(this,store,attack) end
@@ -373,7 +392,7 @@ function M.automatic(this,store,targets)
    if C.wait(this,store,attack.hit_time*2,interrupted) and not interrupted() then
     local pos=C.copy(this.pos)
     pos.x,pos.y=pos.x+(flip and -1 or 1)*attack.hit_offset.x,pos.y+attack.hit_offset.y
-    if blue then
+    if solo then
      if not U.is_inside_ellipse(target.pos,pos,punch_radius) or not duel.burst(this,store,target) then return true end
     else
      C.area(store,this,pos,punch_radius,M.melee_damage*2,M.melee_damage*2,DAMAGE_TRUE,nil,attack.count,false)
@@ -387,13 +406,13 @@ function M.automatic(this,store,targets)
    return true
   end
  end
- if blue then
+ if solo then
   if C.ready(this,store,"rays",6) then
    C.stamp(this,store,"rays");rays(this,store,current);return true
   end
   return false
  end
- local ray_cd=require("navira_horde").ray_cooldown(this,store,balance.fire_balls.cooldown)
+ local ray_cd=blue and balance.fire_balls.cooldown or require("navira_horde").ray_cooldown(this,store,balance.fire_balls.cooldown)
  if C.ready(this,store,"rays",ray_cd) then
   for _,target in ipairs(targets) do
    if C.dist(this.pos,target.pos)<=M.skill.range and bit.band(target.vis.bans,F_STUN)==0 then

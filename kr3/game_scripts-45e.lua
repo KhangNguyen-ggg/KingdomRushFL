@@ -11453,7 +11453,7 @@ function branch_stage161_set_entity_visible(entity, visible)
 	end
 
 	if entity.health_bar then
-		entity.health_bar.hidden = visible and nil or true
+		entity.health_bar.hidden = not visible
 	end
 end
 
@@ -11581,6 +11581,7 @@ function branch_stage161_activate_boss(store)
 
 	branch_stage161_remove_rider_dragon(store, state)
 	branch_stage161_collapse_ice_platform(store, state)
+	boss = branch_stage161_boss_entity(store, state)
 
 	if not boss then
 		boss = branch_stage161_spawn_boss(store, false)
@@ -11609,6 +11610,12 @@ end
 function branch_stage161_update_boss_hp(state, boss)
 	if boss and boss.health then
 		boss.health.hp = math.max(0, (boss.stage161_max_hits or 5) - (state.hits or 0))
+		local phase = state.hits >= 4 and 3 or state.hits >= 2 and 2 or 1
+		for _, sprite in ipairs(boss.render.sprites) do
+			if sprite.stage161_damage_names then
+				sprite.name = sprite.stage161_damage_names[phase]
+			end
+		end
 	end
 end
 
@@ -11866,7 +11873,6 @@ function scripts.mega_boss_dragon.update(this, store)
 	this.vis.flags = 0
 	this.ui.can_click = false
 	this.ui.can_select = false
-	U.animation_start(this, "viking_boss_dragon_front_idle", nil, store.tick_ts, true, 1, true)
 
 	if this.stage161_dormant then
 		branch_stage161_set_entity_visible(this, true)
@@ -11912,8 +11918,14 @@ function scripts.mega_boss_dragon.update(this, store)
 	end
 
 	if store.entities[this.id] then
-		U.animation_start(this, "viking_boss_dragon_front_outFly", nil, store.tick_ts, false, 1, true)
-		U.y_wait(store, 1.5)
+		local death_ts = store.tick_ts
+		while store.tick_ts - death_ts < 1.5 do
+			local progress = (store.tick_ts - death_ts) / 1.5
+			for _, sprite in ipairs(this.render.sprites) do
+				sprite.alpha = 255 * (1 - progress)
+			end
+			coroutine.yield()
+		end
 		queue_remove(store, this)
 	end
 end
@@ -13768,6 +13780,13 @@ function scripts.branch_stage_controller.update(this, store)
 	elseif level == 159 and store.level_mode == GAME_MODE_CAMPAIGN then
 		viking_boss_scene = branch_spawn_scene(store, "viking_boss", 518, 619)
 		viking_boss_scene.loop_variants = nil
+	elseif level == 161 and store.level_mode == GAME_MODE_CAMPAIGN then
+		local state = branch_stage161_state(store)
+		branch_stage161_spawn_boss(store, true)
+		state.left_cannon = branch_spawn_scene(store, "stage11_goblin_cannon_left", 330, 1015, {stage161_final_y = 215})
+		state.right_cannon = branch_spawn_scene(store, "stage11_goblin_cannon_right", 645, 1015, {stage161_final_y = 215})
+		branch_stage161_set_entity_visible(state.left_cannon, false)
+		branch_stage161_set_entity_visible(state.right_cannon, false)
 	elseif level == 164 and store.level_mode == GAME_MODE_CAMPAIGN then
 		branch_spawn_scene(store, "ladle", 120, 331)
 		branch_spawn_scene(store, "magnus", 487, 372)
@@ -14223,6 +14242,16 @@ function scripts.branch_stage_controller.update(this, store)
 					if nest and store.entities[nest.id] then branch_spawn_scene(store, "fx_velociraptor_nest_hatch", nest.pos.x, nest.pos.y + 8) end
 					branch_spawn_on_path(store, "enemy_velociraptor", nil, 0, 1, 1, P:get_start_node(1))
 				end
+			end
+		end
+		if store.level_mode == GAME_MODE_CAMPAIGN and level == 161 then
+			local state = branch_stage161_state(store)
+			if not boss_spawned and (wave >= 15 or store.waves_finished) then
+				boss_spawned = branch_stage161_activate_boss(store) ~= nil
+			end
+			if state.finished and not this.stage161_victory then
+				this.stage161_victory = true
+				branch_kill_all_enemies_for_victory(store, true)
 			end
 		end
 		if store.level_mode == GAME_MODE_CAMPAIGN and level == 156 and not boss_spawned and wave >= 15 then

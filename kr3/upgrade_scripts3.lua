@@ -3467,6 +3467,97 @@ function scripts.arrow_archers_FL.update(this, store, script)
 	return scripts6.arrow_KR6.update(this, store, script)
 end
 
+scripts.arrow_ranger_poison_FL = {}
+
+function scripts.arrow_ranger_poison_FL.update(this, store, script)
+	local b = this.bullet
+	local tower = store.entities[b.source_id]
+	local bounce_level = tower and tower.powers and tower.powers.skill_c.level or 0
+	local co = coroutine.create(scripts6.arrow_KR6.update)
+	local bounced = false
+	while true do
+		local first = #store.damage_queue + 1
+		local done = resume_base(co, this, store, script)
+		if bounce_level > 0 and not bounced then
+			for i = first, #store.damage_queue do
+				local damage = store.damage_queue[i]
+				if damage.source_id == this.id and damage.target_id == b.target_id then
+					local bounce = E:create_entity("bullet_ranger_poison_bounce_FL_lvl" .. bounce_level)
+					bounce.pos = V.vclone(b.to)
+					bounce.target_id, bounce.source_id = b.target_id, this.id
+					-- Poison rank and ricochet rank are independent. Keep the complete
+					-- original poison while native ricochet rules scale direct damage.
+					for _, key in ipairs({"damage_min", "damage_max", "damage_type", "damage_factor", "reduce_armor", "reduce_magic_armor", "level", "mod", "source_id"}) do
+						bounce.bullet[key] = b[key]
+					end
+					queue_insert(store, bounce)
+					bounced = true
+					break
+				end
+			end
+		end
+		if done then return end
+		coroutine.yield()
+	end
+end
+
+scripts.bullet_ranger_poison_bounce_FL = {}
+
+function scripts.bullet_ranger_poison_bounce_FL.update(this, store)
+	local b = this.bullet
+	local already_hit = {[this.target_id] = true}
+	if b.particles_name then
+		local ps = E:create_entity(b.particles_name)
+		ps.particle_system.track_id = this.id
+		queue_insert(store, ps)
+	end
+	this.bounces = 0
+	while this.bounces < this.max_bounces do
+		while V.dist2(this.pos.x, this.pos.y, b.to.x, b.to.y) > (b.fixed_speed * store.tick_length)^2 do
+			local target = store.entities[b.target_id]
+			if target and target.health and not target.health.dead then
+				b.to = V.v(target.pos.x + target.unit.hit_offset.x, target.pos.y + target.unit.hit_offset.y)
+			end
+			b.speed.x, b.speed.y = V.mul(b.fixed_speed, V.normalize(b.to.x - this.pos.x, b.to.y - this.pos.y))
+			this.pos.x, this.pos.y = this.pos.x + b.speed.x * store.tick_length, this.pos.y + b.speed.y * store.tick_length
+			this.render.sprites[1].r = V.angleTo(b.to.x - this.pos.x, b.to.y - this.pos.y)
+			coroutine.yield()
+		end
+		this.pos = V.vclone(b.to)
+		local target = store.entities[b.target_id]
+		already_hit[b.target_id] = true
+		if target and target.health and not target.health.dead and not target.pending_removal then
+			local damage = SU6.create_bullet_damage(b, target.id, this.id)
+			queue_damage(store, damage)
+			local mod = E:create_entity(b.mod)
+			mod.modifier.source_id, mod.modifier.target_id = this.id, target.id
+			mod.modifier.level, mod.modifier.source_damage = b.level, damage
+			queue_insert(store, mod)
+		end
+		if b.hit_fx then
+			local fx = E:create_entity(b.hit_fx)
+			fx.pos, fx.render.sprites[1].ts = V.vclone(b.to), store.tick_ts
+			queue_insert(store, fx)
+		end
+		if this.sound_events.hit then S:queue(this.sound_events.hit) end
+		this.bounces = this.bounces + 1
+		if this.bounces >= this.max_bounces then break end
+		local targets = U6.find_enemies_in_range(store.entities, this.pos, 0, this.bounce_range, b.vis_flags, b.vis_bans, function(enemy)
+			return not already_hit[enemy.id]
+		end)
+		if not targets or #targets == 0 then break end
+		table.sort(targets, function(a, c)
+			return V.dist2(this.pos.x, this.pos.y, a.pos.x, a.pos.y) < V.dist2(this.pos.x, this.pos.y, c.pos.x, c.pos.y)
+		end)
+		local next_target = targets[1]
+		b.target_id = next_target.id
+		b.to = V.v(next_target.pos.x + next_target.unit.hit_offset.x, next_target.pos.y + next_target.unit.hit_offset.y)
+		b.damage_min = math.max(1, math.floor(b.damage_min * this.bounce_damage_mult))
+		b.damage_max = math.max(1, math.floor(b.damage_max * this.bounce_damage_mult))
+	end
+	queue_remove(store, this)
+end
+
 scripts.ray_archers_skill_a_FL = {}
 
 function scripts.ray_archers_skill_a_FL.update(this, store, script)

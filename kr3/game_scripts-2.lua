@@ -1,4 +1,4 @@
-﻿-- chunkname: @/var/folders/r9/xbxmw8n51957gv9ggzrytvf80000gp/T/com.ironhidegames.frontiers.windows.steam.ep3S4swo/kr2/game_scripts.lua
+-- chunkname: @/var/folders/r9/xbxmw8n51957gv9ggzrytvf80000gp/T/com.ironhidegames.frontiers.windows.steam.ep3S4swo/kr2/game_scripts.lua
 
 local log = require("klua.log"):new("game_scripts")
 
@@ -4222,6 +4222,8 @@ function scripts.ray_neptune.update(this, store, script)
 		d.target_id = enemy.id
 		d.value = math.random(damage_min, damage_max)
 		d.damage_type = b.damage_type
+		d.xp_gain_factor = b.xp_gain_factor
+		d.xp_dest_id = b.xp_dest_id or b.source_id
 
 		queue_damage(store, d)
 	end

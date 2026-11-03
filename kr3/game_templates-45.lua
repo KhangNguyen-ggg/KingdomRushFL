@@ -6293,3 +6293,523 @@ tt.render.sprites[1].size_scales = {
 	vv(1.3),
 	vv(1.5)
 }
+
+-- BEGIN WICKED SISTERS STREGI
+do
+local E = require("entity_db")
+local scripts = kr4_scripts
+local V = require("klua.vector")
+local v = V.v
+local log = require("klua.log"):new("wss_templates")
+local function fts(frames) return frames / 30 end
+local config = {["soldier_ranged_max"]=180,["soldier_ranged_min"]=40,["tower_price"]=220,["veggie_cooldown"]=30,["veggie_health_factors"]={0.8,0.65,0.5},["veggie_prices"]={188,164,164},["attack_slow_duration"]=5,["attack_slow_factor"]=0.3,["crow_cost_percent"]=0.5,["crow_max"]=3,["crow_range_factor"]=0.15,["crow_rest_time"]=0.5,["doll_block_range"]=90,["doll_circle_radius"]=90,["doll_cooldown"]=26,["doll_death_boss_percent"]=0.06,["doll_death_damage_percent"]=0.3,["doll_death_stun_duration"]=3,["doll_hp"]=320,["doll_hp_drain"]=8,["doll_move_speed"]=120,["doll_prices"]={188,0,0},["doll_stun_radius"]=90,["doll_taunt_max"]=5,["dream_max_targets"]=7,["dream_min_targets"]=3,["dream_nodes"]=50,["dream_sleep"]=5,["hit_cd_reduce"]=1,["mode_cooldown"]=18,["mud_damage"]=100,["mud_dot"]=10,["mud_dot_every"]=0.1,["mud_duration"]=7,["mud_min_targets"]=3,["mud_radius"]=80,["pumpkin_speed_factor"]=0.67,["sheep_speed_factor"]=1.5,["soldier_cooldown"]=2,["soldier_damage_max"]=22,["soldier_damage_min"]=15,["doll_damage_max"]=18,["doll_damage_min"]=14,["soldier_melee_range"]=40,["soldier_range"]=180}
+local tower = E:register_t("tower_wicked_sisters_stregi", "tower_wicked_sisters_lvl4")
+
+tower.tower.price = 220
+tower.tower.type = "wicked_sisters_stregi"
+tower.tower.level = 4
+tower.tower.kind = TOWER_KIND_MAGE
+tower.tower.cooldown_factor = 1
+tower.info.i18n_key = "TOWER_WICKED_SISTERS_STREGI"
+tower.info.enc_icon = 679
+tower.info.portrait = "gui4_bottom_info_image_towers_0017"
+tower.tower_upgrade_persistent_data = tower.tower_upgrade_persistent_data or {}
+tower.tower_upgrade_persistent_data.current_mode = 0
+-- 技能轮盘上移（相对塔顶再上移 28，避免轮盘被塔模型遮挡）
+tower.tower.menu_offset = v(0, 28)
+tower.barrack.soldier_type = "soldier_wicked_sisters_stregi"
+tower.barrack.rally_range = config.soldier_range
+tower.barrack.max_soldiers = 1
+tower.attacks.range = config.soldier_range
+tower.sound_events.insert = "wss_build_voice" -- 4级建造升级语音
+tower.sound_events.change_rally_point = "HeroWitchTaunt"
+
+-- 删除原版技能（沉默图腾/青蛙化/射程），避免百科全书的技能列表出现“青蛙化”“灵光4000”等旧技能
+tower.powers.silent = nil
+tower.powers.frog = nil
+tower.powers.range = nil
+
+-- 移除旧攻击槽（塔本体不再直接攻击，攻击由士兵完成）
+if tower.attacks then
+    tower.attacks.list[1].disabled = true
+end
+
+-- 新增两个技能（素食主义 / 惊喜玩偶）；万圣游行为“点击付费召唤”（暗光高塔逻辑）
+local pow_veggie = E:clone_c("power")
+pow_veggie.price_base = 188
+pow_veggie.price_inc = 164
+pow_veggie.max_level = 3
+pow_veggie.cooldown = {config.veggie_cooldown or 28}
+-- 键名用 z_aveggie：百科全书的技能列表按字母序排列（table.sort），
+-- 这样“素食主义”排在“惊喜玩偶”（z_doll）之前
+tower.powers.z_aveggie = pow_veggie
+
+local pow_doll = E:clone_c("power")
+pow_doll.price_base = 188
+pow_doll.price_inc = 0
+pow_doll.max_level = 1
+pow_doll.cooldown = {config.doll_cooldown or 22}
+tower.powers.z_doll = pow_doll
+
+-- 万圣游行（仅用于百科全书显示，实际玩法是 tw_repair 金币点击，不参与轮盘升级）；
+-- 花费 = 当前金币的 50%（动态，百科只显示最小价 1，防降价科技把 powers 统一打折影响显示）
+local pow_crow = E:clone_c("power")
+pow_crow.price_base = 1
+pow_crow.price_inc = 0
+pow_crow.max_level = 1
+pow_crow.cooldown = {0}
+tower.powers.z_ecrow = pow_crow
+
+-- 万圣游行：暗光高塔式点击付费。菜单按钮用 tw_repair，每次点击投注当前金币 50%
+-- 召唤一只黑猫/乌鸦，可反复点击，没有技能等级、没有冷却（不再自动召唤）。
+E:add_comps(tower, "user_selection")
+tower.repair = {}
+tower.repair.cost = 1 -- 运行时按当前金币动态更新（TowerMenu 打开时惰性同步）
+tower.repair.active = false
+
+-- 运行时字段
+tower.tower_upgrade_persistent_data.wss_mode_ts = 0
+
+-- 塔更新/移除使用本插件脚本
+tower.main_script.update = scripts.tower_wicked_sisters_stregi.update
+tower.main_script.remove = scripts.tower_wicked_sisters_stregi.remove
+tower.info.fn = scripts.tower_wicked_sisters_stregi.get_info
+
+-- 幽灵塔4级“换塔”（controller_tower_swap）会把塔临时移出 store 再插回：
+-- 插回时清除换塔标记、重算猫/乌鸦计数与集合范围，并让斯特蕾吉跟随新的集结点
+do
+    local orig_tower_insert = tower.main_script.insert
+
+    tower.main_script.insert = function(this, store)
+        if orig_tower_insert then
+            local ok = orig_tower_insert(this, store)
+
+            if ok == false then
+                return false
+            end
+        end
+
+        if this._wss_swapping then
+            this._wss_swapping = nil
+
+            local cats, crows = 0, 0
+
+            if store and store.entities then
+                for _, e in pairs(store.entities) do
+                    if e and e.owner == this then
+                        if e.template_name == "wss_cat" then
+                            cats = cats + 1
+                        elseif e.template_name == "wss_crow" then
+                            crows = crows + 1
+                        end
+                    end
+                end
+            end
+
+            this._wss_cat_count = cats
+            this._wss_crow_count = crows
+            this._wss_pet_count = cats + crows
+
+            if this.barrack then
+                this.barrack.rally_range = math.floor(config.soldier_range *
+                                                          (1 + (config.crow_range_factor or 0.15) * crows) + 1e-4)
+
+                local witch = this.barrack.soldiers and this.barrack.soldiers[1]
+
+                if witch and witch.nav_rally and this.barrack.rally_pos then
+                    witch.nav_rally.pos = V.vclone(this.barrack.rally_pos)
+                    witch.nav_rally.center = V.vclone(this.barrack.rally_pos)
+                    witch.nav_rally.new = true
+                end
+            end
+        end
+
+        return true
+    end
+end
+
+-- 换塔控制器移除时兜底清除换塔标记（正常路径在塔插回时已清除）
+do
+    local ctrl = E:get_template("controller_tower_swap")
+    local orig_ctrl_remove = ctrl and ctrl.main_script and ctrl.main_script.remove
+
+    if ctrl then
+        ctrl.main_script.remove = function(this, store)
+            if orig_ctrl_remove then
+                local ok = orig_ctrl_remove(this, store)
+
+                if ok == false then
+                    return false
+                end
+            end
+
+            if this.tower_1 and this.tower_1.template_name == "tower_wicked_sisters_stregi" then
+                this.tower_1._wss_swapping = nil
+            end
+
+            if this.tower_2 and this.tower_2.template_name == "tower_wicked_sisters_stregi" then
+                this.tower_2._wss_swapping = nil
+            end
+
+            return true
+        end
+    end
+end
+
+------------------------------------------------------------------
+-- 2) 士兵：飞行女巫 → 斯特蕾吉
+------------------------------------------------------------------
+local soldier = E:register_t("soldier_wicked_sisters_stregi", "soldier_wicked_sisters_lvl4")
+
+soldier.main_script.update = scripts.soldier_wicked_sisters_stregi.update
+E:add_comps(soldier, "regen")
+soldier.health.hp_max = 265
+soldier.health.hp = 265
+soldier.health.armor = 0
+soldier.regen.health = 20
+soldier.regen.cooldown = 1
+
+-- 实体真正插入成功时清除“等待入队”标记（配合塔更新里的补生成守卫，防止重复生成斯特蕾吉）
+do
+    local orig_insert = soldier.main_script.insert
+
+    soldier.main_script.insert = function(this, store)
+        if orig_insert then
+            local ok = orig_insert(this, store)
+
+            if ok == false then
+                return false
+            end
+        end
+
+        this._wss_pending = nil
+        this._wss_queued_ts = nil
+
+        -- 兵营式点击移动：绑定所属女巫塔。
+        -- 游戏 GUI 的 select_entity 依据 soldier.tower_id 进入集合点移动模式，
+        -- 之后“点斯特蕾吉 → 点地面”即可让她走到目标点（与兵营士兵一致）。
+        if this.owner and this.owner.id then
+            this.soldier.tower_id = this.owner.id
+        end
+
+        return true
+    end
+end
+
+-- 斯特蕾吉可点击选中（显示射程圈 + 兵营式“点士兵→点地面”移动）；
+-- 原版飞行女巫没有 ui 组件；soldier 组件不带 health，不会进入 store.soldiers，敌人不会把她当可拦截士兵
+-- 注意：不给她 info，InfoBar 会自行隐藏，避免“no infobar”报错
+E:add_comps(soldier, "ui", "soldier", "unit")
+soldier.ui.can_click = true
+soldier.ui.can_select = true
+soldier.ui.click_rect = V.r(-18, 0, 36, 48)
+
+-- 原版飞行女巫模板没有 unit 组件（它原本不可点击）；斯特蕾吉可点击后，
+-- 游戏 GUI select_entity 会创建 entity_marker_controller 并访问 e.unit.marker_offset，
+-- 无 unit 会崩溃（幽灵塔换塔期间 tower_id 失效走 else 分支时必现）。
+-- 补 unit 组件（默认值全中性），与普通可点击士兵行为一致；marker_offset 让点击标记显示在脚底
+soldier.unit.marker_offset = v(0, 0)
+soldier.unit.hit_offset = v(0, 0)
+
+-- 三层英雄贴图：hero_witch 立绘自带脚底阴影，不再额外叠加 wick_witch_shadow
+-- （否则会出现两个影子）；实体 pos 即集合点/影子所在位置
+soldier.render.sprites[1].prefix = "hero_witch_hero_layer1"
+soldier.render.sprites[1].hidden = false
+soldier.render.sprites[1].angles = {
+    walk = {"walk"},
+    range_attack = {"range_attack"},
+    melee_attack = {"melee_attack"}
+}
+soldier.render.sprites[1].offset = v(0, 0)
+soldier.render.sprites[1].anchor = v(0.5, 0.5)
+
+soldier.render.sprites[2] = E:clone_c("sprite")
+soldier.render.sprites[2].prefix = "hero_witch_hero_layer2"
+soldier.render.sprites[2].name = "idle"
+soldier.render.sprites[2].group = "layers"
+soldier.render.sprites[2].angles = soldier.render.sprites[1].angles
+soldier.render.sprites[2].offset = v(0, 0)
+soldier.render.sprites[2].anchor = v(0.5, 0.5)
+
+soldier.render.sprites[3] = E:clone_c("sprite")
+soldier.render.sprites[3].prefix = "hero_witch_hero_layer3"
+soldier.render.sprites[3].name = "idle"
+soldier.render.sprites[3].group = "layers"
+soldier.render.sprites[3].angles = soldier.render.sprites[1].angles
+soldier.render.sprites[3].offset = v(0, 0)
+soldier.render.sprites[3].anchor = v(0.5, 0.5)
+
+soldier.render.sprites[4] = nil
+
+-- 移动速度 120
+soldier.motion.max_speed = 120
+
+-- 普通攻击：斯特蕾吉双魔法弹
+soldier.attacks.list[1].bullet = {"bullet_hero_witch_basic_1", "bullet_hero_witch_basic_2"}
+soldier.attacks.list[1].vis_bans = 0
+soldier.attacks.list[1].animations = {"range_attack", "range_attack"}
+soldier.attacks.list[1].hit_time = fts(13)
+soldier.attacks.list[1].max_range = config.soldier_range
+soldier.attacks.list[1].min_range = 0
+soldier.attacks.list[1].start_offsets = {v(21, 42), v(-21, 42)}
+soldier.attacks.list[1].cooldown = config.soldier_cooldown
+soldier.attacks.list[1].sound = "wss_stregi_attack"
+soldier.attacks.list[2].disabled = true
+
+-- 移除旧模式子弹/毒伤
+soldier.attacks.list[2].bullet = nil
+soldier.attacks.list[2].disabled = true
+
+-- 克隆斯特蕾吉实体供本塔使用（不污染英雄本体）
+do
+    local ok, err = pcall(function()
+        local mud_aura = E:register_t("wss_mud_aura", "aura_hero_witch_path_aoe")
+        mud_aura.aura.radius = config.mud_radius
+        mud_aura.aura.duration = config.mud_duration
+        mud_aura.aura.mod = nil -- 蚀骨毒药不再减速
+        mud_aura.aura.cycle_time = config.mud_dot_every
+        mud_aura.damage_type = DAMAGE_TRUE -- 蚀骨毒药为真实伤害
+        mud_aura.damage_min = config.mud_damage -- 落地瞬间伤害
+        mud_aura.damage_max = config.mud_damage
+        mud_aura.dot_min = config.mud_dot -- 药液周期法伤
+        mud_aura.dot_max = config.mud_dot
+        -- 学习原版英雄特效动画模板（hero_scripts.lua level_up 的 path_aoe 分支）：
+        -- 落地后先淡入（alpha 0→255、贴图缩放 0→0.9→1.1→1），持续时间末尾淡出到 0
+        -- 这里直接按原版 keys 填好并重新启用 tween，不再手动置 nil
+        local sw = fts(14)
+        local dur = config.mud_duration
+        mud_aura.tween.props[1].keys = {{0, 0}, {sw, 0}, {sw + fts(10), 255}, {dur - 0.5, 255}, {dur, 0}}
+        mud_aura.tween.props[2].keys = {{0, 0}, {sw + fts(4), 0}, {sw + fts(5), 200}, {sw + fts(9), 255},
+                                        {dur - 0.7, 255}, {dur, 0}}
+        mud_aura.tween.props[3].keys = {{0, v(0, 0)}, {sw + fts(4), v(0, 0)}, {sw + fts(5), v(0.9, 0.9)},
+                                        {sw + fts(9), v(1.1, 1.1)}, {sw + fts(11), v(1, 1)}}
+        mud_aura.tween.disabled = false
+        mud_aura.main_script.type = 0
+        mud_aura.main_script.update = scripts.wss_mud_aura.update
+        mud_aura.render.sprites[1].color = {0, 255, 0} -- 地上药液圈：纯绿
+        mud_aura.render.sprites[2].color = {0, 255, 0}
+
+        -- 蚀骨毒药投掷/落地特效：克隆原版女巫“药水落入”特效并整体改成绿色
+        -- （sprites[1] = 落地水花，sprites[2] = 空中瓶/溅起层；地上的药液圈是 wss_mud_aura，不在此列）
+        local mud_in = E:register_t("wss_fx_mud_in", "fx_hero_witch_skill_path_aoe_in")
+
+        mud_in.render.sprites[1].color = {140, 255, 160} -- 空中瓶/水花：保留较多其他通道，避免整体发绿
+        mud_in.render.sprites[2].color = {140, 255, 160}
+
+        local dream_sleep = E:register_t("wss_dream_sleep", "mod_hero_witch_ultimate_sleep")
+        dream_sleep.modifier.duration = config.dream_sleep
+
+        local dream_teleport = E:register_t("wss_dream_teleport", "mod_hero_witch_ultimate_teleport")
+        dream_teleport.nodes_offset = -config.dream_nodes
+        dream_teleport.end_mod = "wss_dream_sleep"
+    end)
+
+    if not ok then
+        log.warning("wss clone mud/dream failed: %s", tostring(err))
+    end
+end
+
+------------------------------------------------------------------
+-- 素食主义：克隆变形实体（绵羊/南瓜，含飞行版）与变形 mod
+------------------------------------------------------------------
+do
+    local ok, err = pcall(function()
+        local sheep_g = E:register_t("wss_sheep_ground", "enemy_sheep_ground")
+        -- 自定义绵羊脚本：正常受击，且不再能点击摧毁
+        sheep_g.main_script.update = scripts.wss_enemy_sheep.update
+
+        local sheep_f = E:register_t("wss_sheep_fly", "enemy_sheep_fly")
+        sheep_f.main_script.update = scripts.wss_enemy_sheep.update
+
+        local pump_g = E:register_t("wss_pumpkin_ground", "enemy_pumpkin_witch")
+
+        local pump_f = E:register_t("wss_pumpkin_fly", "enemy_pumpkin_witch_flying")
+
+        local poly = E:register_t("wss_polymorph", "mod_polymorph")
+        poly.main_script.insert = scripts.wss_polymorph.insert
+    end)
+
+    if not ok then
+        log.warning("wss clone veggie failed: %s", tostring(err))
+    end
+end
+
+------------------------------------------------------------------
+-- 惊喜玩偶：克隆闪光诱饵（玩偶 + 眩晕光环 + 到期计时器）
+------------------------------------------------------------------
+do
+    local ok, err = pcall(function()
+        local doll = E:register_t("wss_witch_doll", "soldier_hero_witch_decoy")
+        -- 死亡效果由玩偶控制器按当前魔药模式结算（梦迁→眩晕、蚀骨毒药→最大生命%魔法伤害），
+        -- 不再走原版 death_spawns 光环，避免光环无法携带模式信息
+        doll.death_spawns = nil
+        doll.sound_death = "wss_doll_boom"
+        doll.health.ignore_damage = false -- 被敌人攻击正常扣血（不是无敌）
+        doll.health.armor = 0 -- 双抗为 0
+        doll.health.magic_armor = 0
+        doll.health.hp_max = config.doll_hp or 999
+        doll.health.hp = config.doll_hp or 999
+        -- 生命由 wss_doll_controller 每 0.1 秒扣 config.doll_hp_drain（默认 8）血，约 4 秒后死亡
+        doll.reinforcement.duration = nil
+        doll.health_bar.hidden = false -- 显示血条（玩家可见生命流逝）
+        doll.melee.range = config.doll_block_range or 90 -- 拦截范围
+        doll.motion.max_speed = config.doll_move_speed or 120 -- 移动速度
+        -- 玩偶保留独立的 14~18 物理伤害；命中时按塔 damage_factor 结算肃清立场，
+        -- 见 cast_doll 的 fn_damage）；攻速 = 斯特蕾吉攻击间隔（2 秒，cast 时按塔攻速系数设置）
+        doll.melee.attacks[1].damage_min = config.doll_damage_min
+        doll.melee.attacks[1].damage_max = config.doll_damage_max
+        doll.melee.attacks[1].damage_type = DAMAGE_PHYSICAL
+        doll.melee.attacks[1].mods = nil -- 玩偶不减速
+        doll.melee.attacks[1].cooldown = config.soldier_cooldown
+
+        -- 死亡爆炸视觉（90 范围；效果由控制器结算，这里只播放爆炸贴图）
+        local death_stun = E:register_t("wss_doll_death_stun", "aura_hero_witch_decoy_explotion")
+        death_stun.aura.radius = config.doll_stun_radius or 90
+        death_stun.aura.mod = nil
+        death_stun.aura.cycle_time = 99
+        death_stun.aura.duration = fts(20)
+        death_stun.main_script.update = scripts.wss_doll_death_visual.update
+
+        -- 梦迁模式：玩偶死亡晕眩（3 秒，含空军）
+        local death_stun_mod = E:register_t("wss_doll_death_stun_mod", "mod_hero_witch_decoy_stun")
+        death_stun_mod.modifier.duration = config.doll_death_stun_duration or 3
+
+        -- 玩偶控制器（纯逻辑实体，不渲染）：每 0.1 秒扣血 + 嘲讽拦截
+        local controller = E:register_t("wss_doll_controller", "decal_scripted")
+        controller.main_script.type = 0
+        controller.main_script.update = scripts.wss_doll_controller.update
+        controller.render = nil -- 去掉渲染，避免“animation idle / sprite nil”日志报错
+
+        -- 玩偶周围的影响范围圈提示（90；原版塔范围圈，游戏范围是椭圆——纵向压缩 0.7 倍）
+        local range_circle = E:register_t("wss_doll_range_circle", "decal_tower_range")
+        -- decal 基类没有 main_script，必须补上，否则跟随/自毁脚本不会运行
+        E:add_comps(range_circle, "main_script")
+        local circle_scale = (config.doll_circle_radius or 90) / 137
+        local circle_scale_y = circle_scale / 1.42857142857
+        range_circle.actual_radius = config.doll_circle_radius or 90
+        range_circle.render.sprites[1].scale = v(circle_scale, circle_scale_y)
+        range_circle.render.sprites[2].scale = v(-circle_scale, circle_scale_y)
+        range_circle.render.sprites[3].scale = v(circle_scale, -circle_scale_y)
+        range_circle.render.sprites[4].scale = v(-circle_scale, -circle_scale_y)
+        range_circle.render.sprites[1].alpha = 120
+        range_circle.render.sprites[2].alpha = 120
+        range_circle.render.sprites[3].alpha = 120
+        range_circle.render.sprites[4].alpha = 120
+        range_circle.main_script.type = 0
+        range_circle.main_script.update = scripts.wss_doll_range_circle.update
+    end)
+
+    if not ok then
+        log.warning("wss clone doll failed: %s", tostring(err))
+    end
+end
+
+------------------------------------------------------------------
+-- 万圣游行：克隆暗影弓手乌鸦（安慰奖，范围增益宠物）/ 斯特蕾吉黑猫（成功，追击诅咒）/ 暗影印记诅咒
+------------------------------------------------------------------
+do
+    local ok, err = pcall(function()
+        local crow = E:register_t("wss_crow", "shadow_crow")
+        crow.main_script.type = 0
+        crow.main_script.update = scripts.wss_crow.update
+        crow.custom_attack = nil -- 不造成伤害
+        -- 乌鸦大小 1.15（保持负 x 面向左），本体贴图按原版 flight_height 抬升：
+        -- pos 即阴影/敌人位置，乌鸦本体显示在头顶
+        crow.render.sprites[1].scale = v(-1.15, 1.15)
+        crow.render.sprites[1].offset.y = crow.flight_height
+        crow.render.sprites[1].z = 3800
+        crow.render.sprites[2] = E:clone_c("sprite")
+        crow.render.sprites[2].animated = false
+        crow.render.sprites[2].name = "decal_flying_shadow"
+        crow.render.sprites[2].offset = v(0, 0)
+        crow.render.sprites[2].z = Z_DECALS + 1
+
+        -- 黑猫（原版斯特蕾吉夜晚之怒召唤物）：成功召唤。从塔上追击地面敌人并施加诅咒，
+        -- 纯视觉（无 soldier 标签、不拦截、不被索敌），与敌人重合后播放攻击动画 + 烟雾后消失
+        local cat = E:register_t("wss_cat", "soldier_hero_witch_cat")
+        cat.main_script.type = 0
+        cat.main_script.update = scripts.wss_cat.update
+        cat.reinforcement.duration = nil
+        cat.health.hp_max = config.doll_hp or 9999
+        cat.health.hp = config.doll_hp or 9999
+        cat.health.ignore_damage = true
+        cat.health_bar.hidden = true
+        -- 纯贴图宠物：不可点击、不可选中、无血条
+        if cat.ui then
+            cat.ui.can_click = false
+            cat.ui.can_select = false
+        end
+        -- 关键：去掉 soldier 组件，黑猫不再进入 store.soldiers 索敌列表，
+        -- 远程/近战敌人不会把它当成防御单位集火（只是视觉效果，不会被索敌/拦截）
+        cat.soldier = nil
+        -- 猫缩小为原版 80%
+        cat.render.sprites[1].scale = v(0.8, 0.8)
+        -- 地面宠物：补 force_motion 用于环绕行走；贴图不带飞行高度偏移，保持落地高度
+        E:add_comps(cat, "force_motion")
+        cat.orbit_speed_idle = 130
+        cat.ramp_dist_idle = 50
+        cat.render.sprites[1].angles = cat.render.sprites[1].angles or {}
+        cat.render.sprites[1].angles.idle = {"idle"}
+        -- 黑夜煞星黑猫近战攻击动画（渲染时 prefix_name 命中 hero_witch_cat_attack）
+        cat.render.sprites[1].angles.attack = {"attack"}
+
+        -- 诅咒不再显示任何特效（已按要求删除诅咒特效，只保留金币随行特效）；
+        -- 诅咒实体仅保留“目标死亡掉金”的逻辑
+        local curse = E:register_t("wss_crow_curse", "modifier")
+        curse.modifier.duration = -1
+        curse.main_script.type = 1
+        curse.main_script.insert = scripts.wss_crow_curse.insert
+        curse.main_script.update = scripts.wss_crow_curse.update
+        curse.main_script.remove = scripts.wss_crow_curse.remove
+
+        -- 金币掉落特效（自定义生命周期，不依赖原版 fx 的 timed.runs 动画计数）
+        local coin_fx = E:register_t("wss_coin_fx", "decal_scripted")
+        E:add_comps(coin_fx, "tween", "sound_events")
+        coin_fx.render.sprites[1].name = "fx_coin_jump"
+        coin_fx.render.sprites[1].z = Z_BULLETS
+        coin_fx.render.sprites[1].offset = v(0, 0) -- 金币贴图与尸体位置重合（不再抬到头顶）
+        coin_fx.render.sprites[1].scale = v(0.45, 0.45) -- 金币特效大小
+        coin_fx.tween.props[1].name = "alpha"
+        coin_fx.tween.props[1].keys = {{0, 255}, {0.85, 255}, {1.1, 0}} -- 比原版多停留 0.25 秒再淡出
+        coin_fx.sound_events.insert = "AssassinGold"
+        coin_fx.main_script.type = 0
+        coin_fx.main_script.update = scripts.wss_coin_fx.update
+
+        -- 乌鸦到达头顶后的金币随行特效：30% 透明度、跟随被诅咒敌人、敌人死亡后自毁；
+        -- 数量与椭圆偏移由脚本按“每 15 金一个”生成；保留金币跳跃动画（闪烁效果）
+        local coin_follow = E:register_t("wss_crow_coin_follow", "decal_scripted")
+        coin_follow.render.sprites[1].name = "fx_coin_jump"
+        coin_follow.render.sprites[1].z = Z_BULLETS
+        coin_follow.render.sprites[1].offset = v(0, 30) -- 敌人头顶上方（y 正方向为屏幕上方）
+        coin_follow.render.sprites[1].scale = v(0.45, 0.45) -- 金币随行特效大小
+        coin_follow.render.sprites[1].alpha = 115 -- 45% 透明度（255×0.45≈115）
+        coin_follow.main_script.type = 1
+        coin_follow.main_script.update = scripts.wss_crow_coin_follow.update
+
+        -- 普攻减速：30% 减速、持续 5 秒，淡蓝色 p_tint 染色特效
+        local attack_slow = E:register_t("wss_attack_slow", "mod_slow")
+        attack_slow.modifier.duration = config.attack_slow_duration or 5
+        attack_slow.slow.factor = 1 - (config.attack_slow_factor or 0.4)
+        attack_slow.shader = "p_tint"
+        attack_slow.shader_args = {
+            tint_factor = 0.35,
+            tint_color = {0.3, 0.5, 1, 1}
+        }
+        -- 必须为状态机（type=1）：原版 mod_slow 的协程型 update 只会运行一次，
+        -- 若按默认 type=0 注册会导致 update 永不重跑，减速永远不解除。
+        attack_slow.main_script.type = 1
+        attack_slow.main_script.insert = scripts.wss_attack_slow.insert
+        attack_slow.main_script.update = scripts.wss_attack_slow.update
+        attack_slow.main_script.remove = scripts.wss_attack_slow.remove
+    end)
+
+    if not ok then
+        log.warning("wss clone crow failed: %s", tostring(err))
+    end
+end
+
+------------------------------------------------------------------
+-- 重建女巫姐妹花轮盘菜单：模式切换 + 双魔药 + 素食主义/惊喜玩偶/万圣游行
+------------------------------------------------------------------
+end
+-- END WICKED SISTERS STREGI

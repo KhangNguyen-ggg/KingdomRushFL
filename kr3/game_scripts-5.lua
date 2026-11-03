@@ -31624,6 +31624,10 @@ end
 
 scripts.tower_big_bertha = {}
 
+local function artillery_attack_range(this, attack)
+	return attack == this.attacks.list[1] and this.attacks.range or attack.range
+end
+
 function scripts.tower_big_bertha.update(this, store, script)
 	local tower_sid = 2
 	local a = this.attacks
@@ -31677,7 +31681,7 @@ function scripts.tower_big_bertha.update(this, store, script)
 				pow = pows[i]
 
 				if aa and (not pow or pow.level > 0) and store.tick_ts - aa.ts > aa.cooldown and (not a.min_cooldown or store.tick_ts - last_ts > a.min_cooldown) then
-					local trigger, enemies, trigger_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, aa.range, aa.node_prediction, aa.vis_flags, aa.vis_bans)
+					local trigger, enemies, trigger_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, artillery_attack_range(this, aa), aa.node_prediction, aa.vis_flags, aa.vis_bans)
 
 					if not trigger then
 						-- block empty
@@ -31688,10 +31692,10 @@ function scripts.tower_big_bertha.update(this, store, script)
 						U.animation_start_group(this, aa.animation, nil, store.tick_ts, false, "layers")
 						U.y_wait(store, aa.shoot_time)
 
-						local enemy, __, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, aa.range, aa.node_prediction, aa.vis_flags, aa.vis_bans)
+						local enemy, __, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, artillery_attack_range(this, aa), aa.node_prediction, aa.vis_flags, aa.vis_bans)
 						local dest = enemy and pred_pos or trigger_pos
 
-						if V.dist(tpos(this).x, tpos(this).y, dest.x, dest.y) <= aa.range then
+						if V.dist(tpos(this).x, tpos(this).y, dest.x, dest.y) <= artillery_attack_range(this, aa) then
 							local b = E:create_entity(aa.bullet)
 
 							b.pos.x, b.pos.y = this.pos.x + aa.bullet_start_offset.x, this.pos.y + aa.bullet_start_offset.y
@@ -32360,7 +32364,7 @@ function scripts.tower_tricannon.update(this, store, script)
 				pow = pows[i]
 
 				if aa and (not pow or pow.level > 0) and aa.cooldown and store.tick_ts - aa.ts > aa.cooldown and (not a.min_cooldown or store.tick_ts - last_ts > a.min_cooldown) then
-					local trigger, enemies, trigger_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, aa.range, aa.node_prediction, aa.vis_flags, aa.vis_bans)
+					local trigger, enemies, trigger_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, artillery_attack_range(this, aa), aa.node_prediction, aa.vis_flags, aa.vis_bans)
 
 					if not trigger then
 						SU.delay_attack(store, aa, fts(10))
@@ -32392,7 +32396,7 @@ function scripts.tower_tricannon.update(this, store, script)
 							U.y_wait(store, aa.shoot_time)
 							S:queue(aa.sound)
 
-							local _, enemies, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, aa.range, aa.node_prediction, aa.vis_flags, aa.vis_bans)
+							local _, enemies, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, artillery_attack_range(this, aa), aa.node_prediction, aa.vis_flags, aa.vis_bans)
 							local target_positions = {}
 
 							if enemies and #enemies > 0 then
@@ -32466,7 +32470,7 @@ function scripts.tower_tricannon.update(this, store, script)
 							U.animation_start_group(this, aa.animation_start, nil, store.tick_ts, false, "layers")
 							U.y_wait(store, aa.shoot_time)
 
-							local enemy, __, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, aa.range, aa.node_prediction, aa.vis_flags, aa.vis_bans)
+							local enemy, __, pred_pos = U.find_foremost_enemy(store.entities, tpos(this), 0, artillery_attack_range(this, aa), aa.node_prediction, aa.vis_flags, aa.vis_bans)
 							local dest = enemy and pred_pos or trigger_pos
 							local dest_path = enemy and enemy.nav_path.pi or trigger_path
 							local nearest_nodes = P:nearest_nodes(dest.x, dest.y, {
@@ -36584,6 +36588,18 @@ end
 
 scripts.tower_necromancer = {}
 
+local function remove_necromancer_extra_skull_handlers(this)
+	if this._necromancer_extra_skull_death_handler then
+		signal.remove("entity-killed", this._necromancer_extra_skull_death_handler)
+		this._necromancer_extra_skull_death_handler = nil
+	end
+
+	if this._necromancer_extra_skull_cleanup_handler then
+		signal.remove("game-cleanup", this._necromancer_extra_skull_cleanup_handler)
+		this._necromancer_extra_skull_cleanup_handler = nil
+	end
+end
+
 function scripts.tower_necromancer.update(this, store)
 	local tower_sid = this.render.sid_tower
 	local last_ts = store.tick_ts - this.attacks.list[1].cooldown
@@ -36685,6 +36701,10 @@ function scripts.tower_necromancer.update(this, store)
 
 	if this.extra_skull_on_enemy_death and not this._necromancer_extra_skull_death_handler then
 		this._necromancer_extra_skull_death_handler = function(dead)
+			if simulation.store ~= store or store.entities[this.id] ~= this then
+				return
+			end
+
 			if not dead or not dead.enemy or not dead.pos or not dead.health or dead.health.hp > 0 then
 				return
 			end
@@ -36702,7 +36722,14 @@ function scripts.tower_necromancer.update(this, store)
 			create_skull(attack, false, nil, true, false, true)
 		end
 
+		this._necromancer_extra_skull_cleanup_handler = function(cleanup_store)
+			if cleanup_store == store then
+				remove_necromancer_extra_skull_handlers(this)
+			end
+		end
+
 		signal.register("entity-killed", this._necromancer_extra_skull_death_handler)
+		signal.register("game-cleanup", this._necromancer_extra_skull_cleanup_handler)
 	end
 
 	local function check_skill_debuff()
@@ -36918,10 +36945,7 @@ function scripts.tower_necromancer.update(this, store)
 end
 
 function scripts.tower_necromancer.remove(this, store)
-	if this._necromancer_extra_skull_death_handler then
-		signal.remove("entity-killed", this._necromancer_extra_skull_death_handler)
-		this._necromancer_extra_skull_death_handler = nil
-	end
+	remove_necromancer_extra_skull_handlers(this)
 
 	if this.tower_upgrade_persistent_data.skulls_ref and not this.tower.upgrade_to then
 	--if this.tower_upgrade_persistent_data.skulls_ref then
@@ -42964,6 +42988,7 @@ end
 scripts.bullet_tower_dark_elf_skill_buff = {}
 
 function scripts.bullet_tower_dark_elf_skill_buff.update(this, store)
+	local animation_db = require("animation_db")
 	local b = this.bullet
 	local s = this.render.sprites[1]
 	local mspeed = b.min_speed
@@ -42978,7 +43003,9 @@ function scripts.bullet_tower_dark_elf_skill_buff.update(this, store)
 		queue_insert(store, ps)
 	end
 
-	U.y_animation_play(this, "soul_start", nil, store.tick_ts, 1)
+	U.animation_start(this, "soul_start", nil, store.tick_ts, false, 1, true)
+	local start_duration = animation_db:duration("soul_start")
+	U.y_wait(store, start_duration)
 
 	local tower = store.entities[b.target_id]
 
@@ -42988,7 +43015,9 @@ function scripts.bullet_tower_dark_elf_skill_buff.update(this, store)
 	end
 
 	S:queue(this.sound_start)
-	U.y_animation_play(this, "soul_travelstart", nil, store.tick_ts, 1)
+	U.animation_start(this, "soul_travelstart", nil, store.tick_ts, false, 1, true)
+	local travel_start_duration = animation_db:duration("soul_travelstart")
+	U.y_wait(store, travel_start_duration)
 
 	::label_947_0::
 
@@ -43090,23 +43119,23 @@ function scripts.bullet_tower_dark_elf_skill_buff.update(this, store)
 
 	this.pos.x, this.pos.y = b.to.x, b.to.y
 
-	if target then
-		if tower and tower.powers and tower.powers.skill_buff then
-			if not tower.tower_upgrade_persistent_data.souls_extra_damage_min then
-				tower.tower_upgrade_persistent_data.souls_extra_damage_min = 0
-			end
-
-			if not tower.tower_upgrade_persistent_data.souls_extra_damage_max then
-				tower.tower_upgrade_persistent_data.souls_extra_damage_max = 0
-			end
-
-			local increaseDamageMin = tower.powers.skill_buff.damage_min[tower.powers.skill_buff.level]
-			local increaseDamageMax = tower.powers.skill_buff.damage_max[tower.powers.skill_buff.level]
-
-			tower.tower_upgrade_persistent_data.souls_extra_damage_min = tower.tower_upgrade_persistent_data.souls_extra_damage_min + increaseDamageMin
-			tower.tower_upgrade_persistent_data.souls_extra_damage_max = tower.tower_upgrade_persistent_data.souls_extra_damage_max + increaseDamageMax
+	if tower.powers and tower.powers.skill_buff then
+		if not tower.tower_upgrade_persistent_data.souls_extra_damage_min then
+			tower.tower_upgrade_persistent_data.souls_extra_damage_min = 0
 		end
 
+		if not tower.tower_upgrade_persistent_data.souls_extra_damage_max then
+			tower.tower_upgrade_persistent_data.souls_extra_damage_max = 0
+		end
+
+		local increaseDamageMin = tower.powers.skill_buff.damage_min[tower.powers.skill_buff.level]
+		local increaseDamageMax = tower.powers.skill_buff.damage_max[tower.powers.skill_buff.level]
+
+		tower.tower_upgrade_persistent_data.souls_extra_damage_min = tower.tower_upgrade_persistent_data.souls_extra_damage_min + increaseDamageMin
+		tower.tower_upgrade_persistent_data.souls_extra_damage_max = tower.tower_upgrade_persistent_data.souls_extra_damage_max + increaseDamageMax
+	end
+
+	if target then
 		if b.mod or b.mods then
 			local mods = b.mods or {
 				b.mod
@@ -61077,6 +61106,12 @@ function scripts.boss_navira.update(this, store, script)
 	signal.emit("boss_fight_start", this)
 
 	megaspawner_boss.manual_wave = "BOSS"
+
+	if this.navira_duelist then
+		require("navira_duelist").enemy_update(this, store, y_on_death)
+
+		return
+	end
 
 	while true do
 		if this.health.dead then
