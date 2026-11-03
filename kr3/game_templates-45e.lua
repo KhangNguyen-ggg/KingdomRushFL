@@ -3933,49 +3933,23 @@ tt.health_bar.type = HEALTH_BAR_SIZE_MEDIUM
 tt.branch.spawn_sound = "level14_magichouse_transform"
 branch_melee(tt, 60, 120, 2.5, 0.33, "attack")
 
-tt = branch_enemy_template("mega_boss_dragon", "viking_boss_dragon", 50000, 0, 0, 0, 0, 0, 0.26, 112, nil, {boss = true, flying = true, unblockable = true, single_walk = true})
+tt = branch_enemy_template("mega_boss_dragon", "mega_dragon_boss", 5, 0, 0, 0, 0, 0, 0.5, 95, nil, {boss = true, flying = true, unblockable = true, single_walk = true, exo = true})
 tt.info.i18n_key = "ENEMY_BOSS_JOKULL_ENCYC"
 tt.info.portrait_boss = "boss_health_bar_icon_0001"
 tt.health_bar.type = HEALTH_BAR_SIZE_LARGE
-tt.health_bar.offset = v(0, 330)
+tt.health_bar.offset = v(142, 95)
 tt.health.immune_to = DAMAGE_ALL_TYPES
 tt.main_script.update = kr4_scripts.mega_boss_dragon.update
--- shortcut: this port lacks Jokull's skeleton; use his atlas parts until the original animation data is available.
-tt.render.sprites = {}
-for _, side in ipairs({-1, 1}) do
-	for _, part in ipairs({
-		{{"asset_dragon_cabeza", "asset_dragon_cabeza_damage_1", "asset_dragon_cabeza_damage_2"}, 0, 28, 1, 0},
-		{{"asset_dragon_boca", "asset_dragon_boca_damaged_1", "asset_dragon_boca_damaged_2"}, 0, 78, 1, 0},
-		{{"asst_eyeball", "asst_eyeball", "asst_eyeball_damage_2"}, 29, 182, 0.5, 0.5},
-		{{"asst_brow", "asst_brow", "asst_brow_damage_2"}, 31, 195, 0.5, 0.5}
-	}) do
-		local sprite = E:clone_c("sprite")
-		sprite.name = part[1][1]
-		sprite.stage161_damage_names = part[1]
-		sprite.animated = false
-		sprite.anchor = v(part[4], part[5])
-		sprite.offset = v(side * part[2], part[3])
-		sprite.scale = v(0.8, 0.8)
-		sprite.flip_x = side == 1
-		sprite.z = Z_OBJECTS + 5
-		table.insert(tt.render.sprites, sprite)
-	end
-end
-local jokull_horn = E:clone_c("sprite")
-jokull_horn.name = "asset_dragon_cuerno"
-jokull_horn.animated = false
-jokull_horn.anchor = v(0.5, 0.5)
-jokull_horn.offset = v(0, 222)
-jokull_horn.scale = v(0.8, 0.8)
-jokull_horn.z = Z_OBJECTS + 5
-table.insert(tt.render.sprites, jokull_horn)
+tt.render.sprites[1].name = "idle"
+tt.render.sprites[1].anchor = v(0.5, 0.5)
+tt.render.sprites[1].z = Z_TOWER_BASES - 3
 tt.vis.flags = 0
 tt.vis.bans = bor(F_RANGED, F_BLOCK, F_MOD, F_AREA)
 tt.ui.can_click = false
 tt.ui.can_select = false
-tt.unit.hit_offset = v(0, 180)
-tt.unit.mod_offset = v(0, 180)
-tt.unit.head_offset = v(0, 260)
+tt.unit.hit_offset = v(142, -58)
+tt.unit.mod_offset = v(142, -58)
+tt.unit.head_offset = v(142, 60)
 
 tt = branch_enemy_template("alleria", "alleria", 500, 0, 0, 60, 0, 1, 0.25, 48, "alleria_shadow", {
 	boss = true,
@@ -4552,6 +4526,27 @@ end
 tt = branch_layered_anim_decal("house_toad", "house_toad_layer", "idle", 4, v(0.5, 0.35), Z_OBJECTS)
 tt = branch_anim_decal("lightseeker_roof", "lightseeker_chair_idle", v(0.5, 0.05), Z_OBJECTS)
 tt.main_script.update = kr4_scripts.lightseeker_roof.update
+tt.render.sprites[1].offset = v(0, 75)
+tt.render.sprites[1].z = Z_OBJECTS_COVERS + 1
+
+tt = branch_anim_decal("denas", "denas_idle", v(0.5, 0.138), Z_OBJECTS_COVERS + 2)
+tt.main_script.update = kr4_scripts.branch_looping_decal.update
+tt.loop_variants = {
+	{animation_idle = "denas_idle", animation_end = "denas_taunt", min_cooldown = 30, max_cooldown = 50},
+	{animation_idle = "denas_idle", animation_end = "denas_drink", min_cooldown = 40, max_cooldown = 60}
+}
+
+tt = RT("fx_jokull_breath", "fx")
+tt.render.sprites[1].name = "mega_boss_dragon_breath_freeze_run"
+tt.render.sprites[1].anchor = v(0.5, 0.3)
+
+tt = RT("mod_jokull_freeze", "mod_stun")
+tt.modifier.duration = 1
+
+tt = RT("fx_magnus_end_explosion", "fx")
+tt.render.sprites[1].name = "magnus_tower_destroyed_explosion_run"
+tt.render.sprites[1].anchor = v(0.5, 0.5)
+
 
 tt = branch_anim_decal("cannon_traffic_guy", "Stage_11_cannon_traffic_guy_idle", v(0.5, 0.2), Z_OBJECTS)
 tt.main_script.update = kr4_scripts.branch_looping_decal.update

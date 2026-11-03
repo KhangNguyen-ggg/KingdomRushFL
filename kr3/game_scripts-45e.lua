@@ -3775,6 +3775,7 @@ function branch_kill_all_enemies_for_victory(store, stop_wave_spawns)
 	store.waves_finished = true
 
 	if store.level then
+		store.level.kr4_boss_done = true
 		store.level.run_complete = true
 	end
 end
@@ -8425,7 +8426,7 @@ function scripts.magnus.update(this, store)
 	local initial_schedule = this.magnus and this.magnus.wave_skills and this.magnus.wave_skills[last_wave]
 	local next_cast_ts = initial_schedule and store.tick_ts or 1e+99
 
-	while true do
+	while not this.exit do
 		local wave = store.wave_group_number or 0
 		local schedule = this.magnus and this.magnus.wave_skills and this.magnus.wave_skills[wave]
 
@@ -8442,6 +8443,13 @@ function scripts.magnus.update(this, store)
 
 		coroutine.yield()
 	end
+	for _, p in ipairs({{532,412},{443,409},{498,435},{449,502},{509,501},{476,394},{424,411},{463,452}}) do
+		branch_spawn_scene(store, "fx_magnus_end_explosion", p[1], p[2])
+		U.y_wait(store, 0.33)
+	end
+	for _, sprite in ipairs(this.render.sprites) do sprite.hidden = true end
+	this.exit_done = true
+
 end
 
 scripts.stage12_sheep = {}
@@ -11403,7 +11411,7 @@ end
 local stage161_horn_cooldowns = {16, 12, 12}
 local stage161_horn_counts = {2, 2, 3}
 local stage161_final_wave = 15
-local stage161_ice_platform_pos = V.v(481, 308)
+local stage161_ice_platform_pos = V.v(481, 460)
 
 function branch_stage161_state(store)
 	store.branch_stage161_dragon = store.branch_stage161_dragon or {
@@ -11476,7 +11484,7 @@ function branch_stage161_collapse_ice_platform(store, state)
 	for _, e in pairs(store.entities) do
 		local sprite = e.render and e.render.sprites and e.render.sprites[1]
 
-		if sprite and (sprite.name == "dragon_camouflage" or sprite.name == "dragon_camouflage_mask") then
+		if sprite and sprite.name == "dragon_camouflage" then
 			branch_stage161_set_entity_visible(e, false)
 			queue_remove(store, e)
 		end
@@ -11502,7 +11510,7 @@ end
 
 function branch_stage161_spawn_boss(store, dormant)
 	local state = branch_stage161_state(store)
-	local boss_pos = V.vclone(stage161_ice_platform_pos)
+	local boss_pos = V.v(344, 539)
 	local boss = branch_spawn_from_pos_to_path(store, "enemy_mega_boss_dragon", boss_pos, 2, 2, 111)
 
 	if boss then
@@ -11610,12 +11618,7 @@ end
 function branch_stage161_update_boss_hp(state, boss)
 	if boss and boss.health then
 		boss.health.hp = math.max(0, (boss.stage161_max_hits or 5) - (state.hits or 0))
-		local phase = state.hits >= 4 and 3 or state.hits >= 2 and 2 or 1
-		for _, sprite in ipairs(boss.render.sprites) do
-			if sprite.stage161_damage_names then
-				sprite.name = sprite.stage161_damage_names[phase]
-			end
-		end
+		boss.stage161_hit = true
 	end
 end
 
@@ -11863,72 +11866,81 @@ scripts.mega_boss_dragon = {}
 
 function scripts.mega_boss_dragon.update(this, store)
 	local state = branch_stage161_state(store)
-
 	state.boss = this
-	this.stage161_max_hits = this.stage161_max_hits or 5
-	this.health.hp_max = this.stage161_max_hits
-	this.health.hp = this.stage161_max_hits - (state.hits or 0)
+	this.stage161_max_hits = 5
+	this.health.hp_max = 5
+	this.health.hp = 5 - state.hits
 	this.health.immune_to = DAMAGE_ALL_TYPES
 	this.enemy.lives_cost = 0
-	this.vis.flags = 0
 	this.ui.can_click = false
 	this.ui.can_select = false
-
-	if this.stage161_dormant then
-		branch_stage161_set_entity_visible(this, true)
-		if this.health_bar then
-			this.health_bar.hidden = true
-		end
-
-		while store.entities[this.id] and not state.boss_active and not state.finished and not this.health.dead do
-			coroutine.yield()
-		end
-
-		if not store.entities[this.id] or state.finished or this.health.dead then
-			return
-		end
-
-		this.stage161_dormant = false
+	local function animation(name, loop)
+		local phase = branch_stage161_horn_phase(state)
+		local suffix = phase == 3 and "Damage2" or phase == 2 and "Damage1" or ""
+		U.animation_start(this, name .. suffix, nil, store.tick_ts, loop, 1, true)
 	end
-
-	branch_stage161_set_boss_visible(this, true)
-	branch_stage161_update_boss_hp(state, this)
-
-	local horn_ts = store.tick_ts + 4
-	local launch_ts = store.tick_ts + math.random(4, 8)
-
+	animation("idle", true)
+	local horn_ts, freeze_ts, launch_ts = store.tick_ts + 4, store.tick_ts + 9, store.tick_ts + 5
 	while store.entities[this.id] and not state.finished and not this.health.dead do
 		local phase = branch_stage161_horn_phase(state)
-
-		if store.tick_ts >= horn_ts then
-			if branch_stage161_horn_attack(store, this) then
-				horn_ts = store.tick_ts + (stage161_horn_cooldowns[phase] or 12)
-			else
-				horn_ts = store.tick_ts + 2
+		if this.stage161_hit then
+			this.stage161_hit = nil
+			animation("toStunned", false)
+			U.y_animation_wait(this, 1)
+			animation("stunned", true)
+			U.y_wait(store, 1)
+			animation("toIdle", false)
+			U.y_animation_wait(this, 1)
+			animation("idle", true)
+		elseif store.tick_ts >= horn_ts then
+			animation("shoot", false)
+			branch_stage161_horn_attack(store, this)
+			U.y_animation_wait(this, 1)
+			horn_ts = store.tick_ts + (stage161_horn_cooldowns[phase] or 12)
+			animation("idle", true)
+		elseif store.tick_ts >= freeze_ts then
+			local center = branch_find_soldier_cluster_pos(store, 150, 1)
+			if not center then
+				for _, tower in pairs(store.entities) do
+					if tower.tower and tower.tower.type ~= "holder" and not tower.tower_holder then center = tower.pos break end
+				end
 			end
+			if center then
+				animation("fire", false)
+				S:queue("barbarians_jokull_breath")
+				U.y_wait(store, 0.4)
+				branch_spawn_scene(store, "fx_jokull_breath", center.x, center.y)
+				for _, target in pairs(store.entities) do
+					if target.pos and V.dist(target.pos.x, target.pos.y, center.x, center.y) <= 150 then
+						local mod_name
+						if target.tower and not target.tower_holder then mod_name = "mod_branch_tower_block_frost"
+						elseif target.soldier and target.health and not target.health.dead and math.random() < 0.8 then mod_name = "mod_jokull_freeze" end
+						if mod_name then
+							local mod = E:create_entity(mod_name)
+							mod.modifier.source_id, mod.modifier.target_id = this.id, target.id
+							mod.modifier.duration = target.tower and 3 or 1
+							queue_insert(store, mod)
+						end
+					end
+				end
+				U.y_animation_wait(this, 1)
+				animation("idle", true)
+			end
+			freeze_ts = store.tick_ts + (phase == 1 and 16 or 12)
 		elseif store.tick_ts >= launch_ts then
-			if branch_stage161_launch_minions(store, this) then
-				launch_ts = store.tick_ts + math.random(15, 25)
-			else
-				launch_ts = store.tick_ts + 3
-			end
+			branch_stage161_launch_minions(store, this)
+			launch_ts = store.tick_ts + math.random(15, 25)
 		else
 			coroutine.yield()
 		end
 	end
-
 	if store.entities[this.id] then
-		local death_ts = store.tick_ts
-		while store.tick_ts - death_ts < 1.5 do
-			local progress = (store.tick_ts - death_ts) / 1.5
-			for _, sprite in ipairs(this.render.sprites) do
-				sprite.alpha = 255 * (1 - progress)
-			end
-			coroutine.yield()
-		end
+		U.y_animation_play(this, "death", nil, store.tick_ts, 1, 1)
 		queue_remove(store, this)
 	end
+	state.death_finished = true
 end
+
 
 local branch_troll_hut_schedules = {
 	[157] = {
@@ -13730,6 +13742,7 @@ function scripts.branch_stage_controller.update(this, store)
 	local malik_throne
 	local boss_dwarf_scene
 	local lightseeker_roof
+	local magnus_scene, denas_scene
 	local raptor_nests = {}
 	local ice_holder_data = {}
 	local afterlife_previews, afterlife_bosses, afterlife_boss_seen
@@ -13756,6 +13769,13 @@ function scripts.branch_stage_controller.update(this, store)
 	local stage183_ambush_fired = {}
 	local stage183_active_ambushes = {}
 
+	-- Generic data-only levels must wait for the scripted boss or ending scene.
+	if store.level_mode == GAME_MODE_CAMPAIGN and (level == 161 or level == 164 or level == 165 or level == 166 or level == 192) and not store.level.update then
+		store.level.run_complete = nil
+		store.level.update = function(level_state)
+			while not level_state.kr4_boss_done do coroutine.yield() end
+		end
+	end
 	branch_stage16_split_setup(store, level, this)
 
 	if level == 155 then
@@ -13782,14 +13802,16 @@ function scripts.branch_stage_controller.update(this, store)
 		viking_boss_scene.loop_variants = nil
 	elseif level == 161 and store.level_mode == GAME_MODE_CAMPAIGN then
 		local state = branch_stage161_state(store)
-		branch_stage161_spawn_boss(store, true)
+		state.rider_dragon = branch_spawn_scene(store, "viking_boss_dragon", 480, 520)
+		state.rider_dragon.stage161_home_pos = V.v(480, 520)
+		state.next_attack_ts = store.tick_ts + 12
 		state.left_cannon = branch_spawn_scene(store, "stage11_goblin_cannon_left", 330, 1015, {stage161_final_y = 215})
 		state.right_cannon = branch_spawn_scene(store, "stage11_goblin_cannon_right", 645, 1015, {stage161_final_y = 215})
 		branch_stage161_set_entity_visible(state.left_cannon, false)
 		branch_stage161_set_entity_visible(state.right_cannon, false)
 	elseif level == 164 and store.level_mode == GAME_MODE_CAMPAIGN then
 		branch_spawn_scene(store, "ladle", 120, 331)
-		branch_spawn_scene(store, "magnus", 487, 372)
+		magnus_scene = branch_spawn_scene(store, "magnus", 487, 372)
 		branch_spawn_scene(store, "house_toad", 794, 602)
 
 		for i, cfg in ipairs(stage164_golem_house_schedules) do
@@ -13800,6 +13822,15 @@ function scripts.branch_stage_controller.update(this, store)
 		end
 	elseif level == 165 and store.level_mode == GAME_MODE_CAMPAIGN then
 		lightseeker_roof = branch_spawn_scene(store, "lightseeker_roof", 113, 350)
+	end
+
+	if (level == 166 or level == 192) and store.level_mode == GAME_MODE_CAMPAIGN then
+		-- The port splits the original wide stage into two maps; keep the king inside each view.
+		denas_scene = branch_spawn_scene(store, "denas", level == 166 and 65 or 95, level == 166 and 440 or 445)
+		if level == 192 and store.kr4_denas_continuation then
+			store.lives = store.kr4_denas_continuation.lives
+			store.player_gold = 2500
+		end
 	end
 
 	if level == 169 and store.level_mode == GAME_MODE_CAMPAIGN then
@@ -14246,13 +14277,31 @@ function scripts.branch_stage_controller.update(this, store)
 		end
 		if store.level_mode == GAME_MODE_CAMPAIGN and level == 161 then
 			local state = branch_stage161_state(store)
-			if not boss_spawned and (wave >= 15 or store.waves_finished) then
+			if not boss_spawned and store.waves_finished and not LU.has_alive_enemies(store) then
 				boss_spawned = branch_stage161_activate_boss(store) ~= nil
+			elseif not boss_spawned and wave > 0 and wave < 15 and store.tick_ts >= state.next_attack_ts then
+				branch_viking_stage11_attack(store, state.rider_dragon)
+				state.next_attack_ts = store.tick_ts + 18
 			end
-			if state.finished and not this.stage161_victory then
+			if state.finished and state.death_finished and not this.stage161_victory then
 				this.stage161_victory = true
 				branch_kill_all_enemies_for_victory(store, true)
 			end
+		end
+		if store.level_mode == GAME_MODE_CAMPAIGN and (level == 164 or level == 166) and not boss_spawned and store.waves_finished and not LU.has_alive_enemies(store) then
+			boss_spawned = true
+			if magnus_scene and store.entities[magnus_scene.id] then
+				magnus_scene.exit = true
+				while not magnus_scene.exit_done do coroutine.yield() end
+			elseif denas_scene and store.entities[denas_scene.id] then
+				U.y_animation_play(denas_scene, "denas_taunt", nil, store.tick_ts, 2, 1)
+				store.custom_game_outcome = {
+					next_item_name = "game", level_idx = 192, level_mode = store.level_mode,
+					level_difficulty = store.level_difficulty, campaign_variant = store.campaign_variant,
+					kr4_denas_continuation = {lives = store.lives}
+				}
+			end
+			branch_kill_all_enemies_for_victory(store, true)
 		end
 		if store.level_mode == GAME_MODE_CAMPAIGN and level == 156 and not boss_spawned and wave >= 15 then
 			boss_spawned = true

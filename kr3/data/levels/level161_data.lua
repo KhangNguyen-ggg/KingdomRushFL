@@ -1,5 +1,6 @@
 return {
 	level_terrain_type = 401,
+	required_exoskeletons = {"mega_dragon_boss"},
 	locked_hero = false,
 	max_upgrade_level = 5,
 	custom_start_pos = {
@@ -318,7 +319,7 @@ return {
 			template = "fx_repeat_forever",
 			pos = {
 				x = 481,
-				y = 308
+				y = 460
 			},
 			["render.sprites[1].z"] = Z_TOWER_BASES - 2,
 			["render.sprites[1].name"] = "dragon_camouflage",

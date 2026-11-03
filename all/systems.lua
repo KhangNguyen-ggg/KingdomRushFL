@@ -5074,6 +5074,12 @@ end
 
 function sys.seen_tracker:on_insert(entity, store)
 	if (entity.tower or entity.enemy) and not entity.ignore_seen_tracker then
+		if entity.enemy and not entity.soldier and not entity.hero then
+			local ok, err = xpcall(function()
+				signal.emit("wave-notification", "enemy", entity)
+			end, debug.traceback)
+			if not ok then log.error("Enemy card failed for %s: %s", entity.template_name, err) end
+		end
 		U.mark_seen(store, entity.template_name)
 	end
 

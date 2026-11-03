@@ -88,6 +88,19 @@ local features = require("features")
 require("gg_views_custom")
 
 local data = require("data.game_gui_data")
+local enemy_notifications = require("enemy_notifications")
+
+local function notification_portrait(image, width, height)
+	local face = KImageView:new(image)
+	local ss = face.image_ss
+	local ref = ss.ref_scale or 1
+	local w, h = ss.f_quad[3] * ref, ss.f_quad[4] * ref
+	local scale = math.min(width / w, height / h)
+	face.scale = V.v(scale, scale)
+	face.anchor = V.v(ss.trim[1] * ref + w / 2, ss.trim[2] * ref + h / 2)
+	face.propagate_on_click = true
+	return face
+end
 local tower_menus = require("data.tower_menus_data")
 
 local IS_PHONE = KR_TARGET == "phone"
@@ -1225,6 +1238,20 @@ end
 
 local function wave_notification_handler(type, id, force)
 	log.debug("wave_notification - type:%s, id:%s", type, id)
+	if type == "enemy" then
+		local entity = id
+		local seen_key = "enemy_card:" .. entity.template_name
+		local store = game_gui.game.store
+		if U.is_seen(store, seen_key) then return end
+		if enemy_notifications.prepare(entity, I, data.notifications) then
+			game_gui:queue_notification_icon(entity.template_name, true)
+			U.mark_seen(store, seen_key)
+		end
+		return
+	elseif type == "icon" and E.entities[id] and E.entities[id].enemy then
+		-- Enemy cards are queued only after a live enemy is inserted, including scripted spawns.
+		return
+	end
 
 	if type == "icon" and game and game.store and game.store.level_mode_6 and kr6_enemy_notification_ids[id] then
 		log.debug("suppressing KR6 enemy notification: %s", id)
@@ -8916,7 +8943,22 @@ function NotificationView:show(id, no_transition, force_show)
 		return b
 	end
 
-	local function create_photo(image, rotation, small_shadow)
+	local function create_photo(image, rotation, small_shadow, portrait)
+		if portrait then
+			local border = KImageView:new("notifications_polaroid_overlay")
+			local photo = KView:new(V.v(border.size.x, border.size.y))
+			photo.anchor = V.v(photo.size.x / 2, photo.size.y / 2)
+			photo.r = rotation
+			photo.propagate_on_click = true
+			border.propagate_on_click = true
+			photo:add_child(border)
+			if image then
+				local face = notification_portrait(image, photo.size.x - 48, photo.size.y - 56)
+				face.pos = V.v(photo.size.x / 2, photo.size.y / 2)
+				photo:add_child(face)
+			end
+			return photo
+		end
 		local v_image = KImageView:new(image)
 
 		v_image.anchor = V.v(v_image.size.x / 2, v_image.size.y / 2)
@@ -9033,7 +9075,7 @@ function NotificationView:show(id, no_transition, force_show)
 		return views, v_paper.size.x, v_paper.size.y
 	end
 
-	local function create_layout(layout, image, prefix, subtitle, offset_y)
+	local function create_layout(layout, image, prefix, subtitle, offset_y, enemy_card)
 		offset_y = offset_y or 0
 
 		local views = {}
@@ -9055,7 +9097,7 @@ function NotificationView:show(id, no_transition, force_show)
 			local l_name = GGLabel:new(V.v(label_w, 36))
 
 			l_name.pos = V.v(ox, CJK(oy, nil, nil, oy - 5))
-			l_name.text = _(prefix .. "_NAME")
+			l_name.text = enemy_card and enemy_card.title or _(prefix .. "_NAME")
 			l_name.font_name = "body_slides"
 			l_name.font_size = 28
 			l_name.colors.text = {
@@ -9074,7 +9116,7 @@ function NotificationView:show(id, no_transition, force_show)
 			local l_desc = GGLabel:new(V.v(label_w, 100))
 
 			l_desc.pos = V.v(ox, oy)
-			l_desc.text = _(prefix .. "_DESCRIPTION")
+			l_desc.text = enemy_card and enemy_card.description or _(prefix .. "_DESCRIPTION")
 			l_desc.font_name = "body_slides"
 			l_desc.font_size = 19
 			l_desc.line_height = CJK(0.8, nil, 1.1, 0.9)
@@ -9094,7 +9136,7 @@ function NotificationView:show(id, no_transition, force_show)
 			local l_extra = GGLabel:new(V.v(label_w, 90))
 
 			l_extra.pos = V.v(ox, oy + 1)
-			l_extra.text = string.gsub(_(prefix .. "_EXTRA"), "- ", "* ")
+			l_extra.text = enemy_card and enemy_card.extra or string.gsub(_(prefix .. "_EXTRA"), "- ", "* ")
 			l_extra.font_name = "body_slides"
 			l_extra.font_size = 13
 			l_extra.line_height = CJK(0.85, nil, 1.1, 0.9)
@@ -9208,7 +9250,7 @@ function NotificationView:show(id, no_transition, force_show)
 			oy = oy + my + l_extra.size.y
 		end
 
-		local v_photo = create_photo(image, math.pi / 24)
+		local v_photo = create_photo(image, math.pi / 24, nil, enemy_card ~= nil)
 
 		v_photo.pos = V.v(134, 160 + offset_y)
 
@@ -9289,7 +9331,7 @@ function NotificationView:show(id, no_transition, force_show)
 			n_prefix = t and t.info and t.info.i18n_key or n_prefix
 		end
 
-		local views, pw, ph = create_layout(n.layout, n.image, n_prefix, n.sub)
+		local views, pw, ph = create_layout(n.layout, n.image, n_prefix, n.sub, nil, n.enemy_card)
 		local v_title = create_noti_title(n.layout)
 
 		v_title.anchor = V.v(0, v_title.size.y)
@@ -9641,7 +9683,7 @@ function NotificationQueue:add(id, force)
 		return
 	end
 
-	local v_icon = NotificationIcon:new(n.icon, id, n.layout)
+	local v_icon = NotificationIcon:new(n.icon, id, n.layout, n.enemy_card and n.image)
 
 	v_icon.pos.y = #self.children * (v_icon.size.y + self.space_y)
 
@@ -9685,8 +9727,19 @@ end
 
 NotificationIcon = class("NotificationIcon", KImageView)
 
-function NotificationIcon:initialize(image, notification_id, layout)
-	NotificationIcon.super.initialize(self, image)
+function NotificationIcon:initialize(image, notification_id, layout, portrait)
+	if portrait then
+		KImageView.super.initialize(self, V.v(112, 92))
+		local border = KImageView:new(image)
+		border.scale = V.v(self.size.x / border.size.x, self.size.y / border.size.y)
+		border.propagate_on_click = true
+		self:add_child(border)
+		local face = notification_portrait(portrait, 84, 68)
+		face.pos = V.v(self.size.x / 2, self.size.y / 2)
+		self:add_child(face)
+	else
+		NotificationIcon.super.initialize(self, image)
+	end
 
 	self.anchor = V.v(self.size.x / 2, self.size.y / 2)
 	self.notification_id = notification_id

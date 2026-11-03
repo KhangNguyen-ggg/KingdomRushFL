@@ -1,8 +1,9 @@
 .vscode/
 .idea/
 /custom/
-/Z_Mod
+/Z_Mod/
 # Logs and system scratch files
 *.log
+/KRFL_crash_log.txt
 Thumbs.db
 desktop.ini

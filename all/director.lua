@@ -472,6 +472,8 @@ end
 
 --第6关结束后props出了问题（应该是漫画）
 function director:queue_load_item_named(name, force_reload)
+	-- A continuation loads another battle while the old game object is still unloading.
+	if name == "game" and self.next_item_args and self.next_item_args.kr4_denas_continuation then force_reload = true end
 	local function _require(name, force)
 		if force_reload or force then
 			package.loaded[name] = nil
@@ -576,6 +578,7 @@ function director:queue_load_item_named(name, force_reload)
 
 		game.store = {}
 		game.store.level_idx = args.level_idx
+		game.store.kr4_denas_continuation = args.level_idx == 192 and args.kr4_denas_continuation or nil
 		game.store.campaign_variant = args.campaign_variant or CAMPAIGN_VARIANT_REGULAR
 		if args.level_idx >= 251 and args.level_idx <= 269 then
 			game.store.level_mode_6 = resolve_kr6_level_mode(args.level_mode, game.store.campaign_variant)
