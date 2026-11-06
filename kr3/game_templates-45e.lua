@@ -4252,6 +4252,8 @@ tt.path = 1
 tt.subpath = 1
 tt.node = 1
 
+local branch_scene_layers = {bilbo = 2, trolley = 2, spawner = 14, not_my_tempo = 5, gummi_bears = 4}
+
 local function branch_anim_decal(name, anim, anchor, z, click_rect)
 	local t = RT(name, "decal_scripted")
 	t.main_script.update = kr4_scripts.branch_static_decal.update
@@ -4259,6 +4261,16 @@ local function branch_anim_decal(name, anim, anchor, z, click_rect)
 	t.render.sprites[1].animated = true
 	t.render.sprites[1].anchor = anchor or v(0.5, 0.5)
 	t.render.sprites[1].z = z or Z_OBJECTS
+	if branch_scene_layers[name] then
+		t.animation_group = "layers"
+		for i = 1, branch_scene_layers[name] do
+			local s = table.deepclone(t.render.sprites[1])
+			s.prefix = "kr4_scene_layer" .. i
+			s.group = t.animation_group
+			s.draw_order = i
+			t.render.sprites[i] = s
+		end
+	end
 	if click_rect then
 		AC(t, "ui")
 		t.ui.can_click = true
@@ -4337,7 +4349,7 @@ local function branch_layered_special_holder(name, prefix, anim, layers, anchor)
 end
 
 tt = branch_anim_decal("boss_dwarf", "boss_dwarf_idle", v(0.5, 0.5), Z_OBJECTS)
-tt.main_script.update = kr4_scripts.boss_dwarf_scene.update
+tt.main_script.update = require("bolgur_stage").scene_update
 tt.render.sprites[2] = E:clone_c("sprite")
 tt.render.sprites[2].prefix = "boss_dwarf_throne"
 tt.render.sprites[2].name = "run"
@@ -4810,8 +4822,10 @@ tt.render.sprites[1].hidden = true
 
 -- KR4 main-campaign scene/cameo objects used by levels 150-165.
 tt = branch_anim_decal("bilbo", "Stage_1_bilbo_idle", v(0.5, 0.16), Z_OBJECTS, r(-35, -12, 70, 70))
-tt.click_animation = {"Stage_1_bilbo_bilbo", "Stage_1_bilbo_in"}
-tt.loop_animation = "Stage_1_bilbo_idle"
+tt.main_script.update = kr4_scripts.stage1_bilbo.update
+tt.min_cooldown = 15
+tt.max_cooldown = 30
+tt.loop_times = 3
 
 tt = branch_static_frame("condor", "stage_1_condor", v(0.5, 0.5), Z_OBJECTS)
 tt = branch_static_frame("moving_cloud", "stage_1_cloud_1", v(0.5, 0.5), Z_OBJECTS)
@@ -6842,6 +6856,9 @@ zeta_statue_scene("zeta_eva3_statue315", "Stage_87_statue315", "zeta_eva3_statue
 zeta_statue_scene("zeta_eva3_statue45", "Stage_87_statue45", "zeta_eva3_statue135", 99)
 zeta_statue_scene("zeta_eva3_statue135", "Stage_87_statue135")
 zeta_animated_scene("zeta_stage87_end", "Stage_87_2", "run", Z_OBJECTS + 7, v(0.5, 1))
+
+require("kr4_easter_eggs").register_templates()
+require("bolgur_stage").register_templates()
 
 tt = RT("zeta_stage_event", "decal_scripted")
 tt.main_script.update = kr4_scripts.zeta_stage_event.update

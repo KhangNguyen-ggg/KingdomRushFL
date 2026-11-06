@@ -1,8 +1,9 @@
 -- Native VFX follow the original rig projections.
 local M={}
-local E,V,A
+local E,V,A,SH
 local Assets=require('volibear_animation_map')
 local Back=require('volibear_back_anchors')
+local BackPlanes=require('volibear_back_planes')
 local Hands=require('volibear_hand_anchors')
 local directions={'e','ne','n','nw','w','sw','s','se'}
 local plans={
@@ -23,13 +24,19 @@ local plans={
  shield_break={layers={'e_hit_01'},life=.4,flag='living',attach=true},
  r_warning={layers={'r_aoe_warning'},life=1,ground_first=true},
  r_leap={layers={'r_leapgroundshadow'},life=1,ground_first=true,flag='living'},
+ r_smoke={layers={'r_smoke'},life=1e9,flag='ult',body=true,attach=true,loop=true,smoke=true},
  r_hit={layers={'r_landingimpact_01_ground','r_landingimpact_01_atmosphere'},ground_first=true},
  r_end={layers={'r_impact_dust_a'},life=.55,ground_first=true},
- q_step={layers={'q_pawprints'},life=.75,ground_first=true}
+ q_step={layers={'q_pawprints'},life=.75,ground_first=true},
+ q_trail={layers={'q_trail','q_trail','q_trail'},life=.24,trail=true}
 }
 local baked={aura=true,windup=true,slash=true,q_cast=true,q_charge=true,q_swing=true,q_impact=true,e_ground=true,r_ground=true,r_form=true,death=true,respawn=true}
 local function alive(e)return e and not e.pending_removal and e.health and not e.health.dead and e.health.hp>0 end
 local function left(sp)local d=sp.volibear_move_direction;return d~=nil and d>=3 and d<=5 or d==nil and not sp.flip_x or false end
+local function body_frame(owner,store)
+ local body=owner.render.sprites[1];local elapsed=store.tick_ts-body.ts+(body.time_offset or 0)
+ return body,body.animation and A:fni(body.animation,elapsed,body.loop,body.fps) or A:fn(body.prefix..'_'..body.name,elapsed,body.loop,body.fps)
+end
 local function remove(e,store)
  if e.kind=='w_mark' or e.kind=='chain_hit' then
   local owner=store.entities[e.owner_id];local s=owner and owner.boss_state
@@ -46,6 +53,7 @@ local function update(e,store)
   if plan.flag and (not alive(owner) or not s or not s.voli_ready) then break end
   if plan.flag=='shield' and (store.tick_ts>=(s.shield_end or 0) or (s.shield or 0)<=0) then break end
   if plan.flag=='charged' and (s.stacks or 0)<5 then break end
+  if plan.flag=='ult' and store.tick_ts>=(s.ult_end or 0) then break end
   if plan.flag=='mark' and (not s.marks or (s.marks[e.follow_id] or 0)<=store.tick_ts) then break end
   local target=e.follow_id and store.entities[e.follow_id]
   if e.follow_id then
@@ -59,8 +67,7 @@ local function update(e,store)
   local model_units=Assets.model_units*(s and s.ult_end and store.tick_ts<s.ult_end and 1.25 or 1)
   local body,frame,pose
   if plan.back or plan.attach or plan.hands then
-   body=owner.render.sprites[1]
-   frame=body.animation and A:fni(body.animation,store.tick_ts-body.ts,body.loop,body.fps) or A:fn(body.prefix..'_'..body.name,store.tick_ts-body.ts,body.loop,body.fps)
+   body,frame=body_frame(owner,store)
    pose=assert(Back.poses[frame],'Missing Volibear rig anchor: '..frame)
   end
   for i,sp in ipairs(e.render.sprites)do
@@ -70,21 +77,33 @@ local function update(e,store)
    sp.scale.x,sp.scale.y=info.world/(info.canvas or 256)*units,info.world/(info.canvas or 256)*units
    sp.flip_x=flip;sp.alpha=255
    if plan.target_hit then sp.alpha=255*math.min(1,(e.life-elapsed)/.08) end
+   if plan.trail then
+    local size=model_units/Assets.model_units;local shift=(i-2)*11*size
+    sp.r=e.angle+math.pi/2;sp.offset.x,sp.offset.y=-math.sin(e.angle)*shift,math.cos(e.angle)*shift
+    sp.scale.x=(i==2 and 7 or 4)*size/128;sp.scale.y=(i==2 and 92 or 66)*size/256
+    sp.alpha=200*(1-elapsed/e.life)^2
+   end
    if plan.back or plan.attach then
     if plan.attach then
      local sign=pose[5]<0 and body.flip_x and -1 or 1
      e.pos.x=owner.pos.x+body.offset.x+pose[6]*model_units*sign
      e.pos.y=owner.pos.y+body.offset.y+pose[7]*model_units
+     if plan.smoke then
+      sp.z=body.z or Z_OBJECTS
+      sp.sort_y=(body.sort_y or owner.pos.y+(body.sort_y_offset or 0))+.04
+      sp.alpha=255*math.min(1,elapsed/.18,(s.ult_end-store.tick_ts)/.35)
+     end
     else
-     local direction=pose[5]<0 and 'base' or directions[pose[5]+1]
+     local plane=assert(BackPlanes[frame],'Missing Volibear back plane: '..frame)
+     local direction=plane[4]==0 and 'base' or directions[plane[4]]
      local tag='passive_back_'..direction;info=Assets.effects[tag]
      local mirrored=pose[5]<0 and body.flip_x;local sign=mirrored and -1 or 1
      e.pos.x=owner.pos.x+body.offset.x+pose[1]*units*sign
      e.pos.y=owner.pos.y+body.offset.y+pose[2]*units
      sp.name='voli_native_fx_'..tag;sp.animation=A.db[sp.name]
      sp.anchor.x,sp.anchor.y=info.x,info.y
-     sp.scale.x,sp.scale.y=info.world/(info.canvas or 256)*units,info.world/(info.canvas or 256)*units
-     sp.r=(pose[3]-Back.references[direction][1])*sign;sp.flip_x=mirrored or false
+     sp.scale.x,sp.scale.y=info.world/(info.canvas or 256)*units*plane[2],info.world/(info.canvas or 256)*units*plane[3]
+     sp.r=plane[1]*sign;sp.flip_x=mirrored or false
      sp.z=body.z or Z_OBJECTS
      -- Keep the aura beside its owner in depth order, even though its anchor is raised.
      sp.sort_y=(body.sort_y or owner.pos.y+(body.sort_y_offset or 0))+(pose[4]>0 and -.01 or .01)
@@ -108,6 +127,12 @@ local function update(e,store)
     local from,to=store.entities[e.from_id],store.entities[e.target_id]
     if not alive(from) or not alive(to) then remove(e,store);return end
     local ax,ay=from.pos.x+from.unit.hit_offset.x,from.pos.y+from.unit.hit_offset.y
+    if e.from_hand then
+     local body,frame=body_frame(from,store)
+     local hand=assert(Hands.poses[frame],'Missing Volibear hand anchor: '..frame);local at=(e.from_hand-1)*4
+     local sign=Back.poses[frame][5]<0 and body.flip_x and -1 or 1
+     ax,ay=from.pos.x+body.offset.x+hand[at+1]*model_units*sign,from.pos.y+body.offset.y+hand[at+2]*model_units
+    end
     local bx,by=to.pos.x+to.unit.hit_offset.x,to.pos.y+to.unit.hit_offset.y
     local dx,dy=bx-ax,by-ay
     e.pos.x,e.pos.y=(ax+bx)/2,(ay+by)/2
@@ -121,6 +146,7 @@ local function update(e,store)
 end
 function M.register()
  E,V,A=require('entity_db'),require('klua.vector'),require('animation_db')
+ SH=require('klove.shader_db')
  Assets.register_fx(A)
  if E.entities.volibear_original_vfx then return end
  local t=E:register_t('volibear_original_vfx','decal_scripted');t.main_script.insert=nil;t.main_script.update=update
@@ -129,6 +155,7 @@ function M.emit(owner,store,kind,opts)
  if kind=='heal' or baked[kind] then return end
  opts=opts or {};local plan=assert(plans[kind],kind);local e=E:create_entity('volibear_original_vfx')
  e.kind,e.owner_id,e.follow_id,e.face=kind,owner.id,opts.follow_id,opts.face
+ if plan.trail then e.angle=opts.angle or 0 end
  e.pos=V.vclone(opts.pos or owner.pos);e.dx,e.dy=opts.x or 0,opts.y or 0
  -- The leap shadow follows the ground root; baked animation carries vertical motion.
  if kind=='r_leap' or plan.body then e.dy=0 end
@@ -140,6 +167,10 @@ function M.emit(owner,store,kind,opts)
   sp.ts=store.tick_ts;sp.fps=kind=='chain' and #sp.animation.frames/e.life or FPS
   sp.anchor=V.v(info.x,info.y);sp.offset=V.v(0,0);sp.scale=V.v(info.world/(info.canvas or 256)*.25*(plan.scale or 1),info.world/(info.canvas or 256)*.25*(plan.scale or 1))
   sp.r=opts.angle or 0;sp.alpha=0;sp.z=plan.ground_first and i==1 and Z_DECALS or Z_OBJECTS+1
+  if plan.trail then
+   local body=owner.render.sprites[1];sp.shader='p_volibear_q_trail';sp.z=body.z or Z_OBJECTS
+   sp.sort_y=(body.sort_y or owner.pos.y+(body.sort_y_offset or 0))+.03
+  end
   e.render.sprites[i]=sp
  end
  require('simulation'):queue_insert_entity(e);return e
@@ -150,10 +181,10 @@ function M.strike(owner,store,target,kind,marked)
  if kind=='w_hit' and marked then M.emit(owner,store,'w_chomp',{follow_id=owner.id,face=true}) end
 end
 function M.chain(owner,store,from,target)
- local offset=target.unit.hit_offset;local finish={x=target.pos.x+offset.x,y=target.pos.y+offset.y,id=target.id}
- local e=M.emit(owner,store,'chain');e.chain=true;e.from_id=from.id or owner.id;e.target_id=target.id
+ local e=M.emit(owner,store,'chain');e.chain=true;e.from_id=from.id;e.target_id=target.id
+ if from.id==owner.id then e.from_hand=owner.render.sprites[1].name=='attack2' and 1 or 2 end
  M.shock(owner,store,target)
- return finish
+ return target
 end
 function M.shock(owner,store,target)
  local s=owner.boss_state;s.vfx_shocks=s.vfx_shocks or {}
@@ -182,13 +213,39 @@ function M.shield_damage(owner,store,broken)
 end
 function M.tick(owner,store)
  local s=owner.boss_state;local now=store.tick_ts
+ local charged=alive(owner) and (s.stacks or 0)>=5
+ local frame=owner.render.frames and owner.render.frames[1]
+ if frame and charged and not s.vfx_body_charged then
+  s.vfx_body_shader,s.vfx_body_shader_args=frame.shader,frame.shader_args
+  frame.shader=SH:get('p_volibear_passive');frame.shader_args=nil;s.vfx_body_charged=true
+ elseif frame and not charged and s.vfx_body_charged then
+  frame.shader,frame.shader_args=s.vfx_body_shader,s.vfx_body_shader_args
+  s.vfx_body_shader,s.vfx_body_shader_args,s.vfx_body_charged=nil,nil,nil
+ end
  if not alive(owner) then return end
  if (s.stacks or 0)>=5 and not s.vfx_charged then
   M.emit(owner,store,'p_aura',{follow_id=owner.id})
   M.emit(owner,store,'p_hands',{follow_id=owner.id})
  end
  s.vfx_charged=(s.stacks or 0)>=5
- if s.ult_end then s.vfx_ult=true elseif s.vfx_ult then s.vfx_ult=nil;M.emit(owner,store,'r_end') end
+ if now<(s.ult_end or 0) then
+  if not s.vfx_ult then M.emit(owner,store,'r_smoke',{follow_id=owner.id}) end
+  s.vfx_ult=true
+ elseif s.vfx_ult then s.vfx_ult=nil;M.emit(owner,store,'r_end') end
+ local body=owner.render.sprites[1];local tag=body.volibear_native_tag or ''
+ if s.q_end and now<s.q_end and tag:find('qrun8_',1,true) and not owner.unit.is_stunned and not owner.boss_form then
+  local previous=s.vfx_q_trail_pos
+  if previous then
+   local dx,dy=owner.pos.x-previous.x,owner.pos.y-previous.y
+   if now>=(s.vfx_q_trail_at or 0) and dx*dx+dy*dy>=6^2 then
+    local _,frame=body_frame(owner,store);local pose=Back.poses[frame]
+    local units=Assets.model_units*(s.ult_end and now<s.ult_end and 1.25 or 1)
+    local sign=pose[5]<0 and body.flip_x and -1 or 1
+    M.emit(owner,store,'q_trail',{pos={x=owner.pos.x+body.offset.x+pose[6]*units*sign,y=owner.pos.y+body.offset.y+pose[7]*units},angle=math.atan2(dy,dx)})
+    s.vfx_q_trail_pos=V.vclone(owner.pos);s.vfx_q_trail_at=now+.08
+   end
+  else s.vfx_q_trail_pos=V.vclone(owner.pos) end
+ else s.vfx_q_trail_pos=nil end
  if s.q_end then
   local previous=s.vfx_step_pos
   if not previous then s.vfx_step_pos=V.vclone(owner.pos)

@@ -15,6 +15,7 @@ return {
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "decal_background",
 			["render.sprites[1].z"] = 1000,

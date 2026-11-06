@@ -1,5 +1,5 @@
 -- FL 8.0.5: current Vietnamese localization plus the new Dove 4.3 tower strings.
-return {
+local strings = {
 	["!!!COMMENT_LOCALIZATION_SOURCE"] = "Keywords+CYUGAME",
 	["%d Life"] = "%d mạng",
 	["%d Lives"] = "%d mạng",
@@ -7904,7 +7904,7 @@ return {
 	["KR4_ACHIEVEMENT_BARNY_DESCRIPTION"] = "Cho Barney đi ngủ.",
 	["KR4_ACHIEVEMENT_BARNY_NAME"] = "Bóng - Bóng!",
 	["KR4_ACHIEVEMENT_BILBO_DOOR_DESCRIPTION"] = "Giúp Bilbo vào trong núi.",
-	["KR4_ACHIEVEMENT_BILBO_DOOR_NAME"] = "Mây nặng đỉnh núi",
+	["KR4_ACHIEVEMENT_BILBO_DOOR_NAME"] = "Vượt qua dãy núi mù sương",
 	["KR4_ACHIEVEMENT_BLACKBROTHER_DESCRIPTION"] = "Tiêu diệt 300 con quạ.",
 	["KR4_ACHIEVEMENT_BLACKBROTHER_NAME"] = "Đêm Giáng sinh",
 	["KR4_ACHIEVEMENT_BLACKBURN_RETURNS_DESCRIPTION"] = "Thu thập đủ năm mảnh giáp của Chúa tể Blackburn.",
@@ -15558,3 +15558,7 @@ return {
 	["wOOt!"] = "Ồ, thầm!",
 	["you can adjust your soldiers rally point to make them defend a different area."] = "Bạn có thể đổi điểm tập kết để binh sĩ bảo vệ khu vực khác.",
 }
+for key, value in pairs(require("data.easter_achievement_strings").vi) do strings[key] = value end
+strings["KR4_ACHIEVEMENT_DEFEAT_DWARF_KING_NAME"] = "Ngai vàng đã đổi chủ"
+strings["KR4_ACHIEVEMENT_DEFEAT_DWARF_KING_DESCRIPTION"] = "Đánh bại Bolgur, vua người lùn."
+return strings

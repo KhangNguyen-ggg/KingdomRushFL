@@ -1,8 +1,8 @@
 return {
-	required_sounds = {"branch_campaigns", "powers_kr4"},
+	required_sounds = {"kr4_easter_eggs_180", "branch_campaigns", "powers_kr4"},
 	required_textures = {},
 	scale_required_textures = {"go_stage180", "kr4_dwarven_empire", "kr4_dinos", "kr4_power_reinforcements"},
-	required_exoskeletons = {"caveman", "prehistoric_dwarf", "velociraptor", "pterodactyl", "pterodactyl_with_dwarf", "carnivorous_plant_def", "carnivorous_plant_venom_proyectile", "carnivorous_plant_venom_fx", "carnivorous_plant_venom_decal", "carnivorous_plant_spit_proyectile", "carnivorous_plant_spit_fx", "stage30_miner_1", "stage30_miner_2", "stage30_special_shine"},
+	required_exoskeletons = {"caveman", "prehistoric_dwarf", "velociraptor", "pterodactyl", "pterodactyl_with_dwarf", "carnivorous_plant_def", "carnivorous_plant_venom_proyectile", "carnivorous_plant_venom_fx", "carnivorous_plant_venom_decal", "carnivorous_plant_spit_proyectile", "carnivorous_plant_spit_fx", "stage30_miner_1", "stage30_miner_2", "stage30_special_shine", "kr4_egg_ambar_dino", "kr4_egg_demogorgon"},
 	level_terrain_type = 409,
 	locked_hero = false,
 	max_upgrade_level = 5,
@@ -19,6 +19,7 @@ return {
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "kr4_branch_stage_controller",
 			level = 180,

@@ -1,4 +1,4 @@
-return {
+local frames = {
 	["bullywag_spawner_layer1_0001"] = {
 		a_name = "go_stage_167.dds",
 		size = {
@@ -11175,3 +11175,10 @@ return {
 		textureRotated = false
 	}
 }
+local aliases = {}
+for name, frame in pairs(frames) do
+	local number = name:match("^stage_17_kermit(%d%d%d%d)$")
+	if number then aliases["stage_17_kermit_" .. number] = frame end
+end
+for name, frame in pairs(aliases) do frames[name] = frame end
+return frames

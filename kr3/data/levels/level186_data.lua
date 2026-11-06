@@ -1,7 +1,7 @@
-﻿return {
-	required_sounds = {"branch_campaigns", "powers_kr4"},
+return {
+	required_sounds = {"kr4_easter_eggs_186", "branch_campaigns", "powers_kr4"},
 	required_textures = {},
-	scale_required_textures = {"go_stage186", "go_stage186_2", "kr4_sandstorm", "kr4_sandstorm_aux", "kr4_level36_crowd", "kr4_level36_malik", "kr4_power_reinforcements"},
+	scale_required_textures = {"kr4_easter_malagar", "go_stage186", "go_stage186_2", "kr4_sandstorm", "kr4_sandstorm_aux", "kr4_level36_crowd", "kr4_level36_malik", "kr4_power_reinforcements"},
 	level_terrain_type = 410,
 	locked_hero = false,
 	max_upgrade_level = 5,
@@ -18,6 +18,7 @@
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "kr4_branch_stage_controller",
 			level = 186,

@@ -8890,4 +8890,22 @@ a["gold_coin_pile_hit"] = {
 	to = 4
 }
 
+-- KR4 scene animations retain every source layer; flat aliases stay available.
+local scene_layers = {
+	Stage_1_bilbo_layer = 2,
+	cart_layer1 = 2,
+	machine_spawner_layer = 14,
+	Stage_7_cuerno_layer = 5,
+	stage13_gummi_bears_layer = 4
+}
+local scene_aliases = {}
+for name, animation in pairs(a) do
+	for i = 1, scene_layers[animation.prefix] or 0 do
+		local layered = table.deepclone(animation)
+		layered.prefix = (animation.prefix == "cart_layer1" and "cart_layer" or animation.prefix) .. i
+		scene_aliases["kr4_scene_layer" .. i .. "_" .. name] = layered
+	end
+end
+for name, animation in pairs(scene_aliases) do a[name] = animation end
+
 return a

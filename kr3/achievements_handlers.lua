@@ -1,4 +1,4 @@
-﻿-- chunkname: @./kr3/achievements_handlers.lua
+-- chunkname: @./kr3/achievements_handlers.lua
 
 local log = require("klua.log"):new("achievements_handlers")
 local signal = require("hump.signal")
@@ -61,6 +61,7 @@ function ah:register_handlers(A)
 	reg("soldier-pickpocket", ah.h_soldier_pickpocket)
 	reg("moon-changed", ah.h_moon_changed)
 	reg("enemy-reached-goal", ah.h_enemy_reached_goal)
+	require("easter_achievements"):register_handlers(A)
 end
 
 function ah:h_boss_killed(entity)

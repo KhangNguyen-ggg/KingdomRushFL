@@ -15,6 +15,7 @@ return {
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "pirates_stage_controller",
 			level = 189,

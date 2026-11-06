@@ -1,4 +1,5 @@
-﻿return {
+return {
+	required_exoskeletons = {"kr4_egg_china_achievement_fireworks"},
 	required_sounds = {"branch_campaigns", "powers_kr4"},
 	required_textures = {},
 	scale_required_textures = {"go_stage175", "kr4_linirea", "kr4_chino", "kr4_power_reinforcements"},
@@ -18,6 +19,7 @@
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "kr4_branch_stage_controller",
 			level = 175,

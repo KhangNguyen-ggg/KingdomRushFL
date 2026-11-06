@@ -4933,7 +4933,9 @@ function branch_enemy_try_skill(store, this)
 			a.ts = now
 			if a.sound then S:queue(a.sound) end
 			if pirate_play_cast(store, this, a.animation, a.hit_time or a.cast_time, a.no_facing and nil or target, a.sprite_ids) then
-				if a.projectile then
+				if a.bolgur_burst then
+					require("bolgur_stage").fire_burst(store, this, a, target)
+				elseif a.projectile then
 					for i = 1, a.count or 1 do
 						branch_enemy_fire_projectile(store, this, a, target)
 						if i < (a.count or 1) and a.followup_animation then
@@ -6284,6 +6286,47 @@ scripts.branch_water_zone = {}
 function scripts.branch_water_zone.update(this, store)
 	this.branch_water_zone = true
 	while true do coroutine.yield() end
+end
+
+scripts.stage1_bilbo = {}
+
+function scripts.stage1_bilbo.update(this, store)
+	local group = this.animation_group
+	local function play_reveal(name, times)
+		for _, sprite in ipairs(this.render.sprites) do
+			sprite.ts = store.tick_ts
+			sprite.runs = 0
+		end
+		U.animation_start_group(this, name, nil, store.tick_ts, times > 1, group)
+		while not U.animation_finished_group(this, group, times) do
+			if this.ui.clicked then
+				this.ui.clicked = nil
+				return true
+			end
+			coroutine.yield()
+		end
+	end
+
+	while true do
+		this.ui.can_click = false
+		this.ui.clicked = nil
+		U.animation_start_group(this, "Stage_1_bilbo_idle", nil, store.tick_ts, true, group)
+		U.y_wait(store, math.random(this.min_cooldown, this.max_cooldown))
+		this.ui.can_click = true
+		S:queue("level1_hobbit_keyreveal", {delay = 1.15})
+		local clicked = play_reveal("Stage_1_bilbo_in", 1)
+			or play_reveal("Stage_1_bilbo_loop", this.loop_times)
+			or play_reveal("Stage_1_bilbo_out", 1)
+		if clicked then
+			this.ui.can_click = false
+			S:queue("level1_hobbit_footsteps", {delay = 0.6})
+			S:queue("level1_hobbit_opendoor", {delay = 3.6})
+			S:queue("level1_hobbit_fireburst", {delay = 7.3})
+			U.y_animation_play_group(this, "Stage_1_bilbo_bilbo", nil, store.tick_ts, 1, group)
+			AC:got("KR4_ACHIEVEMENT_BILBO_DOOR")
+			return
+		end
+	end
 end
 
 scripts.branch_static_decal = {}
@@ -9113,6 +9156,7 @@ function scripts.blackburn_controller.update(this, store)
 	end
 	while this.parts_found < #parts do coroutine.yield() end
 	S:queue("level28_blackburn_achievement")
+	AC:got("KR4_ACHIEVEMENT_BLACKBURN_RETURNS")
 	local towers = {}
 	for _, tower in pairs(store.entities) do
 		if tower.tower and not tower.tower_holder and not tower.tower.destroy then
@@ -13301,73 +13345,6 @@ function scripts.anurian_boss_water.update(this, store)
 	end
 end
 
-scripts.boss_dwarf_scene = {}
-
-function scripts.boss_dwarf_scene.update(this, store)
-	local sprite = this.render.sprites[1]
-	local steal = this.steal_gold
-	local next_steal_ts = steal and store.tick_ts + math.random(steal.cooldown_min or 45, steal.cooldown_max or 50)
-
-	U.animation_start(this, "boss_dwarf_idle", nil, store.tick_ts, true, 1)
-	if this.render.sprites[2] then
-		U.animation_start(this, "run", nil, store.tick_ts, true, 2)
-	end
-
-	while not this.exit do
-		if steal and store.tick_ts >= next_steal_ts and (store.wave_group_number or 0) >= (steal.wave_start or 1) then
-			if (store.player_gold or 0) >= (steal.min_gold or 1000) then
-				next_steal_ts = store.tick_ts + math.random(steal.cooldown_min or 45, steal.cooldown_max or 50)
-				U.animation_start(this, steal.animation or "boss_dwarf_steal", nil, store.tick_ts, false, 1)
-
-				if steal.fx then
-					local fx = E:create_entity(steal.fx)
-					fx.pos = V.vclone(steal.fx_pos or V.v(129, 10))
-					queue_insert(store, fx)
-				end
-
-				if steal.sound then
-					S:queue(steal.sound)
-				end
-
-				local loops = steal.loops or 10
-				local gold_steal = steal.gold_steal or 1
-
-				for _ = 1, loops do
-					if this.exit then
-						break
-					end
-
-					store.player_gold = math.max(0, (store.player_gold or 0) - gold_steal)
-					U.y_wait(store, steal.loop_delay or 0.05)
-				end
-
-				while not this.exit and not U.animation_finished(this, 1) do
-					coroutine.yield()
-				end
-
-				if not this.exit then
-					U.animation_start(this, "boss_dwarf_idle", nil, store.tick_ts, true, 1)
-				end
-			end
-		end
-
-		coroutine.yield()
-	end
-
-	S:queue("dwarves_boss_dwarf_throne")
-
-	for _, animation in ipairs(this.exit_animations or {"boss_dwarf_up", "boss_dwarf_jump", "boss_dwarf_downOut"}) do
-		if not store.entities[this.id] then
-			return
-		end
-
-		U.animation_start(this, animation, sprite.flip_x, store.tick_ts, false, 1)
-		U.y_animation_wait(this)
-	end
-
-	this.exit_done = true
-	queue_remove(store, this)
-end
 
 (function()
 local branch_stage3_trolley_schedules = {
@@ -13734,13 +13711,13 @@ end)()
 scripts.branch_stage_controller = {}
 
 function scripts.branch_stage_controller.update(this, store)
+	if this.level == 156 then return require("bolgur_stage").update(this, store) end
 	local level = this.level
 	local frozen_logic_level = level
 	local anurian_water, anurian_water_fx, anurian_mask_2
 	local winter_queen_statue
 	local great_t_shaman
 	local malik_throne
-	local boss_dwarf_scene
 	local lightseeker_roof
 	local magnus_scene, denas_scene
 	local raptor_nests = {}
@@ -13795,9 +13772,7 @@ function scripts.branch_stage_controller.update(this, store)
 	if level == 158 then
 		stage158_spawn_iceberg(store, true)
 	end
-	if level == 156 and store.level_mode == GAME_MODE_CAMPAIGN then
-		boss_dwarf_scene = branch_spawn_scene(store, "boss_dwarf", 260, 628)
-	elseif level == 159 and store.level_mode == GAME_MODE_CAMPAIGN then
+	if level == 159 and store.level_mode == GAME_MODE_CAMPAIGN then
 		viking_boss_scene = branch_spawn_scene(store, "viking_boss", 518, 619)
 		viking_boss_scene.loop_variants = nil
 	elseif level == 161 and store.level_mode == GAME_MODE_CAMPAIGN then
@@ -14303,23 +14278,6 @@ function scripts.branch_stage_controller.update(this, store)
 			end
 			branch_kill_all_enemies_for_victory(store, true)
 		end
-		if store.level_mode == GAME_MODE_CAMPAIGN and level == 156 and not boss_spawned and wave >= 15 then
-			boss_spawned = true
-
-			if boss_dwarf_scene and store.entities[boss_dwarf_scene.id] then
-				boss_dwarf_scene.exit = true
-
-				while store.entities[boss_dwarf_scene.id] and not boss_dwarf_scene.exit_done do
-					coroutine.yield()
-				end
-			end
-
-			local boss = branch_spawn_from_pos_to_path(store, "enemy_boss_dwarf_mecha", V.v(260, 628), 2, 1, P:get_start_node(2))
-
-			if boss then
-				S:queue("MusicBossFight_156")
-			end
-		end
 		if store.level_mode == GAME_MODE_CAMPAIGN and (level == 172 or level == 195) and not boss_spawned and wave >= 16 then
 			if winter_queen_statue and store.entities[winter_queen_statue.id] then
 				queue_remove(store, winter_queen_statue)
@@ -14440,9 +14398,7 @@ function scripts.branch_stage_controller.update(this, store)
 			end
 		end
 		if store.level_mode == GAME_MODE_CAMPAIGN and not boss_spawned and store.waves_finished then
-			if level == 156 then
-				boss_spawned = true
-			elseif level == 165 then
+			if level == 165 then
 				stage165_spawn_house_event(store, stage165_boss_house_schedule)
 
 				if lightseeker_roof and store.entities[lightseeker_roof.id] then

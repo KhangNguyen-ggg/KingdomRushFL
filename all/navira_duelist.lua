@@ -1,6 +1,5 @@
 -- Blue Navira keeps one opponent until death, retreat or loss of contact.
-local M={shield_textures={}}
-for i=1,5 do M.shield_textures[i]=string.format("go_fx_volibear_native_e_shield_bubble_visualfix_p%02d",i) end
+local M={shield_textures={'go_fx_navira_duality_shield_back','go_fx_navira_duality_shield_front'}}
 local C,E,U,bit
 function M.level(slot)
  if slot==nil then
@@ -100,15 +99,20 @@ end
 local function shield_visual(owner,store,expires)
  local name='navira_blue_conversion_shield'
  local A=require('animation_db')
- if not A.db[name] then
-  local frames={};for i=1,49 do frames[i]=i end
-  A.db[name]={prefix='fx_volibear_native_e_shield_bubble',frames=frames}
+ for _,part in ipairs({'back','front'})do
+  if not A.db[name..'_'..part] then
+   local frames={};for i=1,48 do frames[i]=i end
+   A.db[name..'_'..part]={prefix='fx_navira_duality_shield_'..part,frames=frames}
+  end
  end
  if not E.entities[name] then
   local t=E:register_t(name,'decal_scripted')
-  local sp=t.render.sprites[1]
-  sp.name=name;sp.animated=true;sp.loop=false;sp.fps=49/4
-  sp.anchor={x=.5,y=.5};sp.shader='p_navira_shield_blue';sp.z=Z_OBJECTS+1
+  t.render.sprites={}
+  for i,part in ipairs({'back','front'})do
+   local sp=E:clone_c('sprite')
+   sp.name=name..'_'..part;sp.animated=true;sp.loop=true;sp.fps=24;sp.alpha=0
+   sp.anchor={x=.5,y=.5};t.render.sprites[i]=sp
+  end
   t.main_script.insert=nil
   t.main_script.update=function(this,st)
    while st.tick_ts<this.expires do
@@ -116,6 +120,12 @@ local function shield_visual(owner,store,expires)
     if not C.alive(target) or not target.navira_duelist then break end
     local offset=target.unit.hit_offset
     this.pos.x,this.pos.y=target.pos.x+offset.x,target.pos.y+offset.y
+    local body=target.render.sprites[1]
+    local depth=body.sort_y or target.pos.y+(body.sort_y_offset or 0)
+    for i,sp in ipairs(this.render.sprites)do
+     sp.z=body.z or Z_OBJECTS;sp.sort_y=depth+(i==1 and .03 or -.03)
+     sp.alpha=255*math.max(0,math.min(1,(st.tick_ts-(this.expires-4))/.12,(this.expires-st.tick_ts)/.18))
+    end
     coroutine.yield()
    end
    C.remove(this)
@@ -125,10 +135,11 @@ local function shield_visual(owner,store,expires)
  e.owner_id,e.expires=owner.id,expires
  e.pos=C.copy(owner.pos)
  e.pos.x,e.pos.y=e.pos.x+owner.unit.hit_offset.x,e.pos.y+owner.unit.hit_offset.y
- local sp=e.render.sprites[1]
- sp.ts=expires-4
- local scale=math.max(100,math.abs(owner.unit.hit_offset.y)*2.6)/256
- sp.scale={x=scale,y=scale}
+ -- The sphere occupies 144 of its 160 pixels; the border leaves room for its glow.
+ local scale=math.max(100,math.abs(owner.unit.hit_offset.y)*3.6)/144
+ for _,sp in ipairs(e.render.sprites)do
+  sp.ts=expires-4;sp.scale={x=scale,y=scale}
+ end
  C.insert(e)
 end
 local function update_shield(this,store)

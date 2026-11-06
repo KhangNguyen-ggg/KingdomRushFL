@@ -1,4 +1,4 @@
-﻿-- chunkname: @./kr3/data/achievements_data.lua
+-- chunkname: @./kr3/data/achievements_data.lua
 
 local t = {
 	{
@@ -1371,6 +1371,19 @@ local t = {
 		-- name = "DEFEAT_COMPLETE_HARD"
 	-- }
 }
+
+t[#t + 1] = {
+	name = "KR4_ACHIEVEMENT_BILBO_DOOR",
+	i18n_key = "KR4_ACHIEVEMENT_BILBO_DOOR",
+	icon = 300,
+	order = "KR4_01"
+}
+
+t[#t + 1] = {name = "KR4_ACHIEVEMENT_DEFEAT_DWARF_KING", i18n_key = "KR4_ACHIEVEMENT_DEFEAT_DWARF_KING", icon = 581, order = "KR4_06_BOLGUR"}
+
+for _, achievement in ipairs(require("data.easter_achievements")) do
+	t[#t + 1] = achievement
+end
 
 for i = #t, 1, -1 do
 	if t[i].target and t[i].target ~= KR_TARGET then

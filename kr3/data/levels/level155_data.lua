@@ -1,4 +1,4 @@
-﻿return {
+return {
 	level_terrain_type = 400,
 	locked_hero = false,
 	max_upgrade_level = 5,
@@ -15,6 +15,7 @@
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "decal_background",
 			["render.sprites[1].z"] = 1000,
@@ -775,7 +776,7 @@
 		{ 2, 6, 11, nil },
 		{ 12, 7, 4, nil },
 	},
-	required_sounds = {"sounds_stage155", "powers_kr4"},
+	required_sounds = {"kr4_easter_eggs_155", "sounds_stage155", "powers_kr4"},
 	required_textures = {},
 	scale_required_textures = {"kr4_dwarven_empire", "go_stage155", "kr4_power_reinforcements"}
 }

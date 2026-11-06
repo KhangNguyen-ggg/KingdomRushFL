@@ -141,4 +141,5 @@ d1 = table.deepmerge(d1, require("data.animations.hero_silent"))
 -- BEGIN DOVE43 BUILTIN TOWERS
 d1 = table.deepmerge(d1, require("data.animations.dove43_towers"))
 -- END DOVE43 BUILTIN TOWERS
+d1 = table.deepmerge(d1, require("data.animations.kr4_easter_eggs"))
 return d1

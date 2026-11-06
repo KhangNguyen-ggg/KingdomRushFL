@@ -1210,4 +1210,13 @@ table.merge(dove43_data, {["d43_sniper_tower"]={["sounds"]={"d43_sniper_taunt_2"
 table.merge(dove43_data, {["d43_blastin_bullriders"]={["sounds"]={"d43_blastin_mortar_shot","d43_blastin_deep_explosion","d43_blastin_drone_shot","d43_blastin_mortar_impact","d43_blastin_taunt_2","d43_blastin_taunt_1","d43_blastin_taunt_3","d43_blastin_missile_launch"}},["d43_wifi_babies"]={["sounds"]={"d43_wifi_babies_taunt_4","d43_wifi_babies_cry_1","d43_wifi_babies_cry_2","d43_wifi_babies_cry_3","d43_wifi_babies_laser","d43_wifi_babies_projection","d43_wifi_babies_taunt_2","d43_wifi_babies_taunt_3","d43_wifi_babies_taunt_1"}}})
 -- BEGIN DOVE43 STREGI SOUNDS
 table.merge(dove43_data, {["d43_wicked_sisters_stregi"]={["sounds"]={"wss_veggie_upg_voice","wss_dream_out","wss_stregi_attack","wss_veggie_in","wss_shiny_voice","wss_doll_cast","wss_doll_boom","wss_crows_cast","wss_build_voice","wss_doll_upg_voice","wss_mud_cast","wss_mode_voice","wss_mud_impact"}}})
+
+dove43_data.sounds_stage151.sounds = dove43_data.sounds_stage151.sounds or {}
+table.insert(dove43_data.sounds_stage151.sounds, "level1_hobbit_keyreveal")
+table.insert(dove43_data.sounds_stage151.sounds, "level1_hobbit_footsteps")
+table.insert(dove43_data.sounds_stage151.sounds, "level1_hobbit_opendoor")
+table.insert(dove43_data.sounds_stage151.sounds, "level1_hobbit_fireburst")
+for level, ids in pairs(require("data.kr4_easter_sounds")) do
+	dove43_data["kr4_easter_eggs_" .. level] = {sounds = ids}
+end
 return dove43_data

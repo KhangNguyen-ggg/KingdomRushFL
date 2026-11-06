@@ -64,7 +64,7 @@ local function on_hit(this,store,target)
  local s=state(this,store)
  if s.stacks<5 then return end
  local hit={};local current=target
- local from={x=this.pos.x,y=this.pos.y+this.unit.hit_offset.y}
+ local from=this
  for _=1,5 do
   if not current then break end
   hit[current.id]=true;hurt(this,store,current,stats.passive_damage+0.01*current.health.hp_max,DAMAGE_MAGICAL)

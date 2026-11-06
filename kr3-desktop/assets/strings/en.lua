@@ -641,4 +641,7 @@ table.merge(z, {
 	TOWER_WICKED_SISTERS_STREGI_PARADE_DESCRIPTION = "Spend half your current gold to summon a cat or crow.",
 	TOWER_WICKED_SISTERS_STREGI_PARADE_NOTE = "The parade begins!",
 })
+for key, value in pairs(require("data.easter_achievement_strings").en) do z[key] = value end
+z["KR4_ACHIEVEMENT_DEFEAT_DWARF_KING_NAME"] = "I am Iron Man"
+z["KR4_ACHIEVEMENT_DEFEAT_DWARF_KING_DESCRIPTION"] = "Defeat Bolgur, Lord of the Dwarves."
 return z

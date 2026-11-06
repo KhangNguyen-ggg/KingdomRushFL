@@ -1,4 +1,4 @@
-﻿return {
+return {
 	required_sounds = {"branch_campaigns", "powers_kr4"},
 	required_textures = {},
 scale_required_textures = {"go_stage171", "kr4_frozen_north", "kr4_mercenary_troll_hut", "kr4_hielo", "kr4_power_reinforcements"},
@@ -18,6 +18,7 @@ scale_required_textures = {"go_stage171", "kr4_frozen_north", "kr4_mercenary_tro
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "kr4_branch_stage_controller",
 			level = 171,

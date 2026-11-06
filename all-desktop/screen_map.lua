@@ -9248,14 +9248,6 @@ function EncyclopediaView:initialize(sw, sh)
 		self.tower_button.hidden = false
 
 		self:load_creeps(1)
-
-		if self.right_panel then
-			self.back:remove_child(self.right_panel)
-
-			self.right_panel = nil
-		end
-
-		self:detail_creep(1)
 	end
 
 	local tl = EncyclopediaTabLabel:new(_("Enemies"), false, 2 * math.pi / 180)
@@ -9829,12 +9821,20 @@ function EncyclopediaView:load_creeps(index)
 		table.insert(self.page_buttons, btn)
 	end
 
-	local first_creep = creeps_data[(index - 1) * creeps_per_page + 1]
+	if self.right_panel then
+		self.back:remove_child(self.right_panel)
+		self.right_panel = nil
+	end
 
-	if first_creep and screen_map.user_data.seen[first_creep.name] then
-		self:detail_creep((index - 1) * creeps_per_page + 1)
-	else
-		self.select_sprite2.hidden = true
+	self.select_sprite2.hidden = true
+	local first_index = (index - 1) * creeps_per_page + 1
+	for i = first_index, math.min(index * creeps_per_page, max_creeps) do
+		local creep_data = creeps_data[i]
+		if screen_map.user_data.seen[creep_data.name] ~= false and (creep_data.always_shown or screen_map.user_data.seen[creep_data.name]) then
+			local d = i - first_index
+			self:creep_clicked(i, v(math.fmod(d, 6) * 63 + 35, math.floor(d / 6) * 63 + 140))
+			break
+		end
 	end
 end
 
@@ -9845,7 +9845,7 @@ function EncyclopediaView:create_creep(icon, pos, information, enabled)
 
 	local creep_data = GS.encyclopedia_enemies[information]
 
-	if true then --creep_data.always_shown or screen_map.user_data.seen[creep_data.name] then
+	if screen_map.user_data.seen[creep_data.name] ~= false and (creep_data.always_shown or screen_map.user_data.seen[creep_data.name]) then
 		local b = KButton:new()
 
 		b:set_image(icon)
@@ -9868,13 +9868,12 @@ function EncyclopediaView:create_creep(icon, pos, information, enabled)
 			S:queue("GUINotificationPaperOver")
 			self:creep_clicked(information, pos)
 		end
-	--else
-	--	local b = KImageView:new("encyclopedia_creep_thumbs_0049")
-
-	--	b.anchor = v(b.size.x / 2, b.size.y / 2)
-	--	b.pos = pos
-
-	--	self.creep:add_child(b)
+	else
+		local b = KImageView:new("encyclopedia_creep_thumbs_0049")
+		b.anchor = v(b.size.x / 2, b.size.y / 2)
+		b.pos = pos
+		b.scale = v(0.8, 0.8)
+		self.creep:add_child(b)
 	end
 end
 
@@ -18352,8 +18351,9 @@ function AchievementsView:createPage(pagenum)
 			end
 
 			local prefix = IS_KR3 and "ELVES_"
-			local title = _(prefix .. "ACHIEVEMENT_" .. ach.name .. "_NAME")
-			local desc = _(prefix .. "ACHIEVEMENT_" .. ach.name .. "_DESCRIPTION")
+			local key = ach.i18n_key or prefix .. "ACHIEVEMENT_" .. ach.name
+			local title = _(key .. "_NAME")
+			local desc = _(key .. "_DESCRIPTION")
 
 			box.title.text = title
 			box.desc.text = desc

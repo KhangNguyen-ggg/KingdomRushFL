@@ -10584,8 +10584,9 @@ function AchievementBanner:show()
 
 	self.icon:set_image("achievement_icons_" .. string.format("%04i", ach.icon))
 
-	self.l_title.text = _(prefix .. "ACHIEVEMENT_" .. ach.name .. "_NAME")
-	self.l_desc.text = _(prefix .. "ACHIEVEMENT_" .. ach.name .. "_DESCRIPTION")
+	local key = ach.i18n_key or prefix .. "ACHIEVEMENT_" .. ach.name
+	self.l_title.text = _(key .. "_NAME")
+	self.l_desc.text = _(key .. "_DESCRIPTION")
 	self.hidden = false
 	self.active = true
 

@@ -1,4 +1,4 @@
-﻿return {
+return {
 	level_terrain_type = 401,
 	locked_hero = false,
 	max_upgrade_level = 5,
@@ -15,6 +15,7 @@
 		},
 	},
 	entities_list = {
+		{template = "kr4_easter_controller", pos = {x = 0, y = 0}},
 		{
 			template = "decal_background",
 			["render.sprites[1].z"] = 1000,
